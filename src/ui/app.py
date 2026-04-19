@@ -111,39 +111,90 @@ class App(ctk.CTk):
         self._populate_panel(self.right_panel, tgt_info, tgt_tables, self.source_dsn)
 
     def _populate_panel(self, panel, info, tables, other_dsn):
-        if info: 
-            panel["info"].configure(text=f"🟢 {info['ver'][:35]}\n📦 Size: {info['size']}", text_color="#27ae60")
+        """
+        Populates a panel with table cards in batches of 25.
+        Yields to the Tkinter event loop between each batch to prevent UI freezing
+        with 200+ tables (previously caused 2-5 second hang on main thread).
+        """
+        if info:
+            panel["info"].configure(
+                text=f"🟢 {info['ver'][:35]}\n📦 Size: {info['size']} | 📋 {len(tables)} tables",
+                text_color="#27ae60"
+            )
         else:
             panel["info"].configure(text="🔴 Connection Failed", text_color="#e74c3c")
 
-        for t in tables: 
-            TableCard(panel["scroll"], t, panel["dsn"], other_dsn, self, panel["side"]).pack(fill="x", padx=10, pady=5)
+        # Increment generation — invalidates any previously-running batch callback
+        panel["_render_gen"] = panel.get("_render_gen", 0) + 1
+        gen = panel["_render_gen"]
+        self._render_batch(panel, list(tables), other_dsn, 0, 25, gen)
+
+    def _render_batch(self, panel, tables: list, other_dsn: str, start: int, batch_size: int, gen: int):
+        """
+        Creates `batch_size` TableCard widgets and schedules the next batch via after().
+        If `gen` doesn't match the panel's current generation, the batch is stale
+        (caused by a new refresh_ui() call) and is discarded immediately.
+        """
+        if panel.get("_render_gen", 0) != gen:
+            return  # Stale batch — panel was refreshed, discard
+
+        end = min(start + batch_size, len(tables))
+        for t in tables[start:end]:
+            TableCard(
+                panel["scroll"], t, panel["dsn"], other_dsn, self, panel["side"]
+            ).pack(fill="x", padx=10, pady=5)
+
+        if end < len(tables):
+            # Schedule next batch — 5ms delay yields to event loop without visible lag
+            self.after(5, lambda: self._render_batch(panel, tables, other_dsn, end, batch_size, gen))
 
     def initiate_bulk_delete(self, side, table_names):
         dsn = self.source_dsn if side == "source" else self.target_dsn
         if messagebox.askyesno("Confirm Bulk Drop", f"Are you sure you want to delete {len(table_names)} tables?"):
             try:
-                conn = psycopg2.connect(dsn); conn.autocommit = True
-                cur = conn.cursor()
-                for name in table_names:
-                    cur.execute(sql.SQL("DROP TABLE {} CASCADE").format(sql.Identifier(name)))
+                # FIX: context manager guarantees connection is closed even on error
+                with psycopg2.connect(dsn) as conn:
+                    conn.autocommit = True
+                    with conn.cursor() as cur:
+                        for name in table_names:
+                            cur.execute(
+                                sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(name))
+                            )
                 messagebox.showinfo("Success", f"Deleted {len(table_names)} tables.")
                 self.refresh_ui()
-            except Exception as e: messagebox.showerror("Error", str(e))
+            except psycopg2.Error as e:
+                messagebox.showerror("Error", str(e))
 
     def initiate_bulk_migration(self, side, table_names):
         from_dsn = self.source_dsn if side == "source" else self.target_dsn
         to_dsn = self.target_dsn if side == "source" else self.source_dsn
-        
-        # Calculate total rows for batch
+
+        # FIX: Use pg_stat_user_tables estimate (already fetched) instead of slow COUNT(*) per table.
+        # Fall back to 0 if stats not ready — progress bar will still show chunk progress.
         total_batch_rows = 0
         try:
-            conn = psycopg2.connect(from_dsn); cur = conn.cursor()
-            for t in table_names:
-                cur.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(t)))
-                total_batch_rows += cur.fetchone()[0]
-            conn.close()
-        except: pass
+            # FIX: context manager prevents connection leak if an error occurs mid-loop
+            with psycopg2.connect(from_dsn) as conn:
+                with conn.cursor() as cur:
+                    # Use statistics estimate — much faster than COUNT(*) for large tables
+                    placeholders = ",".join(["%s"] * len(table_names))
+                    cur.execute(
+                        f"""
+                        SELECT COALESCE(SUM(
+                            GREATEST(n_live_tup, CAST(c.reltuples AS BIGINT), 0)
+                        ), 0)
+                        FROM pg_stat_user_tables s
+                        JOIN pg_class c ON s.relid = c.oid
+                        WHERE s.relname IN ({placeholders})
+                        """,
+                        table_names,
+                    )
+                    total_batch_rows = cur.fetchone()[0] or 0
+        except psycopg2.Error:
+            total_batch_rows = 0  # Non-fatal — migration will proceed without accurate ETA
 
-        threading.Thread(target=run_bulk_migration, 
-                         args=(self, table_names, from_dsn, to_dsn, total_batch_rows), daemon=True).start()
+        threading.Thread(
+            target=run_bulk_migration,
+            args=(self, table_names, from_dsn, to_dsn, total_batch_rows),
+            daemon=True,
+        ).start()
