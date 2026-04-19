@@ -1,197 +1,623 @@
+"""
+PostgreSQL Bulk Architect Pro — v4.0
+=====================================
+UI Architecture:
+- ttk.Treeview per panel → O(1) render for 1000+ tables (no widget-per-row overhead)
+- connect_timeout=5 in DatabaseEngine — no more terminal freezing
+- Instant filter via Treeview tag visibility
+- Native multi-select (Ctrl+Click / Shift+Click)
+- Sort by column header click
+- Thread-safe refresh via after()
+"""
+
 import os
 import threading
-import customtkinter as ctk
-from tkinter import messagebox
-from psycopg2 import sql
+import tkinter as tk
+from tkinter import ttk, messagebox, font as tkfont
 import psycopg2
+from psycopg2 import sql
 from dotenv import load_dotenv
 
 from src.database.engine import DatabaseEngine
-from src.ui.components.table_card import TableCard
 from src.services.migration import run_bulk_migration
 
 load_dotenv()
 
-ctk.set_appearance_mode("Dark")
-ctk.set_default_color_theme("blue")
+# ─── Color palette ────────────────────────────────────────────
+BG         = "#0f1117"
+PANEL_BG   = "#161b22"
+HEADER_BG  = "#1c2128"
+ACCENT     = "#2f81f7"
+ACCENT2    = "#3fb950"
+DANGER     = "#f85149"
+WARNING    = "#d29922"
+TEXT       = "#e6edf3"
+TEXT_DIM   = "#8b949e"
+BORDER     = "#30363d"
+SEL_BG     = "#1f4068"
+ENTRY_BG   = "#21262d"
+BTN_BG     = "#21262d"
+BTN_HOVER  = "#30363d"
+TREE_ODD   = "#161b22"
+TREE_EVEN  = "#1c2128"
 
-class App(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-        self.title("PostgreSQL Bulk Architect Pro v3.0")
-        self.geometry("1500x900")
-        self.source_dsn = os.getenv("SOURCE_DB_URL")
-        self.target_dsn = os.getenv("TARGET_DB_URL")
-        
-        self.header = ctk.CTkLabel(self, text="🛡️ PRODUCTION BULK MIGRATOR", font=("Segoe UI", 28, "bold"), text_color="#3498db")
-        self.header.pack(pady=15)
-        
-        self.container = ctk.CTkFrame(self, fg_color="transparent")
-        self.container.pack(fill="both", expand=True, padx=20)
-        
-        self.left_panel = self.build_panel("SOURCE DB", self.source_dsn, "source")
-        self.right_panel = self.build_panel("TARGET DB", self.target_dsn, "target")
-        self.refresh_ui()
+FONT_UI    = ("Segoe UI", 10)
+FONT_BOLD  = ("Segoe UI", 10, "bold")
+FONT_TITLE = ("Segoe UI", 20, "bold")
+FONT_MONO  = ("Consolas", 9)
+FONT_HEAD  = ("Segoe UI", 11, "bold")
 
-    def build_panel(self, title, dsn, side):
-        p = ctk.CTkFrame(self.container, corner_radius=15, border_width=1, border_color="#2c3e50")
-        p.pack(side="left", fill="both", expand=True, padx=10)
-        
-        header_frame = ctk.CTkFrame(p, fg_color="transparent")
-        header_frame.pack(fill="x", pady=10)
-        ctk.CTkLabel(header_frame, text=title, font=("Segoe UI", 18, "bold")).pack(side="left", padx=20)
-        
-        # Bulk Actions Toolbar
-        bulk_tools = ctk.CTkFrame(p, fg_color="#1a1a1a", height=40, corner_radius=10)
-        bulk_tools.pack(fill="x", padx=15, pady=5)
-        bulk_tools.pack_forget() 
-        
-        info = ctk.CTkLabel(p, text="Connecting...", font=("Consolas", 11), fg_color="#161616", height=50)
-        info.pack(fill="x", padx=15, pady=5)
-        
-        search_var = ctk.StringVar()
-        ctk.CTkEntry(p, placeholder_text="🔍 Filter tables...", textvariable=search_var).pack(fill="x", padx=15, pady=5)
-        
-        scroll = ctk.CTkScrollableFrame(p, fg_color="transparent")
-        scroll.pack(fill="both", expand=True, padx=5, pady=5)
-        search_var.trace_add("write", lambda *args: self.filter_tables(scroll, search_var.get()))
-        
-        return {"scroll": scroll, "info": info, "dsn": dsn, "side": side, "bulk_tools": bulk_tools, "search_var": search_var}
 
-    def update_selection_count(self, side):
-        panel = self.left_panel if side == "source" else self.right_panel
-        selected = [card.table_name for card in panel["scroll"].winfo_children() if card.check_var.get()]
-        
-        if len(selected) > 0:
-            panel["bulk_tools"].pack(fill="x", padx=15, pady=5, before=panel["info"])
-            for widget in panel["bulk_tools"].winfo_children(): widget.destroy()
-            
-            ctk.CTkLabel(panel["bulk_tools"], text=f"Selected: {len(selected)}", font=("Segoe UI", 11, "bold")).pack(side="left", padx=15)
-            ctk.CTkButton(panel["bulk_tools"], text="🚀 Migrate Selected", fg_color="#d35400", height=25, 
-                          command=lambda: self.initiate_bulk_migration(side, selected)).pack(side="left", padx=5)
-            ctk.CTkButton(panel["bulk_tools"], text="🗑 Delete Selected", fg_color="#7b241c", height=25, 
-                          command=lambda: self.initiate_bulk_delete(side, selected)).pack(side="left", padx=5)
-        else:
-            panel["bulk_tools"].pack_forget()
+# ─── Styles ───────────────────────────────────────────────────
 
-    def filter_tables(self, scroll, val):
-        for card in scroll.winfo_children():
-            card.pack(fill="x", padx=10, pady=5) if val.lower() in card.table_name.lower() else card.pack_forget()
+def _apply_styles(root: tk.Tk) -> None:
+    style = ttk.Style(root)
+    style.theme_use("clam")
 
-    def refresh_ui(self):
-        # Set loading state
-        for p in [self.left_panel, self.right_panel]:
-            p["info"].configure(text="⏳ Loading...", text_color="white")
-            for c in p["scroll"].winfo_children(): c.destroy()
-            p["bulk_tools"].pack_forget()
+    # Treeview body
+    style.configure(
+        "DB.Treeview",
+        background=TREE_ODD,
+        foreground=TEXT,
+        fieldbackground=TREE_ODD,
+        borderwidth=0,
+        rowheight=30,
+        font=FONT_UI,
+    )
+    style.configure(
+        "DB.Treeview.Heading",
+        background=HEADER_BG,
+        foreground=TEXT_DIM,
+        borderwidth=0,
+        relief="flat",
+        font=FONT_BOLD,
+    )
+    style.map(
+        "DB.Treeview",
+        background=[("selected", SEL_BG)],
+        foreground=[("selected", TEXT)],
+    )
+    style.map(
+        "DB.Treeview.Heading",
+        background=[("active", BORDER)],
+    )
 
-        # Run data fetch in background
-        threading.Thread(target=self._fetch_and_update, daemon=True).start()
+    # Scrollbar
+    style.configure(
+        "DB.Vertical.TScrollbar",
+        background=BORDER,
+        troughcolor=PANEL_BG,
+        arrowcolor=TEXT_DIM,
+        borderwidth=0,
+        relief="flat",
+    )
+    style.configure(
+        "DB.Horizontal.TScrollbar",
+        background=BORDER,
+        troughcolor=PANEL_BG,
+        arrowcolor=TEXT_DIM,
+        borderwidth=0,
+        relief="flat",
+    )
 
-    def _fetch_and_update(self):
-        try:
-            # Fetch Source Data
-            src_info = DatabaseEngine.get_db_info(self.source_dsn)
-            src_tables = DatabaseEngine.get_tables_stats(self.source_dsn)
-            
-            # Fetch Target Data
-            tgt_info = DatabaseEngine.get_db_info(self.target_dsn)
-            tgt_tables = DatabaseEngine.get_tables_stats(self.target_dsn)
-            
-            # Schedule UI Update on Main Thread
-            self.after(0, lambda: self._update_panels(src_info, src_tables, tgt_info, tgt_tables))
-        except Exception as e:
-            print(f"Error fetching data: {e}")
+    # Entry
+    style.configure(
+        "DB.TEntry",
+        fieldbackground=ENTRY_BG,
+        foreground=TEXT,
+        insertcolor=TEXT,
+        borderwidth=1,
+        relief="flat",
+    )
 
-    def _update_panels(self, src_info, src_tables, tgt_info, tgt_tables):
-        # Update Left Panel (Source)
-        self._populate_panel(self.left_panel, src_info, src_tables, self.target_dsn)
-        
-        # Update Right Panel (Target)
-        self._populate_panel(self.right_panel, tgt_info, tgt_tables, self.source_dsn)
+    # Separator
+    style.configure("DB.TSeparator", background=BORDER)
 
-    def _populate_panel(self, panel, info, tables, other_dsn):
-        """
-        Populates a panel with table cards in batches of 25.
-        Yields to the Tkinter event loop between each batch to prevent UI freezing
-        with 200+ tables (previously caused 2-5 second hang on main thread).
-        """
+
+# ─── Rounded-corner tk.Button helper ─────────────────────────
+
+class FlatButton(tk.Frame):
+    """Minimal flat button with hover effect."""
+
+    def __init__(self, master, text: str, command=None,
+                 bg=BTN_BG, fg=TEXT, hover=BTN_HOVER,
+                 width=None, padx=14, pady=5, font=FONT_UI, **kw):
+        super().__init__(master, bg=master["bg"] if hasattr(master, "__getitem__") else BG, **kw)
+        self._bg  = bg
+        self._hov = hover
+        self._cmd = command
+
+        self._lbl = tk.Label(
+            self, text=text, bg=bg, fg=fg,
+            font=font, padx=padx, pady=pady,
+            cursor="hand2",
+        )
+        if width:
+            self._lbl.config(width=width)
+        self._lbl.pack(fill="both", expand=True)
+
+        self._lbl.bind("<Enter>",   self._on_enter)
+        self._lbl.bind("<Leave>",   self._on_leave)
+        self._lbl.bind("<Button-1>", self._on_click)
+
+    def configure_text(self, text: str) -> None:
+        self._lbl.config(text=text)
+
+    def _on_enter(self, _):  self._lbl.config(bg=self._hov)
+    def _on_leave(self, _):  self._lbl.config(bg=self._bg)
+    def _on_click(self, _):
+        if self._cmd:
+            self._cmd()
+
+
+# ─── PanelView ────────────────────────────────────────────────
+
+class PanelView(tk.Frame):
+    """
+    Self-contained panel: header, search bar, Treeview table list,
+    bulk-action toolbar. All rendering is done inside the Treeview
+    so 1000 tables = 0 lag.
+    """
+
+    COLS = ("name", "rows", "size")
+    COL_CFG = {
+        "name": {"label": "Table Name",  "width": 220, "stretch": True,  "anchor": "w"},
+        "rows": {"label": "Rows",        "width": 90,  "stretch": False, "anchor": "e"},
+        "size": {"label": "Size",        "width": 80,  "stretch": False, "anchor": "e"},
+    }
+
+    def __init__(self, master, title: str, dsn: str, side: str, app: "App", **kw):
+        super().__init__(master, bg=PANEL_BG, highlightbackground=BORDER,
+                         highlightthickness=1, **kw)
+        self.dsn   = dsn
+        self.side  = side
+        self.app   = app
+        self._all_rows: list[dict] = []      # Full dataset
+        self._sort_col: str = "name"
+        self._sort_rev: bool = False
+        self._filter_after_id = None         # Debounce ID
+
+        self._build_header(title)
+        self._build_info_bar()
+        self._build_toolbar()
+        self._build_search()
+        self._build_treeview()
+        self._build_bulk_bar()
+
+    # ── Builder helpers ──────────────────────────────────────
+
+    def _build_header(self, title: str) -> None:
+        hdr = tk.Frame(self, bg=HEADER_BG, height=48)
+        hdr.pack(fill="x")
+        hdr.pack_propagate(False)
+
+        indicator = tk.Frame(hdr, bg=ACCENT, width=4)
+        indicator.pack(side="left", fill="y")
+
+        tk.Label(
+            hdr, text=title, bg=HEADER_BG, fg=TEXT,
+            font=FONT_HEAD, padx=16,
+        ).pack(side="left", fill="y")
+
+        self._count_lbl = tk.Label(
+            hdr, text="", bg=HEADER_BG, fg=TEXT_DIM,
+            font=FONT_MONO, padx=10,
+        )
+        self._count_lbl.pack(side="right")
+
+    def _build_info_bar(self) -> None:
+        self._info_frame = tk.Frame(self, bg=PANEL_BG, height=34)
+        self._info_frame.pack(fill="x")
+        self._info_frame.pack_propagate(False)
+
+        self._info_lbl = tk.Label(
+            self._info_frame,
+            text="⏳ Connecting...",
+            bg=PANEL_BG, fg=WARNING,
+            font=FONT_MONO, padx=14, anchor="w",
+        )
+        self._info_lbl.pack(fill="both", expand=True)
+
+    def _build_toolbar(self) -> None:
+        self._toolbar = tk.Frame(self, bg=PANEL_BG, height=36)
+        self._toolbar.pack(fill="x", padx=10, pady=(4, 0))
+
+        # Refresh
+        FlatButton(
+            self._toolbar, text="⟳  Refresh",
+            command=self.app.refresh_ui,
+            bg=BTN_BG, width=10,
+        ).pack(side="left", padx=(0, 4))
+
+        # Select All / None
+        FlatButton(
+            self._toolbar, text="☑ All",
+            command=self._select_all,
+            bg=BTN_BG, width=6,
+        ).pack(side="left", padx=2)
+
+        FlatButton(
+            self._toolbar, text="☐ None",
+            command=self._select_none,
+            bg=BTN_BG, width=6,
+        ).pack(side="left", padx=2)
+
+        # Sort label (right-aligned)
+        self._sort_lbl = tk.Label(
+            self._toolbar, text="↕ name", bg=PANEL_BG,
+            fg=TEXT_DIM, font=FONT_MONO,
+        )
+        self._sort_lbl.pack(side="right", padx=6)
+
+    def _build_search(self) -> None:
+        sf = tk.Frame(self, bg=PANEL_BG)
+        sf.pack(fill="x", padx=10, pady=4)
+
+        tk.Label(sf, text="🔍", bg=PANEL_BG, fg=TEXT_DIM, font=FONT_UI).pack(side="left", padx=(0, 4))
+
+        self._search_var = tk.StringVar()
+        self._search_var.trace_add("write", self._on_search_change)
+
+        entry = ttk.Entry(sf, textvariable=self._search_var, style="DB.TEntry", font=FONT_UI)
+        entry.pack(side="left", fill="x", expand=True, ipady=4)
+
+        # Clear button
+        FlatButton(
+            sf, text="✕", command=lambda: self._search_var.set(""),
+            bg=ENTRY_BG, padx=8, pady=2, font=FONT_MONO,
+        ).pack(side="left", padx=(4, 0))
+
+    def _build_treeview(self) -> None:
+        wrapper = tk.Frame(self, bg=PANEL_BG)
+        wrapper.pack(fill="both", expand=True, padx=6, pady=4)
+
+        # Scrollbars
+        vsb = ttk.Scrollbar(wrapper, orient="vertical",   style="DB.Vertical.TScrollbar")
+        hsb = ttk.Scrollbar(wrapper, orient="horizontal", style="DB.Horizontal.TScrollbar")
+
+        self.tree = ttk.Treeview(
+            wrapper,
+            columns=self.COLS,
+            show="headings",
+            selectmode="extended",
+            style="DB.Treeview",
+            yscrollcommand=vsb.set,
+            xscrollcommand=hsb.set,
+        )
+        vsb.config(command=self.tree.yview)
+        hsb.config(command=self.tree.xview)
+
+        # Configure columns
+        for col in self.COLS:
+            cfg = self.COL_CFG[col]
+            self.tree.heading(
+                col, text=cfg["label"],
+                command=lambda c=col: self._sort_by(c),
+                anchor=cfg["anchor"],
+            )
+            self.tree.column(
+                col,
+                width=cfg["width"],
+                stretch=cfg["stretch"],
+                anchor=cfg["anchor"],
+                minwidth=50,
+            )
+
+        # Alternating row tags
+        self.tree.tag_configure("odd",  background=TREE_ODD)
+        self.tree.tag_configure("even", background=TREE_EVEN)
+
+        # Layout
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        vsb.grid(row=0, column=1, sticky="ns")
+        hsb.grid(row=1, column=0, sticky="ew")
+        wrapper.grid_rowconfigure(0, weight=1)
+        wrapper.grid_columnconfigure(0, weight=1)
+
+        # Selection change → update bulk bar
+        self.tree.bind("<<TreeviewSelect>>", self._on_selection_change)
+
+    def _build_bulk_bar(self) -> None:
+        self._bulk_bar = tk.Frame(self, bg=HEADER_BG, height=44)
+        self._bulk_bar.pack_propagate(False)
+        # Initially hidden — shown on selection
+
+        self._sel_count_lbl = tk.Label(
+            self._bulk_bar, text="", bg=HEADER_BG,
+            fg=ACCENT, font=FONT_BOLD, padx=14,
+        )
+        self._sel_count_lbl.pack(side="left")
+
+        FlatButton(
+            self._bulk_bar, text="🚀 Migrate Selected",
+            command=self._migrate_selected,
+            bg="#1a3a5c", hover="#1f4068", pady=7,
+        ).pack(side="left", padx=4)
+
+        FlatButton(
+            self._bulk_bar, text="🗑 Drop Selected",
+            command=self._drop_selected,
+            bg="#3d1111", hover="#5c1a1a", pady=7,
+        ).pack(side="left", padx=4)
+
+    # ── Public API ───────────────────────────────────────────
+
+    def set_info(self, text: str, color: str = TEXT_DIM) -> None:
+        self._info_lbl.config(text=text, fg=color)
+
+    def set_loading(self) -> None:
+        self._info_lbl.config(text="⏳ Loading...", fg=WARNING)
+        self._count_lbl.config(text="")
+        self.tree.delete(*self.tree.get_children())
+        self._all_rows.clear()
+        self._hide_bulk_bar()
+
+    def populate(self, info: dict | None, tables: list) -> None:
+        """Called from main thread after background fetch completes."""
+        # Defensive clear — guards against after() callbacks firing twice
+        self.tree.delete(*self.tree.get_children())
+        self._all_rows = list(tables)
+
         if info:
-            panel["info"].configure(
-                text=f"🟢 {info['ver'][:35]}\n📦 Size: {info['size']} | 📋 {len(tables)} tables",
-                text_color="#27ae60"
+            short_ver = info["ver"].replace("PostgreSQL ", "PG ")[:45]
+            self.set_info(
+                f"🟢  {short_ver}  │  {info['size']}  │  {len(tables)} tables",
+                ACCENT2,
             )
         else:
-            panel["info"].configure(text="🔴 Connection Failed", text_color="#e74c3c")
+            self.set_info("🔴  Connection failed  —  check DSN or DB status", DANGER)
 
-        # Increment generation — invalidates any previously-running batch callback
-        panel["_render_gen"] = panel.get("_render_gen", 0) + 1
-        gen = panel["_render_gen"]
-        self._render_batch(panel, list(tables), other_dsn, 0, 25, gen)
+        self._render_table(self._all_rows)
 
-    def _render_batch(self, panel, tables: list, other_dsn: str, start: int, batch_size: int, gen: int):
-        """
-        Creates `batch_size` TableCard widgets and schedules the next batch via after().
-        If `gen` doesn't match the panel's current generation, the batch is stale
-        (caused by a new refresh_ui() call) and is discarded immediately.
-        """
-        if panel.get("_render_gen", 0) != gen:
-            return  # Stale batch — panel was refreshed, discard
+    def get_selected_names(self) -> list[str]:
+        # values[0] holds the raw table name (no prefix)
+        return [self.tree.item(iid)["values"][0] for iid in self.tree.selection()]
 
-        end = min(start + batch_size, len(tables))
-        for t in tables[start:end]:
-            TableCard(
-                panel["scroll"], t, panel["dsn"], other_dsn, self, panel["side"]
-            ).pack(fill="x", padx=10, pady=5)
+    # ── Private helpers ──────────────────────────────────────
 
-        if end < len(tables):
-            # Schedule next batch — 5ms delay yields to event loop without visible lag
-            self.after(5, lambda: self._render_batch(panel, tables, other_dsn, end, batch_size, gen))
+    def _render_table(self, rows: list) -> None:
+        """Fast bulk-insert into Treeview. Clears previous rows first."""
+        self.tree.delete(*self.tree.get_children())
+        for i, row in enumerate(rows):
+            tag = "even" if i % 2 == 0 else "odd"
+            # Prefix iid with side to avoid TclError when both panels share table names
+            iid = f"{self.side}::{row['name']}"
+            self.tree.insert(
+                "", "end",
+                iid=iid,
+                values=(row["name"], f"{row['rows']:,}", row["size"]),
+                tags=(tag,),
+            )
+        self._count_lbl.config(text=f"{len(rows)} tables")
 
-    def initiate_bulk_delete(self, side, table_names):
+    def _on_search_change(self, *_) -> None:
+        """Debounce 150 ms then filter."""
+        if self._filter_after_id:
+            self.after_cancel(self._filter_after_id)
+        self._filter_after_id = self.after(150, self._apply_filter)
+
+    def _apply_filter(self) -> None:
+        query = self._search_var.get().strip().lower()
+        if not query:
+            filtered = self._all_rows
+        else:
+            filtered = [r for r in self._all_rows if query in r["name"].lower()]
+        self._render_table(filtered)
+
+    def _sort_by(self, col: str) -> None:
+        if self._sort_col == col:
+            self._sort_rev = not self._sort_rev
+        else:
+            self._sort_col = col
+            self._sort_rev = False
+
+        key_map = {"name": "name", "rows": "rows", "size": "bytes"}
+        key = key_map.get(col, col)
+        sorted_rows = sorted(self._all_rows, key=lambda r: r.get(key, 0), reverse=self._sort_rev)
+        self._all_rows = sorted_rows
+
+        arrow = " ▼" if self._sort_rev else " ▲"
+        self._sort_lbl.config(text=f"↕ {col}{arrow}")
+        self._apply_filter()
+
+    def _select_all(self) -> None:
+        self.tree.selection_set(self.tree.get_children())
+
+    def _select_none(self) -> None:
+        self.tree.selection_remove(self.tree.get_children())
+
+    def _on_selection_change(self, _=None) -> None:
+        count = len(self.tree.selection())
+        if count > 0:
+            self._show_bulk_bar(count)
+        else:
+            self._hide_bulk_bar()
+
+    def _show_bulk_bar(self, count: int) -> None:
+        self._sel_count_lbl.config(text=f"✓  {count} selected")
+        if not self._bulk_bar.winfo_ismapped():
+            self._bulk_bar.pack(fill="x", side="bottom")
+
+    def _hide_bulk_bar(self) -> None:
+        if self._bulk_bar.winfo_ismapped():
+            self._bulk_bar.pack_forget()
+
+    def _migrate_selected(self) -> None:
+        tables = self.get_selected_names()
+        if tables:
+            self.app.initiate_bulk_migration(self.side, tables)
+
+    def _drop_selected(self) -> None:
+        tables = self.get_selected_names()
+        if tables:
+            self.app.initiate_bulk_delete(self.side, tables)
+
+
+# ─── Main App ─────────────────────────────────────────────────
+
+class App(tk.Tk):
+
+    def __init__(self):
+        super().__init__()
+        self.title("PostgreSQL Bulk Architect Pro  v4.0")
+        self.geometry("1520x900")
+        self.minsize(900, 600)
+        self.configure(bg=BG)
+
+        # Load DSNs
+        self.source_dsn = os.getenv("SOURCE_DB_URL", "")
+        self.target_dsn = os.getenv("TARGET_DB_URL", "")
+
+        _apply_styles(self)
+        self._build_ui()
+        self.refresh_ui()
+
+    # ── UI Construction ──────────────────────────────────────
+
+    def _build_ui(self) -> None:
+        # ── App header ──
+        header = tk.Frame(self, bg=BG, height=60)
+        header.pack(fill="x")
+        header.pack_propagate(False)
+
+        tk.Label(
+            header,
+            text="🛡  PostgreSQL Bulk Architect Pro",
+            bg=BG, fg=TEXT,
+            font=FONT_TITLE, padx=24,
+        ).pack(side="left", fill="y")
+
+        self._global_status = tk.Label(
+            header, text="", bg=BG, fg=TEXT_DIM, font=FONT_MONO, padx=20,
+        )
+        self._global_status.pack(side="right", fill="y")
+
+        # ── Separator ──
+        ttk.Separator(self, orient="horizontal", style="DB.TSeparator").pack(fill="x")
+
+        # ── Panel container ──
+        content = tk.Frame(self, bg=BG)
+        content.pack(fill="both", expand=True, padx=16, pady=12)
+
+        self._src_panel = PanelView(
+            content,
+            title="SOURCE DATABASE",
+            dsn=self.source_dsn,
+            side="source",
+            app=self,
+        )
+        self._src_panel.pack(side="left", fill="both", expand=True, padx=(0, 8))
+
+        # ── Divider ──
+        div = tk.Frame(content, bg=BORDER, width=1)
+        div.pack(side="left", fill="y")
+
+        self._tgt_panel = PanelView(
+            content,
+            title="TARGET DATABASE",
+            dsn=self.target_dsn,
+            side="target",
+            app=self,
+        )
+        self._tgt_panel.pack(side="left", fill="both", expand=True, padx=(8, 0))
+
+    # ── Data Refresh ─────────────────────────────────────────
+
+    def refresh_ui(self) -> None:
+        self._refresh_gen = getattr(self, "_refresh_gen", 0) + 1
+        self._global_status.config(text="⟳  Refreshing...", fg=WARNING)
+        self._src_panel.set_loading()
+        self._tgt_panel.set_loading()
+        gen = self._refresh_gen
+        threading.Thread(target=self._fetch_all, args=(gen,), daemon=True).start()
+
+    def _fetch_all(self, gen: int) -> None:
+        """Runs in background thread — fetches both DBs in parallel."""
+        results = {}
+
+        def _fetch(key: str, dsn: str) -> None:
+            results[key] = {
+                "info":   DatabaseEngine.get_db_info(dsn),
+                "tables": DatabaseEngine.get_tables_stats(dsn),
+            }
+
+        t1 = threading.Thread(target=_fetch, args=("src", self.source_dsn), daemon=True)
+        t2 = threading.Thread(target=_fetch, args=("tgt", self.target_dsn), daemon=True)
+        t1.start(); t2.start()
+        t1.join();  t2.join()
+
+        # Discard if a newer refresh was triggered while we were fetching
+        if gen == getattr(self, "_refresh_gen", 0):
+            self.after(0, lambda: self._apply_results(results))
+
+    def _apply_results(self, results: dict) -> None:
+        src = results.get("src", {})
+        tgt = results.get("tgt", {})
+
+        self._src_panel.populate(src.get("info"), src.get("tables", []))
+        self._tgt_panel.populate(tgt.get("info"), tgt.get("tables", []))
+
+        connected = sum([
+            1 if src.get("info") else 0,
+            1 if tgt.get("info") else 0,
+        ])
+        self._global_status.config(
+            text=f"✓  {connected}/2 databases connected",
+            fg=ACCENT2 if connected == 2 else (WARNING if connected == 1 else DANGER),
+        )
+
+    # ── Actions ──────────────────────────────────────────────
+
+    def initiate_bulk_delete(self, side: str, table_names: list[str]) -> None:
         dsn = self.source_dsn if side == "source" else self.target_dsn
-        if messagebox.askyesno("Confirm Bulk Drop", f"Are you sure you want to delete {len(table_names)} tables?"):
-            try:
-                # FIX: context manager guarantees connection is closed even on error
-                with psycopg2.connect(dsn) as conn:
-                    conn.autocommit = True
-                    with conn.cursor() as cur:
-                        for name in table_names:
-                            cur.execute(
-                                sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(name))
-                            )
-                messagebox.showinfo("Success", f"Deleted {len(table_names)} tables.")
-                self.refresh_ui()
-            except psycopg2.Error as e:
-                messagebox.showerror("Error", str(e))
 
-    def initiate_bulk_migration(self, side, table_names):
+        if not messagebox.askyesno(
+            "Confirm Drop Tables",
+            f"Permanently drop {len(table_names)} table(s)?\n\n"
+            + "\n".join(f"  • {t}" for t in table_names[:10])
+            + (f"\n  … and {len(table_names)-10} more" if len(table_names) > 10 else ""),
+        ):
+            return
+
+        try:
+            conn = psycopg2.connect(dsn, connect_timeout=5)
+            conn.autocommit = True
+            with conn.cursor() as cur:
+                for name in table_names:
+                    cur.execute(
+                        sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(name))
+                    )
+            conn.close()
+            messagebox.showinfo("Done", f"✅  Dropped {len(table_names)} table(s).")
+            self.refresh_ui()
+        except psycopg2.Error as e:
+            messagebox.showerror("Error", str(e))
+
+    def initiate_bulk_migration(self, side: str, table_names: list[str]) -> None:
         from_dsn = self.source_dsn if side == "source" else self.target_dsn
-        to_dsn = self.target_dsn if side == "source" else self.source_dsn
+        to_dsn   = self.target_dsn if side == "source" else self.source_dsn
 
-        # FIX: Use pg_stat_user_tables estimate (already fetched) instead of slow COUNT(*) per table.
-        # Fall back to 0 if stats not ready — progress bar will still show chunk progress.
+        # Estimate total rows using pg statistics (fast — no COUNT(*))
         total_batch_rows = 0
         try:
-            # FIX: context manager prevents connection leak if an error occurs mid-loop
-            with psycopg2.connect(from_dsn) as conn:
-                with conn.cursor() as cur:
-                    # Use statistics estimate — much faster than COUNT(*) for large tables
-                    placeholders = ",".join(["%s"] * len(table_names))
-                    cur.execute(
-                        f"""
-                        SELECT COALESCE(SUM(
-                            GREATEST(n_live_tup, CAST(c.reltuples AS BIGINT), 0)
-                        ), 0)
-                        FROM pg_stat_user_tables s
-                        JOIN pg_class c ON s.relid = c.oid
-                        WHERE s.relname IN ({placeholders})
-                        """,
-                        table_names,
-                    )
-                    total_batch_rows = cur.fetchone()[0] or 0
+            conn = psycopg2.connect(from_dsn, connect_timeout=5)
+            with conn.cursor() as cur:
+                placeholders = ",".join(["%s"] * len(table_names))
+                cur.execute(
+                    f"""
+                    SELECT COALESCE(SUM(
+                        GREATEST(n_live_tup, CAST(c.reltuples AS BIGINT), 0)
+                    ), 0)
+                    FROM pg_stat_user_tables s
+                    JOIN pg_class c ON s.relid = c.oid
+                    WHERE s.relname IN ({placeholders})
+                    """,
+                    table_names,
+                )
+                total_batch_rows = cur.fetchone()[0] or 0
+            conn.close()
         except psycopg2.Error:
-            total_batch_rows = 0  # Non-fatal — migration will proceed without accurate ETA
+            total_batch_rows = 0  # Non-fatal: progress bar will still work
 
         threading.Thread(
             target=run_bulk_migration,

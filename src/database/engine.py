@@ -4,6 +4,18 @@ from psycopg2 import extras, sql
 
 logger = logging.getLogger(__name__)
 
+# Connection timeout in seconds — prevents terminal from freezing when
+# a DB host is unreachable (e.g. localhost:5432 not running).
+_CONNECT_TIMEOUT = 5
+
+
+def _connect(dsn: str) -> psycopg2.extensions.connection:
+    """
+    Wraps psycopg2.connect with a hard connect_timeout.
+    Raises psycopg2.OperationalError within 5 s if host is unreachable.
+    """
+    return psycopg2.connect(dsn, connect_timeout=_CONNECT_TIMEOUT)
+
 
 class DatabaseEngine:
 
@@ -11,7 +23,7 @@ class DatabaseEngine:
     def get_db_info(dsn: str) -> dict | None:
         """Returns version and size of the database. Returns None on failure."""
         try:
-            with psycopg2.connect(dsn) as conn:
+            with _connect(dsn) as conn:
                 with conn.cursor(cursor_factory=extras.RealDictCursor) as cur:
                     cur.execute("SELECT version();")
                     ver = cur.fetchone()["version"].split(" on ")[0]
@@ -26,18 +38,17 @@ class DatabaseEngine:
     def get_tables_stats(dsn: str) -> list:
         """Returns stats for all user tables. Returns [] on failure."""
         query = """
-            SELECT
-                t.relname AS name,
+            SELECT DISTINCT ON (s.relname)
+                s.relname AS name,
                 COALESCE(NULLIF(s.n_live_tup, 0), GREATEST(CAST(c.reltuples AS BIGINT), 0), 0) AS rows,
-                pg_size_pretty(pg_total_relation_size(t.relid)) AS size,
-                pg_total_relation_size(t.relid) AS bytes
+                pg_size_pretty(pg_total_relation_size(s.relid)) AS size,
+                pg_total_relation_size(s.relid) AS bytes
             FROM pg_stat_user_tables s
             JOIN pg_class c ON s.relid = c.oid
-            JOIN pg_stat_user_tables t ON s.relid = t.relid
-            ORDER BY name ASC;
+            ORDER BY s.relname ASC;
         """
         try:
-            with psycopg2.connect(dsn) as conn:
+            with _connect(dsn) as conn:
                 with conn.cursor(cursor_factory=extras.RealDictCursor) as cur:
                     cur.execute(query)
                     data = cur.fetchall()
@@ -69,9 +80,7 @@ class DatabaseEngine:
               AND table_name = %s
             ORDER BY ordinal_position;
         """
-        # FIX: Use parametrized query — table_name is passed as a parameter,
-        # NOT interpolated into the string. This completely prevents SQL Injection.
-        with psycopg2.connect(dsn) as conn:
+        with _connect(dsn) as conn:
             with conn.cursor(cursor_factory=extras.RealDictCursor) as cur:
                 cur.execute(query, (table_name,))
                 cols = cur.fetchall()
@@ -102,7 +111,7 @@ class DatabaseEngine:
               AND indexdef NOT LIKE '%_pkey%';
         """
         try:
-            with psycopg2.connect(dsn) as conn:
+            with _connect(dsn) as conn:
                 with conn.cursor(cursor_factory=extras.RealDictCursor) as cur:
                     cur.execute(pk_query, (table_name,))
                     pks = [r["column_name"] for r in cur.fetchall()]

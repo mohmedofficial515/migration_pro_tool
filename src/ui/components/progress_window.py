@@ -1,310 +1,317 @@
 """
-Migration Progress Window — Phase 4
-=====================================
-New in Phase 4:
-- Pause / Resume button (uses threading.Event)
+Migration Progress Window — v4.0
+==================================
+Rebuilt with standard tkinter (no customtkinter dependency).
+
+Features:
+- Pause / Resume button (threading.Event)
 - Table counter: Total | Done | Failed | Remaining (live updates)
-- Save Report button (JSON + CSV export after completion)
-- Thread-safe log() routing via after() for parallel workers
+- Save Report (JSON + CSV) after completion
+- Thread-safe log() via after()
 - Active tables display for parallel mode
 """
 
 import threading
 import time
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+
+# ── Palette (matches app.py) ──────────────────────────────────
+BG       = "#0f1117"
+PANEL    = "#161b22"
+HEADER   = "#1c2128"
+ACCENT   = "#2f81f7"
+ACCENT2  = "#3fb950"
+DANGER   = "#f85149"
+WARNING  = "#d29922"
+TEXT     = "#e6edf3"
+TEXT_DIM = "#8b949e"
+BORDER   = "#30363d"
+ENTRY_BG = "#21262d"
+
+FONT_UI   = ("Segoe UI", 10)
+FONT_BOLD = ("Segoe UI", 10, "bold")
+FONT_HEAD = ("Segoe UI", 14, "bold")
+FONT_MONO = ("Consolas", 10)
 
 
-class MigrationProgressWindow(ctk.CTkToplevel):
+def _flat_btn(master, text: str, command=None, bg=ENTRY_BG,
+              fg=TEXT, hover="#30363d", padx=14, pady=6,
+              font=FONT_UI, width=None):
+    """Returns a tk.Label configured as a flat button with hover."""
+    lbl = tk.Label(
+        master, text=text, bg=bg, fg=fg, font=font,
+        padx=padx, pady=pady, cursor="hand2",
+    )
+    if width:
+        lbl.config(width=width)
+
+    def _in(_):  lbl.config(bg=hover)
+    def _out(_): lbl.config(bg=bg)
+    def _clk(_):
+        if command: command()
+
+    lbl.bind("<Enter>",    _in)
+    lbl.bind("<Leave>",    _out)
+    lbl.bind("<Button-1>", _clk)
+    return lbl
+
+
+class MigrationProgressWindow(tk.Toplevel):
 
     def __init__(self, master, total_rows_total_batch: int):
         super().__init__(master)
         self.title("⚡ Bulk Migration Engine")
-        self.geometry("760x680")
-        self.attributes("-topmost", True)
+        self.geometry("780x700")
+        self.configure(bg=BG)
         self.resizable(True, True)
+        self.attributes("-topmost", True)
         self.total_rows_total_batch = total_rows_total_batch
 
-        # ── Pause event: set = running, cleared = paused ──
+        # Pause event: set = running, cleared = paused
         self.pause_event = threading.Event()
-        self.pause_event.set()  # Start in running state
+        self.pause_event.set()
 
-        # Store report reference (set by migration service after completion)
         self._report = None
-
-        # ── Header ──
-        ctk.CTkLabel(
-            self, text="⚡ Bulk Data Streaming Engine",
-            font=("Segoe UI", 18, "bold"), text_color="#3498db"
-        ).pack(pady=(15, 2))
-
-        # ── Session + Active workers info ──
-        top_bar = ctk.CTkFrame(self, fg_color="transparent")
-        top_bar.pack(fill="x", padx=20, pady=(0, 4))
-
-        self.session_lbl = ctk.CTkLabel(
-            top_bar, text="Session: —", font=("Consolas", 10), text_color="#888"
-        )
-        self.session_lbl.pack(side="left")
-
-        self.workers_lbl = ctk.CTkLabel(
-            top_bar, text="", font=("Consolas", 10), text_color="#f39c12"
-        )
-        self.workers_lbl.pack(side="right")
-
-        # ── Progress bar ──
-        self.pbar = ctk.CTkProgressBar(self, width=720, height=18)
-        self.pbar.pack(pady=(6, 2), padx=20)
-        self.pbar.set(0)
-
-        # ── Stats ──
-        self.stats_lbl = ctk.CTkLabel(
-            self, text="Initializing...", font=("Segoe UI", 13)
-        )
-        self.stats_lbl.pack(pady=2)
-
-        self.details_lbl = ctk.CTkLabel(
-            self, text="Speed: 0 rows/s  |  ETA: --:--",
-            font=("Consolas", 11), text_color="#3498db"
-        )
-        self.details_lbl.pack(pady=2)
-
-        # ── Table counter (Phase 4) ──────────────────────
-        counter_frame = ctk.CTkFrame(self, fg_color="#161616", corner_radius=10, height=36)
-        counter_frame.pack(fill="x", padx=20, pady=(4, 2))
-        counter_frame.pack_propagate(False)
-
-        self._counter_labels: dict[str, ctk.CTkLabel] = {}
-        for key, color, default in [
-            ("total",     "#888888", "Total: 0"),
-            ("done",      "#27ae60", "✅ Done: 0"),
-            ("failed",    "#e74c3c", "❌ Failed: 0"),
-            ("remaining", "#3498db", "⏳ Remaining: 0"),
-        ]:
-            lbl = ctk.CTkLabel(
-                counter_frame, text=default,
-                font=("Consolas", 11, "bold"), text_color=color
-            )
-            lbl.pack(side="left", padx=16, pady=4)
-            self._counter_labels[key] = lbl
-
-        # ── Active tables display (parallel mode) ──
-        self.active_lbl = ctk.CTkLabel(
-            self, text="Active: ─",
-            font=("Consolas", 10), text_color="#f39c12",
-            wraplength=720, justify="left"
-        )
-        self.active_lbl.pack(pady=2, padx=20, anchor="w")
-
-        # ── Validation status ──
-        self.validation_lbl = ctk.CTkLabel(
-            self, text="", font=("Segoe UI", 11), text_color="#f39c12"
-        )
-        self.validation_lbl.pack(pady=(0, 2))
-
-        # ── Action buttons ──────────────────────────────
-        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
-        btn_frame.pack(pady=4)
-
-        # Pause / Resume
-        self.pause_btn = ctk.CTkButton(
-            btn_frame, text="⏸ Pause", width=130,
-            fg_color="#f39c12", hover_color="#e67e22",
-            command=self._toggle_pause
-        )
-        self.pause_btn.pack(side="left", padx=6)
-
-        # Save Report (disabled until migration completes)
-        self.save_btn = ctk.CTkButton(
-            btn_frame, text="💾 Save Report", width=140,
-            fg_color="#1a5276", hover_color="#154360",
-            state="disabled",
-            command=self._save_report
-        )
-        self.save_btn.pack(side="left", padx=6)
-
-        # Copy Log
-        self.copy_btn = ctk.CTkButton(
-            btn_frame, text="📋 Copy Log", width=130,
-            fg_color="#2c3e50", hover_color="#34495e",
-            command=self._copy_log
-        )
-        self.copy_btn.pack(side="left", padx=6)
-
-        # Close
-        self.close_btn = ctk.CTkButton(
-            btn_frame, text="✖ Close", width=100,
-            fg_color="#5d6d7e", hover_color="#4a5568",
-            command=self._on_close_request
-        )
-        self.close_btn.pack(side="left", padx=6)
-
-        # ── Log textbox ──────────────────────────────────
-        self.log_txt = ctk.CTkTextbox(
-            self, font=("Consolas", 11),
-            fg_color="#0a0a0a", text_color="#e0e0e0"
-        )
-        self.log_txt.pack(pady=8, padx=15, fill="both", expand=True)
-
+        self._build_ui()
         self.protocol("WM_DELETE_WINDOW", self._on_close_request)
 
-    # ─────────────────────────────────────────────────────────
-    # Public API — all thread-safe
-    # ─────────────────────────────────────────────────────────
+    # ── Build UI ─────────────────────────────────────────────
+
+    def _build_ui(self) -> None:
+        # Header
+        hdr = tk.Frame(self, bg=HEADER, height=52)
+        hdr.pack(fill="x")
+        hdr.pack_propagate(False)
+        tk.Frame(hdr, bg=ACCENT, width=4).pack(side="left", fill="y")
+        tk.Label(
+            hdr, text="⚡  Bulk Data Streaming Engine",
+            bg=HEADER, fg=TEXT, font=FONT_HEAD, padx=16,
+        ).pack(side="left", fill="y")
+
+        # Session / Workers bar
+        top = tk.Frame(self, bg=BG, height=26)
+        top.pack(fill="x", padx=16, pady=(8, 0))
+        top.pack_propagate(False)
+        self._session_lbl = tk.Label(top, text="Session: —", bg=BG, fg=TEXT_DIM, font=FONT_MONO, anchor="w")
+        self._session_lbl.pack(side="left")
+        self._workers_lbl = tk.Label(top, text="", bg=BG, fg=WARNING, font=FONT_MONO, anchor="e")
+        self._workers_lbl.pack(side="right")
+
+        # Progress bar (using ttk)
+        style = ttk.Style(self)
+        style.configure("Mig.Horizontal.TProgressbar",
+                         troughcolor=HEADER, background=ACCENT, thickness=14)
+        self._pbar = ttk.Progressbar(
+            self, style="Mig.Horizontal.TProgressbar",
+            orient="horizontal", length=750, mode="determinate",
+        )
+        self._pbar.pack(padx=16, pady=(8, 2), fill="x")
+
+        # Stats
+        self._stats_lbl = tk.Label(self, text="Initializing...", bg=BG, fg=TEXT, font=FONT_UI)
+        self._stats_lbl.pack(pady=2)
+
+        self._details_lbl = tk.Label(
+            self, text="Speed: 0 rows/s  |  ETA: --:--",
+            bg=BG, fg=ACCENT, font=FONT_MONO,
+        )
+        self._details_lbl.pack(pady=2)
+
+        # Table counter bar
+        ctr = tk.Frame(self, bg=PANEL, height=36)
+        ctr.pack(fill="x", padx=16, pady=(4, 2))
+        ctr.pack_propagate(False)
+
+        self._counter_labels: dict[str, tk.Label] = {}
+        for key, fg, default in [
+            ("total",     TEXT_DIM, "Total: 0"),
+            ("done",      ACCENT2,  "✅ Done: 0"),
+            ("failed",    DANGER,   "❌ Failed: 0"),
+            ("remaining", ACCENT,   "⏳ Remaining: 0"),
+        ]:
+            lbl = tk.Label(ctr, text=default, bg=PANEL, fg=fg, font=FONT_MONO, padx=16)
+            lbl.pack(side="left", pady=4)
+            self._counter_labels[key] = lbl
+
+        # Active tables
+        self._active_lbl = tk.Label(
+            self, text="Active: ─",
+            bg=BG, fg=WARNING, font=FONT_MONO,
+            wraplength=740, justify="left", anchor="w",
+        )
+        self._active_lbl.pack(pady=2, padx=16, fill="x")
+
+        # Validation status
+        self._validation_lbl = tk.Label(self, text="", bg=BG, fg=WARNING, font=FONT_UI)
+        self._validation_lbl.pack(pady=(0, 2))
+
+        # Action buttons
+        btn_row = tk.Frame(self, bg=BG)
+        btn_row.pack(pady=6)
+
+        self._pause_btn = _flat_btn(
+            btn_row, text="⏸  Pause",
+            command=self._toggle_pause,
+            bg="#5a3d00", hover="#7a5200", padx=18, pady=7,
+        )
+        self._pause_btn.pack(side="left", padx=4)
+
+        self._save_btn = _flat_btn(
+            btn_row, text="💾  Save Report",
+            command=self._save_report,
+            bg="#0d2137", hover="#132d4a", padx=18, pady=7,
+        )
+        self._save_btn.pack(side="left", padx=4)
+        self._save_btn_enabled = False
+
+        self._copy_btn = _flat_btn(
+            btn_row, text="📋  Copy Log",
+            command=self._copy_log,
+            bg=PANEL, hover=HEADER, padx=18, pady=7,
+        )
+        self._copy_btn.pack(side="left", padx=4)
+
+        _flat_btn(
+            btn_row, text="✖  Close",
+            command=self._on_close_request,
+            bg="#2c2c2c", hover="#3d3d3d", padx=18, pady=7,
+        ).pack(side="left", padx=4)
+
+        # Log textbox
+        log_container = tk.Frame(self, bg=BORDER, bd=1)
+        log_container.pack(fill="both", expand=True, padx=16, pady=(0, 12))
+
+        self._log_txt = tk.Text(
+            log_container,
+            bg="#0a0a0a", fg=TEXT, font=FONT_MONO,
+            insertbackground=TEXT, bd=0, padx=8, pady=6,
+            wrap="word", state="normal",
+        )
+        vsb = ttk.Scrollbar(log_container, orient="vertical", command=self._log_txt.yview)
+        self._log_txt.config(yscrollcommand=vsb.set)
+        self._log_txt.pack(side="left", fill="both", expand=True)
+        vsb.pack(side="right", fill="y")
+
+    # ── Public API (thread-safe) ─────────────────────────────
 
     def log(self, msg: str, status: str = "INFO") -> None:
-        """
-        Thread-safe log. From main thread → direct write.
-        From any worker thread → via after(0) to main thread.
-        """
         if threading.current_thread() is threading.main_thread():
             self._log_direct(msg, status)
         else:
             self.after(0, lambda m=msg, s=status: self._log_direct(m, s))
 
     def update_status(self, current_done: int, speed: float, eta: str, current_table: str) -> None:
-        """Updates progress bar + stats. Must be called via win.after() from worker threads."""
         total = self.total_rows_total_batch
-        pct = current_done / total if total > 0 else 1.0
-        self.pbar.set(min(pct, 1.0))
-        self.stats_lbl.configure(
-            text=f"{current_done:,} / {total:,} rows ({pct:.1%})"
-                 f"  —  last: {current_table[:38]}"
+        pct   = current_done / total if total > 0 else 1.0
+        self._pbar["value"] = min(pct, 1.0) * 100
+        self._stats_lbl.config(
+            text=f"{current_done:,} / {total:,} rows ({pct:.1%})  —  {current_table[:40]}"
         )
-        self.details_lbl.configure(
-            text=f"🚀 Speed: {speed:,.0f} rows/s  |  ⏳ ETA: {eta}"
+        self._details_lbl.config(
+            text=f"🚀  Speed: {speed:,.0f} rows/s  │  ⏳  ETA: {eta}"
         )
 
     def update_table_counts(self, total: int, done: int, failed: int) -> None:
-        """
-        Updates the live table counter badges.
-        Thread-safe.
-        """
         remaining = total - done - failed
-
         def _update():
-            self._counter_labels["total"].configure(text=f"Total: {total}")
-            self._counter_labels["done"].configure(text=f"✅ Done: {done}")
-            self._counter_labels["failed"].configure(
+            self._counter_labels["total"].config(text=f"Total: {total}")
+            self._counter_labels["done"].config(text=f"✅ Done: {done}")
+            self._counter_labels["failed"].config(
                 text=f"❌ Failed: {failed}",
-                text_color="#e74c3c" if failed > 0 else "#888"
+                fg=DANGER if failed > 0 else TEXT_DIM,
             )
-            self._counter_labels["remaining"].configure(
-                text=f"⏳ Remaining: {remaining}"
-            )
-
+            self._counter_labels["remaining"].config(text=f"⏳ Remaining: {remaining}")
         if threading.current_thread() is threading.main_thread():
             _update()
         else:
             self.after(0, _update)
 
     def set_active_tables(self, tables: list[str]) -> None:
-        """Shows currently-running parallel table names. Thread-safe."""
         def _update():
             if not tables:
-                self.active_lbl.configure(text="Active: ─")
-                self.workers_lbl.configure(text="⚙ Idle")
+                self._active_lbl.config(text="Active: ─")
+                self._workers_lbl.config(text="⚙  Idle")
             else:
-                badges = "  ".join(f"[{t[:20]}]" for t in tables)
-                self.active_lbl.configure(text=f"▶ {badges}")
-                self.workers_lbl.configure(text=f"⚙ {len(tables)} workers")
-
+                badges = "  ".join(f"[{t[:22]}]" for t in tables)
+                self._active_lbl.config(text=f"▶  {badges}")
+                self._workers_lbl.config(text=f"⚙  {len(tables)} workers active")
         if threading.current_thread() is threading.main_thread():
             _update()
         else:
             self.after(0, _update)
 
     def set_session_id(self, session_id: str, max_workers: int) -> None:
-        """Thread-safe session display."""
         def _update():
-            self.session_lbl.configure(text=f"Session: {session_id}")
-            self.workers_lbl.configure(text=f"⚙ MAX_WORKERS: {max_workers}")
+            self._session_lbl.config(text=f"Session: {session_id}")
+            self._workers_lbl.config(text=f"⚙  MAX_WORKERS: {max_workers}")
         if threading.current_thread() is threading.main_thread():
             _update()
         else:
             self.after(0, _update)
 
     def set_validation_status(self, msg: str, ok: bool = True) -> None:
-        """Thread-safe validation label update."""
-        color = "#27ae60" if ok else "#e74c3c"
+        color = ACCENT2 if ok else DANGER
         if threading.current_thread() is threading.main_thread():
-            self.validation_lbl.configure(text=msg, text_color=color)
+            self._validation_lbl.config(text=msg, fg=color)
         else:
-            self.after(0, lambda: self.validation_lbl.configure(text=msg, text_color=color))
+            self.after(0, lambda: self._validation_lbl.config(text=msg, fg=color))
 
     def enable_save_report(self, report) -> None:
-        """
-        Called by migration service when migration is complete.
-        Enables the Save Report button and stores the report reference.
-        Thread-safe.
-        """
         self._report = report
-
+        self._save_btn_enabled = True
         def _enable():
-            self.save_btn.configure(state="normal", fg_color="#1e8449")
-            self.pause_btn.configure(state="disabled", fg_color="#5d6d7e")
-
+            self._save_btn.config(bg="#0d3320", fg=ACCENT2)
+            self._pause_btn.config(bg="#2c2c2c", fg=TEXT_DIM)
         if threading.current_thread() is threading.main_thread():
             _enable()
         else:
             self.after(0, _enable)
 
-    # ─────────────────────────────────────────────────────────
-    # Private
-    # ─────────────────────────────────────────────────────────
+    # ── Private ──────────────────────────────────────────────
 
     def _log_direct(self, msg: str, status: str) -> None:
-        """Writes to log textbox — MUST be called from main thread."""
         icons = {"SUCCESS": "✅", "ERROR": "⚠️ ", "INFO": "🔹"}
         prefix = icons.get(status, "🔹")
-        self.log_txt.insert("end", f"{prefix} [{time.strftime('%H:%M:%S')}] {msg}\n")
-        self.log_txt.see("end")
+        self._log_txt.insert("end", f"{prefix} [{time.strftime('%H:%M:%S')}] {msg}\n")
+        self._log_txt.see("end")
 
     def _toggle_pause(self) -> None:
-        """Pause / Resume toggle — runs on main thread (button click)."""
         if self.pause_event.is_set():
-            # Currently running → Pause
             self.pause_event.clear()
-            self.pause_btn.configure(text="▶ Resume", fg_color="#27ae60", hover_color="#1e8449")
-            self._log_direct("⏸ Migration PAUSED. Workers will stop after current chunk.", "ERROR")
+            self._pause_btn.config(text="▶  Resume", bg="#0d3320", fg=ACCENT2)
+            self._log_direct("⏸  Migration PAUSED — workers stop after current chunk.", "ERROR")
         else:
-            # Currently paused → Resume
             self.pause_event.set()
-            self.pause_btn.configure(text="⏸ Pause", fg_color="#f39c12", hover_color="#e67e22")
-            self._log_direct("▶️  Migration RESUMED.", "SUCCESS")
+            self._pause_btn.config(text="⏸  Pause", bg="#5a3d00", fg=WARNING)
+            self._log_direct("▶️   Migration RESUMED.", "SUCCESS")
 
     def _save_report(self) -> None:
-        """Saves JSON + CSV report files and shows confirmation."""
-        if not self._report:
-            messagebox.showwarning("No Report", "No migration report available yet.")
+        if not self._save_btn_enabled or not self._report:
+            messagebox.showwarning("No Report", "Report not available yet — wait for migration to finish.")
             return
         try:
             json_path, csv_path = self._report.save_all()
             messagebox.showinfo(
                 "Report Saved",
-                f"✅ Reports saved to:\n\n"
-                f"JSON: {json_path}\n"
-                f"CSV:  {csv_path}"
+                f"✅  Reports saved:\n\nJSON: {json_path}\nCSV:  {csv_path}",
             )
-            self._log_direct(f"💾 Report saved → {json_path.name}", "SUCCESS")
+            self._log_direct(f"💾  Report → {json_path.name}", "SUCCESS")
         except Exception as e:
             messagebox.showerror("Save Failed", str(e))
 
     def _copy_log(self) -> None:
-        """Copies log content to clipboard."""
-        content = self.log_txt.get("1.0", "end")
+        content = self._log_txt.get("1.0", "end")
         self.clipboard_clear()
         self.clipboard_append(content)
-        self.copy_btn.configure(text="✅ Copied!")
-        self.after(2000, lambda: self.copy_btn.configure(text="📋 Copy Log"))
+        self._copy_btn.config(text="✅  Copied!")
+        self.after(2000, lambda: self._copy_btn.config(text="📋  Copy Log"))
 
     def _on_close_request(self) -> None:
-        """Confirms before closing (migration may be running in background)."""
         if messagebox.askyesno(
             "Close Window?",
-            "Migration may still be running in the background.\nClose this window?"
+            "Migration may still be running in background.\nClose this window anyway?",
         ):
-            # If paused, resume so workers can exit naturally
             if not self.pause_event.is_set():
                 self.pause_event.set()
             self.destroy()
