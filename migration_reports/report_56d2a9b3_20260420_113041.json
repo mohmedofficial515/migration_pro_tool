@@ -1,0 +1,23 @@
+{
+  "session_id": "56d2a9b3",
+  "started_at": "2026-04-20T11:30:41.453486+00:00",
+  "finished_at": "2026-04-20T11:30:43.376790+00:00",
+  "total_duration_seconds": 1.92,
+  "summary": {
+    "total_tables": 1,
+    "success": 0,
+    "failed": 1,
+    "total_rows": 0,
+    "avg_speed_rows_per_sec": 0.0
+  },
+  "tables": [
+    {
+      "table": "Airports",
+      "status": "failed",
+      "rows_migrated": 0,
+      "duration_seconds": 1.891,
+      "rows_per_second": 0.0,
+      "error": "can't use a named cursor outside of transactions"
+    }
+  ]
+}

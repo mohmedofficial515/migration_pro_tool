@@ -4,7 +4,7 @@ Schema Validator
 Pre-migration checks to prevent data corruption from schema mismatches.
 
 Validates:
-1. Source tables actually exist
+1. Source tables actually exist in the given schema
 2. Source has data (warns if empty)
 3. Target table — if it already exists, checks column compatibility
 4. Source connection is reachable
@@ -48,9 +48,12 @@ def validate_migration(
     from_dsn: str,
     to_dsn: str,
     table_names: list[str],
+    src_schema: str = "public",
+    tgt_schema: str = "public",
 ) -> ValidationResult:
     """
     Runs all pre-migration validation checks.
+    Supports dynamic source and target schemas.
     Returns a ValidationResult describing pass/fail/warnings.
     """
     result = ValidationResult()
@@ -79,7 +82,47 @@ def validate_migration(
         result.add_error(f"Target DB write test failed — insufficient privileges: {e}")
         return result
 
-    # --- Check 4: Source tables exist ---
+    # --- Check 4: Source schema exists ---
+    try:
+        with psycopg2.connect(from_dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT EXISTS ("
+                    "  SELECT 1 FROM information_schema.schemata"
+                    "  WHERE schema_name = %s"
+                    ");",
+                    (src_schema,),
+                )
+                if not cur.fetchone()[0]:
+                    result.add_error(
+                        f"Schema '{src_schema}' does not exist in SOURCE database."
+                    )
+                    return result
+    except psycopg2.Error as e:
+        result.add_error(f"Failed to verify source schema: {e}")
+        return result
+
+    # --- Check 5: Target schema exists ---
+    try:
+        with psycopg2.connect(to_dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT EXISTS ("
+                    "  SELECT 1 FROM information_schema.schemata"
+                    "  WHERE schema_name = %s"
+                    ");",
+                    (tgt_schema,),
+                )
+                if not cur.fetchone()[0]:
+                    result.add_error(
+                        f"Schema '{tgt_schema}' does not exist in TARGET database."
+                    )
+                    return result
+    except psycopg2.Error as e:
+        result.add_error(f"Failed to verify target schema: {e}")
+        return result
+
+    # --- Check 6: Source tables exist in source schema ---
     try:
         with psycopg2.connect(from_dsn) as conn:
             with conn.cursor() as cur:
@@ -87,13 +130,15 @@ def validate_migration(
                     cur.execute(
                         "SELECT EXISTS ("
                         "  SELECT 1 FROM information_schema.tables"
-                        "  WHERE table_schema = 'public' AND table_name = %s"
+                        "  WHERE table_schema = %s AND table_name = %s"
                         ");",
-                        (table,),
+                        (src_schema, table),
                     )
                     exists = cur.fetchone()[0]
                     if not exists:
-                        result.add_error(f"Table '{table}' does not exist in source DB.")
+                        result.add_error(
+                            f"Table '{table}' does not exist in source schema '{src_schema}'."
+                        )
     except psycopg2.Error as e:
         result.add_error(f"Failed to verify source tables: {e}")
         return result
@@ -101,7 +146,7 @@ def validate_migration(
     if not result.is_valid:
         return result  # Don't continue if source tables are missing
 
-    # --- Check 5: Target table compatibility (if already exists) ---
+    # --- Check 7: Target table compatibility (if already exists in target schema) ---
     try:
         with psycopg2.connect(to_dsn) as conn:
             with conn.cursor() as cur:
@@ -109,15 +154,15 @@ def validate_migration(
                     cur.execute(
                         "SELECT EXISTS ("
                         "  SELECT 1 FROM information_schema.tables"
-                        "  WHERE table_schema = 'public' AND table_name = %s"
+                        "  WHERE table_schema = %s AND table_name = %s"
                         ");",
-                        (table,),
+                        (tgt_schema, table),
                     )
                     tgt_exists = cur.fetchone()[0]
 
                     if tgt_exists:
                         result.add_warning(
-                            f"Table '{table}' already exists in TARGET. "
+                            f"Table '{table}' already exists in target schema '{tgt_schema}'. "
                             f"Migration will APPEND data — ensure schema matches or truncate first."
                         )
 

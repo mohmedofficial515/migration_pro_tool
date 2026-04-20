@@ -1,0 +1,14 @@
+{
+  "migration_id": "56d2a9b3",
+  "from_dsn_hash": "147afcb13c88",
+  "to_dsn_hash": "92a7ff4be550",
+  "table_names": [
+    "Airports"
+  ],
+  "completed_tables": [],
+  "failed_tables": {
+    "Airports": "can't use a named cursor outside of transactions"
+  },
+  "started_at": "2026-04-20T11:30:41.452958+00:00",
+  "last_updated": "2026-04-20T11:30:43.373084+00:00"
+}
