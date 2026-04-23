@@ -1,0 +1,2 @@
+﻿table_name,status,rows_migrated,duration_seconds,rows_per_second,error
+Airports,success,32,2.77,12.0,

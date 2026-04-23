@@ -1,0 +1,23 @@
+{
+  "session_id": "eff7abfb",
+  "started_at": "2026-04-21T11:31:38.414557+00:00",
+  "finished_at": "2026-04-21T11:31:42.358877+00:00",
+  "total_duration_seconds": 3.94,
+  "summary": {
+    "total_tables": 1,
+    "success": 0,
+    "failed": 1,
+    "total_rows": 0,
+    "avg_speed_rows_per_sec": 0.0
+  },
+  "tables": [
+    {
+      "table": "Transportation",
+      "status": "failed",
+      "rows_migrated": 0,
+      "duration_seconds": 3.906,
+      "rows_per_second": 0.0,
+      "error": "duplicate key value violates unique constraint \"Transportation_temp_pkey\"\nDETAIL:  Key (id)=(1) already exists.\nCONTEXT:  COPY Transportation_temp, line 1\n"
+    }
+  ]
+}

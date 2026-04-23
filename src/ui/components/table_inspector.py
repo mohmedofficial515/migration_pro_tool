@@ -59,12 +59,14 @@ FONT_HEAD   = ("Segoe UI", 11, "bold")
 FONT_TITLE  = ("Segoe UI", 13, "bold")
 FONT_SMALL  = ("Segoe UI", 9)
 
-TAG_PK  = "pk_row"
-TAG_FK  = "fk_row"
-TAG_UQ  = "uq_row"
-TAG_ODD = "odd"
-TAG_EVN = "even"
-TAG_OFF = "col_off"        # deselected column row
+TAG_PK    = "pk_row"
+TAG_FK    = "fk_row"
+TAG_UQ    = "uq_row"
+TAG_ODD   = "odd"
+TAG_EVN   = "even"
+TAG_OFF   = "col_off"     # deselected column row
+TAG_MISS  = "col_miss"    # column missing in target   🔴
+TAG_MMTCH = "col_mismatch"# type mismatch in target    🟡
 
 
 # ─── Data model ──────────────────────────────────────────────
@@ -108,7 +110,7 @@ class TableInspectorWindow(tk.Toplevel):
     result: "proceed" | "skip" | "cancel"
     """
 
-    COL_IDS = ("sel", "ord", "source", "type", "nullpct", "pk", "fk", "uq", "idx", "sample", "target")
+    COL_IDS = ("sel", "ord", "source", "type", "nullpct", "pk", "fk", "uq", "idx", "sample", "target", "diff")
     COL_CFG = {
         "sel":     {"label": "☑",              "width": 28,  "stretch": False, "anchor": "center"},
         "ord":     {"label": "#",              "width": 28,  "stretch": False, "anchor": "center"},
@@ -121,17 +123,20 @@ class TableInspectorWindow(tk.Toplevel):
         "idx":     {"label": "IDX",            "width": 30,  "stretch": False, "anchor": "center"},
         "sample":  {"label": "Sample Values",  "width": 200, "stretch": True,  "anchor": "w"},
         "target":  {"label": "Target Column",  "width": 140, "stretch": True,  "anchor": "w"},
+        "diff":    {"label": "Target Status",  "width": 120, "stretch": False, "anchor": "center"},
     }
 
     def __init__(self, master, table: str, index: int, total: int,
                  dsn: str, schema: str,
                  src_schema: str, tgt_schema: str,
-                 initial_config: TableConfig):
+                 initial_config: TableConfig,
+                 tgt_dsn: str | None = None):
         super().__init__(master)
         self.table          = table
         self.index          = index
         self.total          = total
         self.dsn            = dsn
+        self.tgt_dsn        = tgt_dsn   # target DB DSN for schema diff
         self.src_schema     = src_schema
         self.tgt_schema     = tgt_schema
         self.config_out     = initial_config
@@ -144,6 +149,9 @@ class TableInspectorWindow(tk.Toplevel):
         self._prompt_text: str        = ""
         self._edit_entry: tk.Entry | None = None
         self._edit_iid: str           = ""
+        self._tgt_diff: dict[str, str] = {}   # col_name -> "ok"|"missing"|"type_mismatch"|"new_table"
+        self._tgt_table_exists: bool  = False
+        self._tgt_col_map: dict       = {}    # col_name -> target type
 
         self._setup_window()
         self._build_ui()
@@ -454,47 +462,126 @@ class TableInspectorWindow(tk.Toplevel):
     def _load_data(self) -> None:
         threading.Thread(target=self._bg_load, daemon=True).start()
 
+    def _fetch_target_diff(self, src_cols: list) -> None:
+        """
+        Compares source columns against the target table (if it exists).
+        Populates self._tgt_diff, self._tgt_table_exists, self._tgt_col_map.
+        Runs in background thread.
+        """
+        if not self.tgt_dsn:
+            return
+        target_table = self.config_out.target_name or self.table
+        try:
+            import psycopg2
+            conn = psycopg2.connect(self.tgt_dsn, connect_timeout=5)
+            with conn.cursor() as cur:
+                # Check table exists
+                cur.execute(
+                    "SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema=%s AND table_name=%s",
+                    (self.tgt_schema, target_table),
+                )
+                self._tgt_table_exists = cur.fetchone() is not None
+
+                if self._tgt_table_exists:
+                    cur.execute(
+                        "SELECT column_name, "
+                        "CASE WHEN data_type='USER-DEFINED' THEN udt_name "
+                        "     ELSE data_type END AS dtype "
+                        "FROM information_schema.columns "
+                        "WHERE table_schema=%s AND table_name=%s",
+                        (self.tgt_schema, target_table),
+                    )
+                    self._tgt_col_map = {r[0]: r[1] for r in cur.fetchall()}
+            conn.close()
+        except Exception:
+            return   # silently ignore — diff is optional
+
+        # Build diff map
+        diff: dict[str, str] = {}
+        for col in src_cols:
+            src_name = col["column_name"]
+            tgt_name = self.config_out.column_renames.get(src_name, src_name)
+            if not self._tgt_table_exists:
+                diff[src_name] = "new_table"
+            elif tgt_name not in self._tgt_col_map:
+                diff[src_name] = "missing"
+            elif self._tgt_col_map[tgt_name] != col.get("data_type", ""):
+                diff[src_name] = "type_mismatch"
+            else:
+                diff[src_name] = "ok"
+        self._tgt_diff = diff
+
     def _bg_load(self) -> None:
         info        = get_full_table_info(self.dsn, self.table, self.src_schema)
         quick_stats = get_columns_quick_stats(self.dsn, self.table, self.src_schema)
-        self.after(0, lambda: self._apply_info(info, quick_stats))
+        # Fetch target schema diff while we have the info
+        self._fetch_target_diff(info.get("columns", []))
+        # Guard: window may be closed before background load completes
+        if self.winfo_exists():
+            self.after(0, lambda: self._apply_info(info, quick_stats))
 
     def _apply_info(self, info: dict, quick_stats: dict | None = None) -> None:
-        self._info        = info
-        self._quick_stats = quick_stats or {}
-        stats = info.get("stats", {})
-        cols  = info.get("columns", [])
+        """Apply loaded table info to the UI. Guarded against post-destroy callbacks."""
+        try:
+            # If the window (or any child widget) was destroyed before this
+            # after() callback fired, all .config() calls raise TclError.
+            # We catch it globally — safest pattern for async Tkinter updates.
+            self._info        = info
+            self._quick_stats = quick_stats or {}
+            stats = info.get("stats", {})
+            cols  = info.get("columns", [])
 
-        # Init selection — all columns selected by default
-        all_names = [c["column_name"] for c in cols]
-        self._selected_cols = set(all_names)
+            # Init selection — all columns selected by default
+            all_names = [c["column_name"] for c in cols]
+            self._selected_cols = set(all_names)
 
-        # Update stats
-        self._stat_rows.config(text=f"{stats.get('rows', 0):,}")
-        self._stat_size.config(text=stats.get("size_pretty", "—"))
-        self._stat_cols.config(text=str(len(cols)))
-        self._stat_sel.config(text=f"{len(cols)} / {len(cols)}")
-        self._stat_pks.config(text=str(len(info.get("primary_keys", set()))))
-        self._stat_fks.config(text=str(len(info.get("foreign_keys", {}))))
-        self._stat_uqs.config(text=str(len(info.get("unique_cols", set()))))
-        self._stat_idx.config(text=str(sum(
-            len(v) for v in info.get("indexed_cols", {}).values()
-        )))
+            # Update stats
+            self._stat_rows.config(text=f"{stats.get('rows', 0):,}")
+            self._stat_size.config(text=stats.get("size_pretty", "—"))
+            self._stat_cols.config(text=str(len(cols)))
+            self._stat_sel.config(text=f"{len(cols)} / {len(cols)}")
+            self._stat_pks.config(text=str(len(info.get("primary_keys", set()))))
+            self._stat_fks.config(text=str(len(info.get("foreign_keys", {}))))
+            self._stat_uqs.config(text=str(len(info.get("unique_cols", set()))))
+            self._stat_idx.config(text=str(sum(
+                len(v) for v in info.get("indexed_cols", {}).values()
+            )))
 
-        self._populate_tree(cols)
-        self._status_lbl.config(
-            text=f"✅  {len(cols)} columns loaded",
-            fg=ACCENT2,
-        )
+            self._populate_tree(cols)
 
-        # If user clicked Chat before data was ready, open it now
-        if getattr(self, "_chat_pending", False):
-            self._chat_pending = False
-            self._status_lbl.config(
-                text="🚀 Opening Ollama Chat...",
-                fg=ACCENT2,
-            )
-            self.after(200, self._open_ollama_chat)
+            # ── Show schema diff banner if target exists ──────────
+            if self._tgt_diff and self._tgt_table_exists:
+                missing  = [k for k, v in self._tgt_diff.items() if v == "missing"]
+                mistype  = [k for k, v in self._tgt_diff.items() if v == "type_mismatch"]
+                if missing or mistype:
+                    parts = []
+                    if missing:  parts.append(f"🔴 {len(missing)} missing col(s)")
+                    if mistype:  parts.append(f"🟡 {len(mistype)} type mismatch(es)")
+                    self._status_lbl.config(
+                        text=f"⚠️  Target conflict: {', '.join(parts)}  —  UPSERT will be used",
+                        fg=WARNING,
+                    )
+                else:
+                    self._status_lbl.config(
+                        text=f"✅  {len(cols)} columns — target schema matches. UPSERT ready.",
+                        fg=ACCENT2,
+                    )
+            else:
+                self._status_lbl.config(
+                    text=f"✅  {len(cols)} columns loaded",
+                    fg=ACCENT2,
+                )
+
+            # If user clicked Chat before data was ready, open it now
+            if getattr(self, "_chat_pending", False):
+                self._chat_pending = False
+                self._status_lbl.config(text="🚀 Opening Ollama Chat...", fg=ACCENT2)
+                self.after(200, self._open_ollama_chat)
+
+        except tk.TclError:
+            # Window or child widget destroyed before callback fired — safe to ignore
+            pass
 
     def _populate_tree(self, cols: list | None = None) -> None:
         """Re-render the treeview from self._info."""
@@ -507,9 +594,13 @@ class TableInspectorWindow(tk.Toplevel):
         uqs  = self._info.get("unique_cols",   set())
         idxs = self._info.get("indexed_cols",  {})
 
+        # Register diff tag colours on first render
+        self.tree.tag_configure(TAG_MISS,  background="#2a0a0a", foreground="#ff7b7b")
+        self.tree.tag_configure(TAG_MMTCH, background="#2a1e00", foreground="#f0c060")
+
         for i, col in enumerate(cols):
             name  = col["column_name"]
-            ctype = col["data_type"]
+            ctype = col.get("data_type", "")
             pk    = "✓" if name in pks  else ""
             fk    = "→" if name in fks  else ""
             uq    = "◆" if name in uqs  else ""
@@ -517,6 +608,21 @@ class TableInspectorWindow(tk.Toplevel):
             tgt   = self.config_out.column_renames.get(name, name)
             is_on = name in self._selected_cols
             chk   = "☑" if is_on else "☐"
+
+            # ── Diff status cell ──────────────────────────────
+            diff_status = self._tgt_diff.get(name, "")
+            if diff_status == "missing":
+                diff_cell = "🔴 Missing"
+            elif diff_status == "type_mismatch":
+                src_t = ctype
+                tgt_t = self._tgt_col_map.get(tgt, "?")
+                diff_cell = f"🟡 {src_t}↔{tgt_t}"
+            elif diff_status == "ok":
+                diff_cell = "🟢 OK"
+            elif diff_status == "new_table":
+                diff_cell = "🔵 New Table"
+            else:
+                diff_cell = "—"
 
             # Quick stats for this column
             qs         = self._quick_stats.get(name, {})
@@ -529,7 +635,7 @@ class TableInspectorWindow(tk.Toplevel):
             else:
                 nstr = "?"
 
-            # Format sample values: "val1 (40%), val2 (30%)"
+            # Format sample values
             if sample_lst:
                 sample_str = "  │  ".join(
                     f"{s['value'][:14]}({s['pct']}%)"
@@ -543,6 +649,10 @@ class TableInspectorWindow(tk.Toplevel):
             base_tag = TAG_EVN if i % 2 == 0 else TAG_ODD
             if not is_on:
                 colour_tag = TAG_OFF
+            elif diff_status == "missing":
+                colour_tag = TAG_MISS
+            elif diff_status == "type_mismatch":
+                colour_tag = TAG_MMTCH
             elif name in pks:
                 colour_tag = TAG_PK
             elif name in fks:
@@ -555,7 +665,7 @@ class TableInspectorWindow(tk.Toplevel):
             tags = (base_tag, colour_tag) if colour_tag else (base_tag,)
             self.tree.insert(
                 "", "end", iid=name,
-                values=(chk, i + 1, name, ctype, nstr, pk, fk, uq, idx, sample_str, tgt),
+                values=(chk, i + 1, name, ctype, nstr, pk, fk, uq, idx, sample_str, tgt, diff_cell),
                 tags=tags,
             )
 
@@ -660,6 +770,13 @@ class TableInspectorWindow(tk.Toplevel):
         self.after(0, lambda: self._show_analytics(col_name, data))
 
     def _show_analytics(self, col_name: str, data: dict) -> None:
+        # Guard: window may have been closed before analytics load completes
+        try:
+            if not self.winfo_exists():
+                return
+        except Exception:
+            return
+
         for w in self._analytics_frame.winfo_children():
             w.destroy()
         f = self._analytics_frame
@@ -825,20 +942,24 @@ class TableInspectorWindow(tk.Toplevel):
             return
 
         context = {
-            "table_name":       self.table,
-            "src_schema":       self.src_schema,
-            "tgt_schema":       self.tgt_schema,
-            "target_name":      self.config_out.target_name,
-            "stats":            self._info.get("stats", {}),
-            "columns":          cols,
-            "primary_keys":     self._info.get("primary_keys",  set()),
-            "foreign_keys":     self._info.get("foreign_keys",  {}),
-            "unique_cols":      self._info.get("unique_cols",   set()),
-            "indexed_cols":     self._info.get("indexed_cols",  {}),
-            "quick_stats":      self._quick_stats,
-            "column_renames":   self.config_out.column_renames,
-            "selected_columns": sel,
-            "dsn":              self.dsn,   # ← enables SQL execution in chat
+            "table_name":          self.table,
+            "src_schema":          self.src_schema,
+            "tgt_schema":          self.tgt_schema,
+            "target_name":         self.config_out.target_name,
+            "stats":               self._info.get("stats", {}),
+            "columns":             cols,
+            "primary_keys":        self._info.get("primary_keys",  set()),
+            "foreign_keys":        self._info.get("foreign_keys",  {}),
+            "unique_cols":         self._info.get("unique_cols",   set()),
+            "indexed_cols":        self._info.get("indexed_cols",  {}),
+            "quick_stats":         self._quick_stats,
+            "column_renames":      self.config_out.column_renames,
+            "selected_columns":    sel,
+            "dsn":                 self.dsn,
+            # ── Schema diff context ──
+            "target_table_exists": self._tgt_table_exists,
+            "target_schema_diff":  self._tgt_diff,
+            "target_columns":      self._tgt_col_map,
         }
 
         def _on_apply(changes: dict) -> None:
@@ -1181,10 +1302,12 @@ class TableInspectorFlow:
     """
 
     def __init__(self, master, tables: list[str], dsn: str,
-                 src_schema: str, tgt_schema: str):
+                 src_schema: str, tgt_schema: str,
+                 tgt_dsn: str | None = None):
         self.master     = master
         self.tables     = tables
         self.dsn        = dsn
+        self.tgt_dsn    = tgt_dsn
         self.src_schema = src_schema
         self.tgt_schema = tgt_schema
 
@@ -1210,6 +1333,7 @@ class TableInspectorFlow:
                 src_schema     = self.src_schema,
                 tgt_schema     = self.tgt_schema,
                 initial_config = config,
+                tgt_dsn        = self.tgt_dsn,
             )
             self.master.wait_window(win)
 

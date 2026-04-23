@@ -1,0 +1,23 @@
+{
+  "session_id": "212bc59d",
+  "started_at": "2026-04-22T11:37:55.842762+00:00",
+  "finished_at": "2026-04-22T11:40:04.491102+00:00",
+  "total_duration_seconds": 128.65,
+  "summary": {
+    "total_tables": 1,
+    "success": 1,
+    "failed": 0,
+    "total_rows": 228852,
+    "avg_speed_rows_per_sec": 1779.0
+  },
+  "tables": [
+    {
+      "table": "active_real_estate_id_points_SL57_geom",
+      "status": "success",
+      "rows_migrated": 228852,
+      "duration_seconds": 128.593,
+      "rows_per_second": 1780.0,
+      "error": null
+    }
+  ]
+}

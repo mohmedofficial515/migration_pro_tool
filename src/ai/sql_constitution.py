@@ -427,7 +427,9 @@ def build_constitution(schema: str = "public", table: str = "your_table") -> str
   * "risk"   -> required only when action="SQL", must be "READ", "WRITE", or "DANGER"
   * "sql"    -> required when action="SQL", must follow ALL quoting rules (Section 0)
   * "prompt" -> required when action="SEND", the exact text to send as the next user message
-
+  * "stats"  -> OPTIONAL array of objects. Useful for rendering progress bars or percentage cards (e.g. analysis results).
+      Format for stats: [{{"name": "Nulls", "value": "12%", "progress": 12}}, {{"name": "Duplicated", "value": "20", "progress": null}}]
+      "progress" is an integer 0-100 indicating a percentage for a progress bar, or null if no bar is needed.
   EXAMPLES:
 
   When user asks what to do about NULL columns, output:

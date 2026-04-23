@@ -1,0 +1,23 @@
+{
+  "session_id": "bc3ace7b",
+  "started_at": "2026-04-22T11:31:17.828769+00:00",
+  "finished_at": "2026-04-22T11:31:23.915238+00:00",
+  "total_duration_seconds": 6.09,
+  "summary": {
+    "total_tables": 1,
+    "success": 1,
+    "failed": 0,
+    "total_rows": 1486,
+    "avg_speed_rows_per_sec": 244.0
+  },
+  "tables": [
+    {
+      "table": "agricultural_GLL24_geom",
+      "status": "success",
+      "rows_migrated": 1486,
+      "duration_seconds": 6.061,
+      "rows_per_second": 245.0,
+      "error": null
+    }
+  ]
+}

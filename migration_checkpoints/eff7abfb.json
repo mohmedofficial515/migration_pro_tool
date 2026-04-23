@@ -1,0 +1,14 @@
+{
+  "migration_id": "eff7abfb",
+  "from_dsn_hash": "147afcb13c88",
+  "to_dsn_hash": "92a7ff4be550",
+  "table_names": [
+    "Transportation"
+  ],
+  "completed_tables": [],
+  "failed_tables": {
+    "Transportation": "duplicate key value violates unique constraint \"Transportation_pkey\"\nDETAIL:  Key (id)=(1) already exists.\nCONTEXT:  COPY Transportation, line 1\n"
+  },
+  "started_at": "2026-04-21T11:31:38.414087+00:00",
+  "last_updated": "2026-04-21T11:41:01.374067+00:00"
+}

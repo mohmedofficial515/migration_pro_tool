@@ -1,0 +1,23 @@
+{
+  "session_id": "0153f7be",
+  "started_at": "2026-04-22T11:51:55.339204+00:00",
+  "finished_at": "2026-04-22T11:51:57.066471+00:00",
+  "total_duration_seconds": 1.73,
+  "summary": {
+    "total_tables": 1,
+    "success": 0,
+    "failed": 1,
+    "total_rows": 0,
+    "avg_speed_rows_per_sec": 0.0
+  },
+  "tables": [
+    {
+      "table": "SocialServices_CL4_geom",
+      "status": "failed",
+      "rows_migrated": 0,
+      "duration_seconds": 1.698,
+      "rows_per_second": 0.0,
+      "error": "name 'total_batch_rows' is not defined"
+    }
+  ]
+}

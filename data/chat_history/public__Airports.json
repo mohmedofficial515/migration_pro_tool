@@ -1,0 +1,20 @@
+{
+  "schema": "public",
+  "table": "Airports",
+  "created_at": "2026-04-21T14:40:12",
+  "updated_at": "2026-04-21T14:40:51",
+  "sessions": [
+    {
+      "session_id": "485518ae-3e08-4651-b658-baf7ef5c8e19",
+      "started_at": "2026-04-21T14:40:12",
+      "label": "Session 1",
+      "messages": [
+        {
+          "role": "assistant",
+          "content": "# مرحباً! تحليل جدول Airports ✈️\n\n## 📊 ملخص الجدول\n\n| المعلومة | القيمة |\n|----------|--------|\n| **الجدول** | `public.Airports` |\n| **عدد الصفوف** | ~32 صف |\n| **الحجم** | 168 kB |\n| **عدد الأعمدة** | 32 عمود |\n\n---\n\n## 🔍 التحليل الرئيسي\n\n### ✅ أعمدة ممتلئة (4 فقط):\n- `\"id\"` - المفتاح الأساسي\n- `\"geom\"` - الهندسة (عليها فهرس)\n- `\"representative_point\"` - نقطة تمثيلية (عليها فهرس)\n- `\"created_at\"`, `\"updated_at\"` - طوابيل زمنية\n\n### ⚠️ أعمدة فارغة 100% (28 عمود):\nجميع الأعمدة الأخرى فارغة بالكامل، ومنها:\n- بيانات الموقع: `\"region_id\"`, `\"amana_id\"`, `\"governorate_id\"`, `\"city_id\"`...\n- بيانات المطارات: `\"airportname_ar\"`, `\"airportname_en\"`, `\"airporttype\"`, `\"airports_id\"`...\n- بيانات إضافية: `\"description\"`, `\"dataowner\"`, `\"globalid\"`...\n\n### 🚨 مشكلة خطيرة - فهارس غير مجدية:\nهناك **4 فهارس على أعمدة فارغة 100%**:\n| العمود | المشكلة |\n|--------|---------|\n| `\"encoded_geom\"` | فهرس على عمود فارغ |\n| `\"airportname_ar\"` | فهرس على عمود فارغ |\n| `\"airportname_en\"` | فهرس على عمود فارغ |\n| `\"airporttype\"` | فهرس على عمود فارغ |\n\nهذه الفهارس تستهلك مساحة تخزين وتبطئ عمليات الكتابة دون أي فائدة!\n\n---\n\n## 📋 الإجراءات المقترحة\n\n```actions\n[\n  {\n    \"num\": 1,\n    \"label\": \"حذف الفهارس غير المجدية\",\n    \"desc\": \"حذف 4 فهارس على أعمدة فارغة 100% لتوفير المساحة وتسريع الكتابة\",\n    \"action\": \"SEND\",\n    \"prompt\": \"احذف الفهارس غير المجدية من جدول Airports\"\n  },\n  {\n    \"num\": 2,\n    \"label\": \"فحص الأعمدة الفارغة\",\n    \"desc\": \"استعلام مفصل عن كل عمود فارغ مع نوعه وحالته\",\n    \"action\": \"SQL\",\n    \"sql\": \"SELECT column_name, data_type, is_nullable, character_maximum_length FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'Airports' AND column_name NOT IN ('id', 'geom', 'representative_point', 'created_at', 'updated_at') ORDER BY ordinal_position;\",\n    \"risk\": \"READ\"\n  },\n  {\n    \"num\": 3,\n    \"label\": \"قائمة الفهارس الموجودة\",\n    \"desc\": \"عرض كل الفهارس على الجدول مع تفاصيلها\",\n    \"action\": \"SQL\",\n    \"sql\": \"SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' AND tablename = 'Airports';\",\n    \"risk\": \"READ\"\n  },\n  {\n    \"num\": 4,\n    \"label\": \"حذف الأعمدة الفارغة\",\n    \"desc\": \"إزالة الأعمدة التي لا تحتوي على بيانات (عملية خطيرة)\",\n    \"action\": \"SEND\",\n    \"prompt\": \"أريد حذف الأعمدة الفارغة من جدول Airports\"\n  }\n]\n```\n\n---\n\n```suggestions\n[\"كم حجم الفهارس غير المجدية؟\", \"هل توجد بيانات في الأعمدة الفارغة؟\", \"أظهر لي قائمة الفهارس فقط\"]\n```",
+          "timestamp": "2026-04-21T14:40:51"
+        }
+      ]
+    }
+  ]
+}

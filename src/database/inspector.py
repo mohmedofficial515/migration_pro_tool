@@ -23,6 +23,26 @@ def _connect(dsn: str):
     return psycopg2.connect(dsn, connect_timeout=_CONNECT_TIMEOUT)
 
 
+def resolve_active_table(dsn: str, table: str, schema: str = "public") -> str:
+    """
+    Returns `{table}_tmp` if it exists in the given schema, otherwise returns the original `table`.
+    This ensures all statistics and metadata correctly target the AI workspace when it is active.
+    """
+    tmp_table = f"{table}_tmp"
+    try:
+        with _connect(dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT 1 FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(%s) AND LOWER(table_name) = LOWER(%s)",
+                    (schema, tmp_table)
+                )
+                if cur.fetchone():
+                    return tmp_table
+    except Exception as e:
+        logger.error("resolve_active_table failed: %s", e)
+    return table
+
+
 # ─────────────────────────────────────────────────────────────
 # Full table metadata
 # ─────────────────────────────────────────────────────────────
@@ -50,6 +70,8 @@ def get_full_table_info(dsn: str, table: str, schema: str = "public") -> dict:
     try:
         with _connect(dsn) as conn:
             with conn.cursor(cursor_factory=extras.RealDictCursor) as cur:
+                
+                active_table = resolve_active_table(dsn, table, schema)
 
                 # ── 1. Columns ──
                 cur.execute("""
@@ -57,6 +79,7 @@ def get_full_table_info(dsn: str, table: str, schema: str = "public") -> dict:
                         ordinal_position,
                         column_name,
                         CASE
+
                             WHEN data_type = 'USER-DEFINED' THEN udt_name
                             ELSE data_type
                         END AS data_type,
@@ -69,7 +92,7 @@ def get_full_table_info(dsn: str, table: str, schema: str = "public") -> dict:
                     WHERE LOWER(table_schema) = LOWER(%s)
                       AND LOWER(table_name)   = LOWER(%s)
                     ORDER BY ordinal_position;
-                """, (schema, table))
+                """, (schema, active_table))
                 result["columns"] = [dict(r) for r in cur.fetchall()]
 
                 # Fallback via pg_attribute if information_schema returned nothing
@@ -94,7 +117,7 @@ def get_full_table_info(dsn: str, table: str, schema: str = "public") -> dict:
                           AND a.attnum > 0
                           AND NOT a.attisdropped
                         ORDER BY a.attnum;
-                    """, (schema, table))
+                    """, (schema, active_table))
                     result["columns"] = [dict(r) for r in cur.fetchall()]
 
                 # ── 2. Primary Keys ──
@@ -107,7 +130,7 @@ def get_full_table_info(dsn: str, table: str, schema: str = "public") -> dict:
                     WHERE tc.constraint_type = 'PRIMARY KEY'
                       AND LOWER(tc.table_schema) = LOWER(%s)
                       AND LOWER(tc.table_name)   = LOWER(%s);
-                """, (schema, table))
+                """, (schema, active_table))
                 result["primary_keys"] = {r["column_name"] for r in cur.fetchall()}
 
                 # ── 3. Foreign Keys ──
@@ -126,7 +149,7 @@ def get_full_table_info(dsn: str, table: str, schema: str = "public") -> dict:
                     WHERE tc.constraint_type = 'FOREIGN KEY'
                       AND LOWER(tc.table_schema) = LOWER(%s)
                       AND LOWER(tc.table_name)   = LOWER(%s);
-                """, (schema, table))
+                """, (schema, active_table))
                 for r in cur.fetchall():
                     result["foreign_keys"][r["column_name"]] = {
                         "ref_table":  r["ref_table"],
@@ -143,7 +166,7 @@ def get_full_table_info(dsn: str, table: str, schema: str = "public") -> dict:
                     WHERE tc.constraint_type = 'UNIQUE'
                       AND LOWER(tc.table_schema) = LOWER(%s)
                       AND LOWER(tc.table_name)   = LOWER(%s);
-                """, (schema, table))
+                """, (schema, active_table))
                 result["unique_cols"] = {r["column_name"] for r in cur.fetchall()}
 
                 # ── 5. Indexes (non-PK) ──
@@ -155,7 +178,7 @@ def get_full_table_info(dsn: str, table: str, schema: str = "public") -> dict:
                     WHERE LOWER(ix.schemaname) = LOWER(%s)
                       AND LOWER(ix.tablename)  = LOWER(%s)
                       AND ix.indexdef NOT LIKE '%%_pkey%%';
-                """, (schema, table))
+                """, (schema, active_table))
                 for r in cur.fetchall():
                     # Extract column names from indexdef heuristically
                     idx_def  = r["indexdef"]
@@ -183,7 +206,7 @@ def get_full_table_info(dsn: str, table: str, schema: str = "public") -> dict:
                     JOIN pg_namespace n ON c.relnamespace = n.oid
                     WHERE LOWER(n.nspname) = LOWER(%s)
                       AND LOWER(s.relname) = LOWER(%s);
-                """, (schema, table))
+                """, (schema, active_table))
                 row = cur.fetchone()
                 if row:
                     result["stats"] = {
@@ -242,6 +265,7 @@ def get_column_analytics(
     is_date    = any(t in col_type_lower for t in _DATE_TYPES)
 
     try:
+        active_table = resolve_active_table(dsn, table, schema)
         with _connect(dsn) as conn:
             with conn.cursor() as cur:
 
@@ -250,7 +274,7 @@ def get_column_analytics(
                     SELECT
                         COUNT(*) FILTER (WHERE "{col_name}" IS NULL)       AS null_count,
                         COUNT(DISTINCT "{col_name}")                        AS distinct_count
-                    FROM "{schema}"."{table}";
+                    FROM "{schema}"."{active_table}";
                 """)
                 row = cur.fetchone()
                 if row:
@@ -263,7 +287,7 @@ def get_column_analytics(
                         SELECT
                             MIN("{col_name}")::text,
                             MAX("{col_name}")::text
-                        FROM "{schema}"."{table}";
+                        FROM "{schema}"."{active_table}";
                     """)
                     row = cur.fetchone()
                     if row:
@@ -275,7 +299,7 @@ def get_column_analytics(
                     SELECT
                         "{col_name}"::text AS val,
                         COUNT(*)           AS cnt
-                    FROM "{schema}"."{table}"
+                    FROM "{schema}"."{active_table}"
                     WHERE "{col_name}" IS NOT NULL
                     GROUP BY "{col_name}"
                     ORDER BY cnt DESC
@@ -284,7 +308,7 @@ def get_column_analytics(
                 total = analytics["distinct_count"] or 1
                 rows  = cur.fetchall()
                 # Compute total rows for percentage
-                cur.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}";')
+                cur.execute(f'SELECT COUNT(*) FROM "{schema}"."{active_table}";')
                 total_rows = cur.fetchone()[0] or 1
 
                 analytics["top_values"] = [
@@ -331,6 +355,7 @@ def get_columns_quick_stats(
     result: dict = {}
 
     try:
+        active_table = resolve_active_table(dsn, table, schema)
         with _connect(dsn) as conn:
             with conn.cursor(cursor_factory=extras.RealDictCursor) as cur:
 
@@ -347,7 +372,7 @@ def get_columns_quick_stats(
                     WHERE LOWER(schemaname) = LOWER(%s)
                       AND LOWER(tablename)  = LOWER(%s)
                     ORDER BY attname;
-                """, (schema, table))
+                """, (schema, active_table))
 
                 for row in cur.fetchall():
                     col      = row["column_name"]

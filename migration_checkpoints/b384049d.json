@@ -1,0 +1,14 @@
+{
+  "migration_id": "b384049d",
+  "from_dsn_hash": "147afcb13c88",
+  "to_dsn_hash": "92a7ff4be550",
+  "table_names": [
+    "SocialServices_CL4_geom_tmp"
+  ],
+  "completed_tables": [],
+  "failed_tables": {
+    "SocialServices_CL4_geom_tmp": "column \"main_category_code\" of relation \"SocialServices_CL4_geom_tmp\" does not exist\nLINE 1: ...ervicename_en\", \"globalid\", \"street_id\", \"owner\", \"main_cate...\n                                                             ^\n"
+  },
+  "started_at": "2026-04-22T11:49:39.536565+00:00",
+  "last_updated": "2026-04-22T12:10:44.152000+00:00"
+}

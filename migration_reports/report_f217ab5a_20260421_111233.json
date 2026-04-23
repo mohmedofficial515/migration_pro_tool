@@ -1,0 +1,23 @@
+{
+  "session_id": "f217ab5a",
+  "started_at": "2026-04-21T11:12:33.366436+00:00",
+  "finished_at": "2026-04-21T11:12:35.640785+00:00",
+  "total_duration_seconds": 2.27,
+  "summary": {
+    "total_tables": 1,
+    "success": 0,
+    "failed": 1,
+    "total_rows": 0,
+    "avg_speed_rows_per_sec": 0.0
+  },
+  "tables": [
+    {
+      "table": "Transportation",
+      "status": "failed",
+      "rows_migrated": 0,
+      "duration_seconds": 2.248,
+      "rows_per_second": 0.0,
+      "error": "can't use a named cursor outside of transactions"
+    }
+  ]
+}

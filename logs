@@ -1,0 +1,1906 @@
+🔹 [16:57:20] 🔁 COPY | layers_2026 ➜ layers_2026_tmp | 237 tables
+🔹 [16:57:20] 🔍 Pre-flight validation...
+✅ [16:57:21] ✅ Validation passed.
+🔹 [16:57:21] 📊 Remaining: 237/237 | Workers: 4 | Chunk: 10,000
+🔹 [16:57:21] 🚀 Launching 4 parallel workers...
+🔹 [16:57:21] 📋 layers_2026.billboards_MMSL2_geom ➜ layers_2026_tmp.billboards_MMSL2_geom
+🔹 [16:57:21] 📋 layers_2026.bollards_MMSL4_geom ➜ layers_2026_tmp.bollards_MMSL4_geom
+🔹 [16:57:21] 📋 layers_2026.building_footprints_GLL40_geom ➜ layers_2026_tmp.building_footprints_GLL40_geom
+🔹 [16:57:21] 📋 layers_2026.business_firms_CL23_geom ➜ layers_2026_tmp.business_firms_CL23_geom
+🔹 [16:57:21] 🔄 [MERGE] 'layers_2026_tmp.billboards_MMSL2_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [16:57:21] 🔄 [MERGE] 'layers_2026_tmp.bollards_MMSL4_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [16:57:21] 🔄 [MERGE] 'layers_2026_tmp.building_footprints_GLL40_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [16:57:21] 🔄 [MERGE] 'layers_2026_tmp.business_firms_CL23_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:22] ✅  Index 'uq_billboards_mmsl2_geom_1776274233' created.
+✅ [16:57:22] ✅  Index 'idx_billboards_mmsl2_geom_geom' created.
+✅ [16:57:22] 📊 [MERGE SUMMARY] 'layers_2026_tmp.billboards_MMSL2_geom' — ➕ 1,097 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:22] ✅ 'billboards_MMSL2_geom' — 1,097 rows in 1.2s (936 r/s)
+✅ [16:57:22] 🟢 Workspace 'layers_2026_tmp.billboards_MMSL2_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:22] 📋 layers_2026.business_firms_GLL23_geom ➜ layers_2026_tmp.business_firms_GLL23_geom
+🔹 [16:57:22] 🔄 [MERGE] 'layers_2026_tmp.business_firms_GLL23_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:23] ✅  Index 'uq_business_firms_cl23_geom_1776014174' created.
+✅ [16:57:23] ✅  Index 'idx_business_firms_cl23_geom_geom' created.
+✅ [16:57:23] 📊 [MERGE SUMMARY] 'layers_2026_tmp.business_firms_CL23_geom' — ➕ 2,802 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:24] ✅ 'business_firms_CL23_geom' — 2,802 rows in 2.8s (1,003 r/s)
+✅ [16:57:24] 🟢 Workspace 'layers_2026_tmp.business_firms_CL23_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:24] 📋 layers_2026.cameras_MMSL7_geom ➜ layers_2026_tmp.cameras_MMSL7_geom
+🔹 [16:57:24] 🔄 [MERGE] 'layers_2026_tmp.cameras_MMSL7_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:25] ✅  Index 'uq_business_firms_gll23_geom_1776276694' created.
+✅ [16:57:25] ✅  Index 'idx_business_firms_gll23_geom_geom' created.
+✅ [16:57:25] 📊 [MERGE SUMMARY] 'layers_2026_tmp.business_firms_GLL23_geom' — ➕ 2,802 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:25] ✅ 'business_firms_GLL23_geom' — 2,802 rows in 2.8s (992 r/s)
+✅ [16:57:25] 🟢 Workspace 'layers_2026_tmp.business_firms_GLL23_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:25] 📋 layers_2026.cities_2_geom ➜ layers_2026_tmp.cities_2_geom
+🔹 [16:57:25] 🔄 [MERGE] 'layers_2026_tmp.cities_2_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:26] ✅  Index 'uq_cameras_mmsl7_geom_1776274268' created.
+✅ [16:57:26] ✅  Index 'idx_cameras_mmsl7_geom_geom' created.
+✅ [16:57:26] 📊 [MERGE SUMMARY] 'layers_2026_tmp.cameras_MMSL7_geom' — ➕ 2,121 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:26] ✅ 'cameras_MMSL7_geom' — 2,121 rows in 2.2s (972 r/s)
+✅ [16:57:26] 🟢 Workspace 'layers_2026_tmp.cameras_MMSL7_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:26] 📋 layers_2026.cities_geom ➜ layers_2026_tmp.cities_geom
+🔹 [16:57:26] 🔄 [MERGE] 'layers_2026_tmp.cities_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:26] ✅  Index 'uq_cities_geom_1775992930' created.
+✅ [16:57:26] ✅  Index 'idx_cities_geom_geom' created.
+✅ [16:57:26] 📊 [MERGE SUMMARY] 'layers_2026_tmp.cities_geom' — ➕ 190 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:26] ✅ 'cities_geom' — 190 rows in 0.6s (312 r/s)
+✅ [16:57:26] 🟢 Workspace 'layers_2026_tmp.cities_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:27] 📋 layers_2026.city_boundaries_CL30_geom ➜ layers_2026_tmp.city_boundaries_CL30_geom
+🔹 [16:57:27] 🔄 [MERGE] 'layers_2026_tmp.city_boundaries_CL30_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:27] ✅  Index 'uq_city_boundaries_cl30_geom_1776013694' created.
+✅ [16:57:27] ✅  Index 'idx_city_boundaries_cl30_geom_geom' created.
+✅ [16:57:27] 📊 [MERGE SUMMARY] 'layers_2026_tmp.city_boundaries_CL30_geom' — ➕ 190 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:27] ✅ 'city_boundaries_CL30_geom' — 190 rows in 0.7s (287 r/s)
+✅ [16:57:27] 🟢 Workspace 'layers_2026_tmp.city_boundaries_CL30_geom_tmp' ready (structure-only, empty).
+✅ [16:57:27] ✅  Index 'uq_bollards_mmsl4_geom_1776274263' created.
+✅ [16:57:27] ✅  Index 'idx_bollards_mmsl4_geom_geom' created.
+✅ [16:57:27] 📊 [MERGE SUMMARY] 'layers_2026_tmp.bollards_MMSL4_geom' — ➕ 7,143 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:27] ✅ 'bollards_MMSL4_geom' — 7,143 rows in 6.6s (1,081 r/s)
+🔹 [16:57:27] 📋 layers_2026.city_boundaries_GLL45_geom ➜ layers_2026_tmp.city_boundaries_GLL45_geom
+✅ [16:57:27] 🟢 Workspace 'layers_2026_tmp.bollards_MMSL4_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:27] 🔄 [MERGE] 'layers_2026_tmp.city_boundaries_GLL45_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [16:57:27] 📋 layers_2026.city_centroid_GLL26_geom ➜ layers_2026_tmp.city_centroid_GLL26_geom
+🔹 [16:57:28] 🔄 [MERGE] 'layers_2026_tmp.city_centroid_GLL26_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:28] ✅  Index 'uq_city_boundaries_gll45_geom_1776278678' created.
+✅ [16:57:28] ✅  Index 'idx_city_boundaries_gll45_geom_geom' created.
+✅ [16:57:28] 📊 [MERGE SUMMARY] 'layers_2026_tmp.city_boundaries_GLL45_geom' — ➕ 190 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:28] ✅ 'city_boundaries_GLL45_geom' — 190 rows in 0.6s (293 r/s)
+✅ [16:57:28] 🟢 Workspace 'layers_2026_tmp.city_boundaries_GLL45_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:28] 📋 layers_2026.city_cleaning_contracts_SL8_geom ➜ layers_2026_tmp.city_cleaning_contracts_SL8_geom
+🔹 [16:57:28] 🔄 [MERGE] 'layers_2026_tmp.city_cleaning_contracts_SL8_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:28] ✅  Index 'uq_city_cleaning_contracts_sl8_geom_1776184990' created.
+✅ [16:57:28] ✅  Index 'idx_city_cleaning_contracts_sl8_geom_geom' created.
+✅ [16:57:28] 📊 [MERGE SUMMARY] 'layers_2026_tmp.city_cleaning_contracts_SL8_geom' — ➕ 93 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:28] ✅ 'city_cleaning_contracts_SL8_geom' — 93 rows in 0.4s (207 r/s)
+✅ [16:57:29] 🟢 Workspace 'layers_2026_tmp.city_cleaning_contracts_SL8_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:29] 📋 layers_2026.commercial_GLL22_geom ➜ layers_2026_tmp.commercial_GLL22_geom
+🔹 [16:57:29] 🔄 [MERGE] 'layers_2026_tmp.commercial_GLL22_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:45] ✅  Index 'uq_cities_2_geom_1775993812' created.
+✅ [16:57:45] ✅  Index 'idx_cities_2_geom_geom' created.
+✅ [16:57:45] 📊 [MERGE SUMMARY] 'layers_2026_tmp.cities_2_geom' — ➕ 21,450 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:45] ✅ 'cities_2_geom' — 21,450 rows in 20.5s (1,048 r/s)
+✅ [16:57:45] 🟢 Workspace 'layers_2026_tmp.cities_2_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:45] 📋 layers_2026.commercial_zones_CL22_geom ➜ layers_2026_tmp.commercial_zones_CL22_geom
+🔹 [16:57:45] 🔄 [MERGE] 'layers_2026_tmp.commercial_zones_CL22_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:57:48] ✅  Index 'uq_city_centroid_gll26_geom_1776276702' created.
+✅ [16:57:48] ✅  Index 'idx_city_centroid_gll26_geom_geom' created.
+✅ [16:57:48] 📊 [MERGE SUMMARY] 'layers_2026_tmp.city_centroid_GLL26_geom' — ➕ 21,450 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:57:48] ✅ 'city_centroid_GLL26_geom' — 21,450 rows in 20.3s (1,054 r/s)
+✅ [16:57:48] 🟢 Workspace 'layers_2026_tmp.city_centroid_GLL26_geom_tmp' ready (structure-only, empty).
+🔹 [16:57:48] 📋 layers_2026.complaints_waste_other_SL54_geom ➜ layers_2026_tmp.complaints_waste_other_SL54_geom
+🔹 [16:57:48] 🔄 [MERGE] 'layers_2026_tmp.complaints_waste_other_SL54_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:59:14] ✅  Index 'uq_commercial_gll22_geom_1776276674' created.
+✅ [16:59:15] ✅  Index 'idx_commercial_gll22_geom_geom' created.
+✅ [16:59:15] 📊 [MERGE SUMMARY] 'layers_2026_tmp.commercial_GLL22_geom' — ➕ 91,923 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:59:15] ✅ 'commercial_GLL22_geom' — 91,923 rows in 106.7s (862 r/s)
+✅ [16:59:15] 🟢 Workspace 'layers_2026_tmp.commercial_GLL22_geom_tmp' ready (structure-only, empty).
+🔹 [16:59:15] 📋 layers_2026.complaints_waste_tawakkalna_SL55_geom ➜ layers_2026_tmp.complaints_waste_tawakkalna_SL55_geom
+🔹 [16:59:16] 🔄 [MERGE] 'layers_2026_tmp.complaints_waste_tawakkalna_SL55_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:59:19] ✅  Index 'uq_complaints_waste_tawakkalna_sl55_geom_1776273494' created.
+✅ [16:59:19] ✅  Index 'idx_complaints_waste_tawakkalna_sl55_geom_geom' created.
+✅ [16:59:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.complaints_waste_tawakkalna_SL55_geom' — ➕ 2,663 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:59:19] ✅ 'complaints_waste_tawakkalna_SL55_geom' — 2,663 rows in 3.7s (724 r/s)
+✅ [16:59:19] 🟢 Workspace 'layers_2026_tmp.complaints_waste_tawakkalna_SL55_geom_tmp' ready (structure-only, empty).
+🔹 [16:59:19] 📋 layers_2026.concrete_barriers_SL12_geom ➜ layers_2026_tmp.concrete_barriers_SL12_geom
+🔹 [16:59:19] 🔄 [MERGE] 'layers_2026_tmp.concrete_barriers_SL12_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:59:24] ✅  Index 'uq_concrete_barriers_sl12_geom_1776189006' created.
+✅ [16:59:24] ✅  Index 'idx_concrete_barriers_sl12_geom_geom' created.
+✅ [16:59:24] 📊 [MERGE SUMMARY] 'layers_2026_tmp.concrete_barriers_SL12_geom' — ➕ 4,690 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:59:24] ✅ 'concrete_barriers_SL12_geom' — 4,690 rows in 5.3s (893 r/s)
+✅ [16:59:24] 🟢 Workspace 'layers_2026_tmp.concrete_barriers_SL12_geom_tmp' ready (structure-only, empty).
+🔹 [16:59:25] 📋 layers_2026.copper_cables_cpncL16_geom ➜ layers_2026_tmp.copper_cables_cpncL16_geom
+🔹 [16:59:25] 🔄 [MERGE] 'layers_2026_tmp.copper_cables_cpncL16_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:59:35] ✅  Index 'uq_commercial_zones_cl22_geom_1776014066' created.
+✅ [16:59:36] ✅  Index 'idx_commercial_zones_cl22_geom_geom' created.
+✅ [16:59:36] 📊 [MERGE SUMMARY] 'layers_2026_tmp.commercial_zones_CL22_geom' — ➕ 91,923 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:59:36] ✅ 'commercial_zones_CL22_geom' — 91,923 rows in 110.6s (831 r/s)
+✅ [16:59:36] 🟢 Workspace 'layers_2026_tmp.commercial_zones_CL22_geom_tmp' ready (structure-only, empty).
+🔹 [16:59:36] 📋 layers_2026.coverage_3g_UserInfoL7_geom ➜ layers_2026_tmp.coverage_3g_UserInfoL7_geom
+🔹 [16:59:37] 🔄 [MERGE] 'layers_2026_tmp.coverage_3g_UserInfoL7_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:59:39] ✅  Index 'uq_coverage_3g_userinfol7_geom_1776257506' created.
+✅ [16:59:39] ✅  Index 'idx_coverage_3g_userinfol7_geom_geom' created.
+✅ [16:59:39] 📊 [MERGE SUMMARY] 'layers_2026_tmp.coverage_3g_UserInfoL7_geom' — ➕ 13 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:59:39] ✅ 'coverage_3g_UserInfoL7_geom' — 13 rows in 2.6s (5 r/s)
+✅ [16:59:39] 🟢 Workspace 'layers_2026_tmp.coverage_3g_UserInfoL7_geom_tmp' ready (structure-only, empty).
+🔹 [16:59:39] 📋 layers_2026.critical_points_CL52_geom ➜ layers_2026_tmp.critical_points_CL52_geom
+🔹 [16:59:39] 🔄 [MERGE] 'layers_2026_tmp.critical_points_CL52_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [16:59:54] ✅  Index 'uq_critical_points_cl52_geom_1776179421' created.
+✅ [16:59:54] ✅  Index 'idx_critical_points_cl52_geom_geom' created.
+✅ [16:59:54] 📊 [MERGE SUMMARY] 'layers_2026_tmp.critical_points_CL52_geom' — ➕ 11,006 new rows inserted,  ✏️  0 existing rows updated.
+✅ [16:59:54] ✅ 'critical_points_CL52_geom' — 11,006 rows in 15.1s (728 r/s)
+✅ [16:59:54] 🟢 Workspace 'layers_2026_tmp.critical_points_CL52_geom_tmp' ready (structure-only, empty).
+🔹 [16:59:54] 📋 layers_2026.critical_points_deputy_CL58_geom ➜ layers_2026_tmp.critical_points_deputy_CL58_geom
+🔹 [16:59:54] 🔄 [MERGE] 'layers_2026_tmp.critical_points_deputy_CL58_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:03] ✅  Index 'uq_critical_points_deputy_cl58_geom_1776179699' created.
+✅ [17:00:04] ✅  Index 'idx_critical_points_deputy_cl58_geom_geom' created.
+✅ [17:00:04] 📊 [MERGE SUMMARY] 'layers_2026_tmp.critical_points_deputy_CL58_geom' — ➕ 5,750 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:04] ✅ 'critical_points_deputy_CL58_geom' — 5,750 rows in 9.6s (598 r/s)
+✅ [17:00:04] 🟢 Workspace 'layers_2026_tmp.critical_points_deputy_CL58_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:04] 📋 layers_2026.critical_points_jeddah_CL56_geom ➜ layers_2026_tmp.critical_points_jeddah_CL56_geom
+🔹 [17:00:04] 🔄 [MERGE] 'layers_2026_tmp.critical_points_jeddah_CL56_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:04] ✅  Index 'uq_critical_points_jeddah_cl56_geom_1776179695' created.
+✅ [17:00:04] ✅  Index 'idx_critical_points_jeddah_cl56_geom_geom' created.
+✅ [17:00:04] 📊 [MERGE SUMMARY] 'layers_2026_tmp.critical_points_jeddah_CL56_geom' — ➕ 3 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:04] ✅ 'critical_points_jeddah_CL56_geom' — 3 rows in 0.6s (5 r/s)
+✅ [17:00:04] 🟢 Workspace 'layers_2026_tmp.critical_points_jeddah_CL56_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:04] 📋 layers_2026.critical_zones_cpncL19_geom ➜ layers_2026_tmp.critical_zones_cpncL19_geom
+🔹 [17:00:05] 🔄 [MERGE] 'layers_2026_tmp.critical_zones_cpncL19_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:10] ✅  Index 'uq_complaints_waste_other_sl54_geom_1776273470' created.
+✅ [17:00:11] ✅  Index 'idx_complaints_waste_other_sl54_geom_geom' created.
+✅ [17:00:11] 📊 [MERGE SUMMARY] 'layers_2026_tmp.complaints_waste_other_SL54_geom' — ➕ 91,787 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:11] ✅ 'complaints_waste_other_SL54_geom' — 91,787 rows in 143.4s (640 r/s)
+✅ [17:00:11] 🟢 Workspace 'layers_2026_tmp.complaints_waste_other_SL54_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:11] 📋 layers_2026.cultural_GLL21_geom ➜ layers_2026_tmp.cultural_GLL21_geom
+🔹 [17:00:12] 🔄 [MERGE] 'layers_2026_tmp.cultural_GLL21_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:12] ✅  Index 'uq_cultural_gll21_geom_1776276671' created.
+✅ [17:00:12] ✅  Index 'idx_cultural_gll21_geom_geom' created.
+✅ [17:00:12] 📊 [MERGE SUMMARY] 'layers_2026_tmp.cultural_GLL21_geom' — ➕ 366 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:12] ✅ 'cultural_GLL21_geom' — 366 rows in 0.9s (399 r/s)
+✅ [17:00:12] 🟢 Workspace 'layers_2026_tmp.cultural_GLL21_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:12] 📋 layers_2026.cultural_service_sites_SL48_geom ➜ layers_2026_tmp.cultural_service_sites_SL48_geom
+✅ [17:00:12] ✅  Index 'uq_critical_zones_cpncl19_geom_1776265794' created.
+🔹 [17:00:13] 🔄 [MERGE] 'layers_2026_tmp.cultural_service_sites_SL48_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:13] ✅  Index 'idx_critical_zones_cpncl19_geom_geom' created.
+✅ [17:00:13] 📊 [MERGE SUMMARY] 'layers_2026_tmp.critical_zones_cpncL19_geom' — ➕ 5,750 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:13] ✅ 'critical_zones_cpncL19_geom' — 5,750 rows in 8.2s (705 r/s)
+✅ [17:00:13] 🟢 Workspace 'layers_2026_tmp.critical_zones_cpncL19_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:13] 📋 layers_2026.cultural_services_CL49_geom ➜ layers_2026_tmp.cultural_services_CL49_geom
+🔹 [17:00:13] 🔄 [MERGE] 'layers_2026_tmp.cultural_services_CL49_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:18] ✅  Index 'uq_cultural_service_sites_sl48_geom_1776273414' created.
+✅ [17:00:19] ✅  Index 'idx_cultural_service_sites_sl48_geom_geom' created.
+✅ [17:00:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.cultural_service_sites_SL48_geom' — ➕ 4,111 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:19] ✅ 'cultural_service_sites_SL48_geom' — 4,111 rows in 6.2s (666 r/s)
+✅ [17:00:19] 🟢 Workspace 'layers_2026_tmp.cultural_service_sites_SL48_geom_tmp' ready (structure-only, empty).
+✅ [17:00:19] ✅  Index 'uq_cultural_services_cl49_geom_1776176887' created.
+✅ [17:00:19] ✅  Index 'idx_cultural_services_cl49_geom_geom' created.
+✅ [17:00:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.cultural_services_CL49_geom' — ➕ 4,111 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:19] ✅ 'cultural_services_CL49_geom' — 4,111 rows in 6.0s (685 r/s)
+🔹 [17:00:19] 📋 layers_2026.cultural_sites_CL21_geom ➜ layers_2026_tmp.cultural_sites_CL21_geom
+✅ [17:00:19] 🟢 Workspace 'layers_2026_tmp.cultural_services_CL49_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:19] 🔄 [MERGE] 'layers_2026_tmp.cultural_sites_CL21_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [17:00:19] 📋 layers_2026.culverts_CL37_geom ➜ layers_2026_tmp.culverts_CL37_geom
+🔹 [17:00:19] 🔄 [MERGE] 'layers_2026_tmp.culverts_CL37_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:19] ✅  Index 'uq_culverts_cl37_geom_1776174480' created.
+✅ [17:00:19] ✅  Index 'idx_culverts_cl37_geom_geom' created.
+✅ [17:00:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.culverts_CL37_geom' — ➕ 9 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:19] ✅ 'culverts_CL37_geom' — 9 rows in 0.3s (34 r/s)
+✅ [17:00:19] 🟢 Workspace 'layers_2026_tmp.culverts_CL37_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:19] 📋 layers_2026.culverts_SL10_geom ➜ layers_2026_tmp.culverts_SL10_geom
+✅ [17:00:19] ✅  Index 'uq_cultural_sites_cl21_geom_1776013883' created.
+✅ [17:00:19] ✅  Index 'idx_cultural_sites_cl21_geom_geom' created.
+🔹 [17:00:19] 🔄 [MERGE] 'layers_2026_tmp.culverts_SL10_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.cultural_sites_CL21_geom' — ➕ 366 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:19] ✅ 'cultural_sites_CL21_geom' — 366 rows in 0.6s (603 r/s)
+✅ [17:00:19] 🟢 Workspace 'layers_2026_tmp.cultural_sites_CL21_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:19] 📋 layers_2026.dam_sites_SL45_geom ➜ layers_2026_tmp.dam_sites_SL45_geom
+🔹 [17:00:20] 🔄 [MERGE] 'layers_2026_tmp.dam_sites_SL45_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:20] ✅  Index 'uq_dam_sites_sl45_geom_1776273401' created.
+✅ [17:00:20] ✅  Index 'idx_dam_sites_sl45_geom_geom' created.
+✅ [17:00:20] 📊 [MERGE SUMMARY] 'layers_2026_tmp.dam_sites_SL45_geom' — ➕ 506 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:20] ✅ 'dam_sites_SL45_geom' — 506 rows in 0.8s (657 r/s)
+✅ [17:00:20] 🟢 Workspace 'layers_2026_tmp.dam_sites_SL45_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:20] 📋 layers_2026.dams_cpncL4_geom ➜ layers_2026_tmp.dams_cpncL4_geom
+🔹 [17:00:20] 🔄 [MERGE] 'layers_2026_tmp.dams_cpncL4_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:21] ✅  Index 'uq_dams_cpncl4_geom_1776265817' created.
+✅ [17:00:21] ✅  Index 'idx_dams_cpncl4_geom_geom' created.
+✅ [17:00:21] 📊 [MERGE SUMMARY] 'layers_2026_tmp.dams_cpncL4_geom' — ➕ 576 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:21] ✅ 'dams_cpncL4_geom' — 576 rows in 0.8s (750 r/s)
+✅ [17:00:21] 🟢 Workspace 'layers_2026_tmp.dams_cpncL4_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:21] 📋 layers_2026.diplomatic_GLL20_geom ➜ layers_2026_tmp.diplomatic_GLL20_geom
+🔹 [17:00:21] 🔄 [MERGE] 'layers_2026_tmp.diplomatic_GLL20_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:21] ✅  Index 'uq_diplomatic_gll20_geom_1776276669' created.
+✅ [17:00:21] ✅  Index 'idx_diplomatic_gll20_geom_geom' created.
+✅ [17:00:21] 📊 [MERGE SUMMARY] 'layers_2026_tmp.diplomatic_GLL20_geom' — ➕ 129 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:21] ✅ 'diplomatic_GLL20_geom' — 129 rows in 0.4s (311 r/s)
+✅ [17:00:22] 🟢 Workspace 'layers_2026_tmp.diplomatic_GLL20_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:22] 📋 layers_2026.diplomatic_quarters_CL20_geom ➜ layers_2026_tmp.diplomatic_quarters_CL20_geom
+🔹 [17:00:22] 🔄 [MERGE] 'layers_2026_tmp.diplomatic_quarters_CL20_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:22] ✅  Index 'uq_diplomatic_quarters_cl20_geom_1776013788' created.
+✅ [17:00:22] ✅  Index 'idx_diplomatic_quarters_cl20_geom_geom' created.
+✅ [17:00:22] 📊 [MERGE SUMMARY] 'layers_2026_tmp.diplomatic_quarters_CL20_geom' — ➕ 129 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:22] ✅ 'diplomatic_quarters_CL20_geom' — 129 rows in 0.4s (315 r/s)
+✅ [17:00:22] 🟢 Workspace 'layers_2026_tmp.diplomatic_quarters_CL20_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:22] 📋 layers_2026.districts_CL29_geom ➜ layers_2026_tmp.districts_CL29_geom
+🔹 [17:00:22] 🔄 [MERGE] 'layers_2026_tmp.districts_CL29_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:34] ✅  Index 'uq_districts_cl29_geom_1776012610' created.
+✅ [17:00:34] ✅  Index 'idx_districts_cl29_geom_geom' created.
+✅ [17:00:34] 📊 [MERGE SUMMARY] 'layers_2026_tmp.districts_CL29_geom' — ➕ 5,478 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:34] ✅ 'districts_CL29_geom' — 5,478 rows in 11.6s (474 r/s)
+✅ [17:00:34] 🟢 Workspace 'layers_2026_tmp.districts_CL29_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:34] 📋 layers_2026.districts_GLL32_geom ➜ layers_2026_tmp.districts_GLL32_geom
+🔹 [17:00:34] 🔄 [MERGE] 'layers_2026_tmp.districts_GLL32_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:41] ✅  Index 'uq_districts_gll32_geom_1776277238' created.
+✅ [17:00:41] ✅  Index 'idx_districts_gll32_geom_geom' created.
+✅ [17:00:41] 📊 [MERGE SUMMARY] 'layers_2026_tmp.districts_GLL32_geom' — ➕ 5,478 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:41] ✅ 'districts_GLL32_geom' — 5,478 rows in 7.7s (708 r/s)
+✅ [17:00:42] 🟢 Workspace 'layers_2026_tmp.districts_GLL32_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:42] 📋 layers_2026.districts_geom ➜ layers_2026_tmp.districts_geom
+🔹 [17:00:42] 🔄 [MERGE] 'layers_2026_tmp.districts_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:00:55] ✅  Index 'uq_districts_geom_1775993164' created.
+✅ [17:00:55] ✅  Index 'idx_districts_geom_geom' created.
+✅ [17:00:55] 📊 [MERGE SUMMARY] 'layers_2026_tmp.districts_geom' — ➕ 5,478 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:00:55] ✅ 'districts_geom' — 5,478 rows in 13.4s (408 r/s)
+✅ [17:00:55] 🟢 Workspace 'layers_2026_tmp.districts_geom_tmp' ready (structure-only, empty).
+🔹 [17:00:55] 📋 layers_2026.dsl_UserInfoL4_geom ➜ layers_2026_tmp.dsl_UserInfoL4_geom
+🔹 [17:00:56] 🔄 [MERGE] 'layers_2026_tmp.dsl_UserInfoL4_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:01:32] ✅  Index 'uq_culverts_sl10_geom_1776185002' created.
+✅ [17:01:33] ✅  Index 'idx_culverts_sl10_geom_geom' created.
+✅ [17:01:33] 📊 [MERGE SUMMARY] 'layers_2026_tmp.culverts_SL10_geom' — ➕ 53,564 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:01:33] ✅ 'culverts_SL10_geom' — 53,564 rows in 74.2s (722 r/s)
+✅ [17:01:33] 🟢 Workspace 'layers_2026_tmp.culverts_SL10_geom_tmp' ready (structure-only, empty).
+🔹 [17:01:33] 📋 layers_2026.edu_services_cpncL3_geom ➜ layers_2026_tmp.edu_services_cpncL3_geom
+🔹 [17:01:34] 🔄 [MERGE] 'layers_2026_tmp.edu_services_cpncL3_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:02:24] ✅  Index 'uq_edu_services_cpncl3_geom_1776265808' created.
+✅ [17:02:24] ✅  Index 'idx_edu_services_cpncl3_geom_geom' created.
+✅ [17:02:24] 📊 [MERGE SUMMARY] 'layers_2026_tmp.edu_services_cpncL3_geom' — ➕ 46,061 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:02:24] ✅ 'edu_services_cpncL3_geom' — 46,061 rows in 50.9s (906 r/s)
+✅ [17:02:24] 🟢 Workspace 'layers_2026_tmp.edu_services_cpncL3_geom_tmp' ready (structure-only, empty).
+🔹 [17:02:25] 📋 layers_2026.educational_GLL18_geom ➜ layers_2026_tmp.educational_GLL18_geom
+🔹 [17:02:25] 🔄 [MERGE] 'layers_2026_tmp.educational_GLL18_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:03:16] ✅  Index 'uq_educational_gll18_geom_1776276638' created.
+✅ [17:03:16] ✅  Index 'idx_educational_gll18_geom_geom' created.
+✅ [17:03:16] 📊 [MERGE SUMMARY] 'layers_2026_tmp.educational_GLL18_geom' — ➕ 43,850 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:03:17] ✅ 'educational_GLL18_geom' — 43,850 rows in 52.1s (842 r/s)
+✅ [17:03:17] 🟢 Workspace 'layers_2026_tmp.educational_GLL18_geom_tmp' ready (structure-only, empty).
+🔹 [17:03:17] 📋 layers_2026.educational_SMFL13_geom ➜ layers_2026_tmp.educational_SMFL13_geom
+🔹 [17:03:18] 🔄 [MERGE] 'layers_2026_tmp.educational_SMFL13_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:04:05] ✅  Index 'uq_educational_smfl13_geom_1776274957' created.
+✅ [17:04:05] ✅  Index 'idx_educational_smfl13_geom_geom' created.
+✅ [17:04:05] 📊 [MERGE SUMMARY] 'layers_2026_tmp.educational_SMFL13_geom' — ➕ 43,310 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:04:05] ✅ 'educational_SMFL13_geom' — 43,310 rows in 48.4s (894 r/s)
+✅ [17:04:05] 🟢 Workspace 'layers_2026_tmp.educational_SMFL13_geom_tmp' ready (structure-only, empty).
+🔹 [17:04:05] 📋 layers_2026.educational_facilities_CL18_geom ➜ layers_2026_tmp.educational_facilities_CL18_geom
+🔹 [17:04:05] 🔄 [MERGE] 'layers_2026_tmp.educational_facilities_CL18_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:05:08] ✅  Index 'uq_educational_facilities_cl18_geom_1776173418' created.
+✅ [17:05:08] ✅  Index 'idx_educational_facilities_cl18_geom_geom' created.
+✅ [17:05:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.educational_facilities_CL18_geom' — ➕ 43,850 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:05:08] ✅ 'educational_facilities_CL18_geom' — 43,850 rows in 63.0s (696 r/s)
+✅ [17:05:08] 🟢 Workspace 'layers_2026_tmp.educational_facilities_CL18_geom_tmp' ready (structure-only, empty).
+🔹 [17:05:08] 📋 layers_2026.educational_facilities_v2_CL43_geom ➜ layers_2026_tmp.educational_facilities_v2_CL43_geom
+🔹 [17:05:09] 🔄 [MERGE] 'layers_2026_tmp.educational_facilities_v2_CL43_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:05:54] ✅  Index 'uq_educational_facilities_v2_cl43_geom_1776176535' created.
+✅ [17:05:55] ✅  Index 'idx_educational_facilities_v2_cl43_geom_geom' created.
+✅ [17:05:55] 📊 [MERGE SUMMARY] 'layers_2026_tmp.educational_facilities_v2_CL43_geom' — ➕ 43,850 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:05:55] ✅ 'educational_facilities_v2_CL43_geom' — 43,850 rows in 46.4s (944 r/s)
+✅ [17:05:55] 🟢 Workspace 'layers_2026_tmp.educational_facilities_v2_CL43_geom_tmp' ready (structure-only, empty).
+🔹 [17:05:55] 📋 layers_2026.educational_lands_unused_CL45_geom ➜ layers_2026_tmp.educational_lands_unused_CL45_geom
+🔹 [17:05:55] 🔄 [MERGE] 'layers_2026_tmp.educational_lands_unused_CL45_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:06:22] ✅  Index 'uq_educational_lands_unused_cl45_geom_1776176660' created.
+✅ [17:06:22] ✅  Index 'idx_educational_lands_unused_cl45_geom_geom' created.
+✅ [17:06:23] 📊 [MERGE SUMMARY] 'layers_2026_tmp.educational_lands_unused_CL45_geom' — ➕ 17,093 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:06:23] ✅ 'educational_lands_unused_CL45_geom' — 17,093 rows in 27.6s (618 r/s)
+✅ [17:06:23] 🟢 Workspace 'layers_2026_tmp.educational_lands_unused_CL45_geom_tmp' ready (structure-only, empty).
+🔹 [17:06:23] 📋 layers_2026.educational_lands_unused_SL22_geom ➜ layers_2026_tmp.educational_lands_unused_SL22_geom
+🔹 [17:06:23] 🔄 [MERGE] 'layers_2026_tmp.educational_lands_unused_SL22_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:06:52] ✅  Index 'uq_educational_lands_unused_sl22_geom_1776189723' created.
+✅ [17:06:52] ✅  Index 'idx_educational_lands_unused_sl22_geom_geom' created.
+✅ [17:06:52] 📊 [MERGE SUMMARY] 'layers_2026_tmp.educational_lands_unused_SL22_geom' — ➕ 17,093 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:06:52] ✅ 'educational_lands_unused_SL22_geom' — 17,093 rows in 29.6s (577 r/s)
+✅ [17:06:53] 🟢 Workspace 'layers_2026_tmp.educational_lands_unused_SL22_geom_tmp' ready (structure-only, empty).
+🔹 [17:06:53] 📋 layers_2026.educational_lands_used_CL44_geom ➜ layers_2026_tmp.educational_lands_used_CL44_geom
+🔹 [17:06:54] 🔄 [MERGE] 'layers_2026_tmp.educational_lands_used_CL44_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:07:07] ✅  Index 'uq_educational_lands_used_cl44_geom_1776176576' created.
+✅ [17:07:07] ✅  Index 'idx_educational_lands_used_cl44_geom_geom' created.
+✅ [17:07:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.educational_lands_used_CL44_geom' — ➕ 8,348 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:07:08] ✅ 'educational_lands_used_CL44_geom' — 8,348 rows in 14.9s (562 r/s)
+✅ [17:07:08] 🟢 Workspace 'layers_2026_tmp.educational_lands_used_CL44_geom_tmp' ready (structure-only, empty).
+🔹 [17:07:08] 📋 layers_2026.educational_lands_used_SL21_geom ➜ layers_2026_tmp.educational_lands_used_SL21_geom
+🔹 [17:07:08] 🔄 [MERGE] 'layers_2026_tmp.educational_lands_used_SL21_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:07:19] ✅  Index 'uq_educational_lands_used_sl21_geom_1776189718' created.
+✅ [17:07:19] ✅  Index 'idx_educational_lands_used_sl21_geom_geom' created.
+✅ [17:07:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.educational_lands_used_SL21_geom' — ➕ 8,348 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:07:19] ✅ 'educational_lands_used_SL21_geom' — 8,348 rows in 11.2s (742 r/s)
+✅ [17:07:19] 🟢 Workspace 'layers_2026_tmp.educational_lands_used_SL21_geom_tmp' ready (structure-only, empty).
+🔹 [17:07:19] 📋 layers_2026.ehkam_records_CL41_geom ➜ layers_2026_tmp.ehkam_records_CL41_geom
+🔹 [17:07:20] 🔄 [MERGE] 'layers_2026_tmp.ehkam_records_CL41_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:07:55] ✅  Index 'uq_dsl_userinfol4_geom_1776192669' created.
+✅ [17:08:02] ✅  Index 'idx_dsl_userinfol4_geom_geom' created.
+✅ [17:08:02] 📊 [MERGE SUMMARY] 'layers_2026_tmp.dsl_UserInfoL4_geom' — ➕ 357,158 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:08:02] ✅ 'dsl_UserInfoL4_geom' — 357,158 rows in 426.8s (837 r/s)
+✅ [17:08:02] 🟢 Workspace 'layers_2026_tmp.dsl_UserInfoL4_geom_tmp' ready (structure-only, empty).
+🔹 [17:08:02] 📋 layers_2026.ehkam_records_SL15_geom ➜ layers_2026_tmp.ehkam_records_SL15_geom
+🔹 [17:08:02] 🔄 [MERGE] 'layers_2026_tmp.ehkam_records_SL15_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:28:31] ✅  Index 'uq_copper_cables_cpncl16_geom_1776264819' created.
+✅ [17:29:03] ✅  Index 'idx_copper_cables_cpncl16_geom_geom' created.
+✅ [17:29:03] 📊 [MERGE SUMMARY] 'layers_2026_tmp.copper_cables_cpncL16_geom' — ➕ 1,563,582 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:29:03] ✅ 'copper_cables_cpncL16_geom' — 1,563,582 rows in 1778.5s (879 r/s)
+✅ [17:29:03] 🟢 Workspace 'layers_2026_tmp.copper_cables_cpncL16_geom_tmp' ready (structure-only, empty).
+🔹 [17:29:03] 📋 layers_2026.ejar_contracts_UserInfoL6_geom ➜ layers_2026_tmp.ejar_contracts_UserInfoL6_geom
+🔹 [17:29:04] 🔄 [MERGE] 'layers_2026_tmp.ejar_contracts_UserInfoL6_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:41:49] ✅  Index 'uq_ehkam_records_cl41_geom_1776174784' created.
+✅ [17:42:23] ✅  Index 'idx_ehkam_records_cl41_geom_geom' created.
+✅ [17:42:23] 📊 [MERGE SUMMARY] 'layers_2026_tmp.ehkam_records_CL41_geom' — ➕ 1,886,893 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:42:23] ✅ 'ehkam_records_CL41_geom' — 1,886,893 rows in 2104.2s (897 r/s)
+✅ [17:42:23] 🟢 Workspace 'layers_2026_tmp.ehkam_records_CL41_geom_tmp' ready (structure-only, empty).
+🔹 [17:42:23] 📋 layers_2026.ejar_contracts_UserInfoL8_geom ➜ layers_2026_tmp.ejar_contracts_UserInfoL8_geom
+🔹 [17:42:24] 🔄 [MERGE] 'layers_2026_tmp.ejar_contracts_UserInfoL8_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [17:43:03] ✅  Index 'uq_ehkam_records_sl15_geom_1776189032' created.
+✅ [17:43:50] ✅  Index 'idx_ehkam_records_sl15_geom_geom' created.
+✅ [17:43:50] 📊 [MERGE SUMMARY] 'layers_2026_tmp.ehkam_records_SL15_geom' — ➕ 1,886,893 new rows inserted,  ✏️  0 existing rows updated.
+✅ [17:43:50] ✅ 'ehkam_records_SL15_geom' — 1,886,893 rows in 2147.5s (879 r/s)
+✅ [17:43:50] 🟢 Workspace 'layers_2026_tmp.ehkam_records_SL15_geom_tmp' ready (structure-only, empty).
+🔹 [17:43:50] 📋 layers_2026.ejar_units_UserInfoL0_geom ➜ layers_2026_tmp.ejar_units_UserInfoL0_geom
+🔹 [17:43:51] 🔄 [MERGE] 'layers_2026_tmp.ejar_units_UserInfoL0_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:07:01] ✅  Index 'uq_building_footprints_gll40_geom_1776277297' created.
+✅ [18:08:11] ✅  Index 'idx_building_footprints_gll40_geom_geom' created.
+✅ [18:08:11] 📊 [MERGE SUMMARY] 'layers_2026_tmp.building_footprints_GLL40_geom' — ➕ 3,164,225 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:08:11] ✅ 'building_footprints_GLL40_geom' — 3,164,225 rows in 4249.9s (745 r/s)
+✅ [18:08:11] 🟢 Workspace 'layers_2026_tmp.building_footprints_GLL40_geom_tmp' ready (structure-only, empty).
+🔹 [18:08:11] 📋 layers_2026.elec_signs_MMSL8_geom ➜ layers_2026_tmp.elec_signs_MMSL8_geom
+🔹 [18:08:11] 🔄 [MERGE] 'layers_2026_tmp.elec_signs_MMSL8_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:08:11] ✅  Index 'idx_elec_signs_mmsl8_geom_geom' created.
+✅ [18:08:11] ✅  Index 'uq_elec_signs_mmsl8_geom_1776274271' created.
+✅ [18:08:11] 📊 [MERGE SUMMARY] 'layers_2026_tmp.elec_signs_MMSL8_geom' — ➕ 5 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:08:11] ✅ 'elec_signs_MMSL8_geom' — 5 rows in 0.4s (12 r/s)
+✅ [18:08:11] 🟢 Workspace 'layers_2026_tmp.elec_signs_MMSL8_geom_tmp' ready (structure-only, empty).
+🔹 [18:08:11] 📋 layers_2026.elec_stations_cpncL10_geom ➜ layers_2026_tmp.elec_stations_cpncL10_geom
+🔹 [18:08:11] 🔄 [MERGE] 'layers_2026_tmp.elec_stations_cpncL10_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:08:11] ✅  Index 'uq_elec_stations_cpncl10_geom_1776264576' created.
+✅ [18:08:12] 📊 [MERGE SUMMARY] 'layers_2026_tmp.elec_stations_cpncL10_geom' — ➕ 0 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:08:12] ✅ 'elec_stations_cpncL10_geom' — 0 rows in 0.2s (0 r/s)
+✅ [18:08:12] 🟢 Workspace 'layers_2026_tmp.elec_stations_cpncL10_geom_tmp' ready (structure-only, empty).
+🔹 [18:08:12] 📋 layers_2026.elevation_pts_cpncL11_geom ➜ layers_2026_tmp.elevation_pts_cpncL11_geom
+🔹 [18:08:12] 🔄 [MERGE] 'layers_2026_tmp.elevation_pts_cpncL11_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:21:35] ✅  Index 'uq_ejar_units_userinfol0_geom_1776191454' created.
+✅ [18:22:07] ✅  Index 'idx_ejar_units_userinfol0_geom_geom' created.
+✅ [18:22:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.ejar_units_UserInfoL0_geom' — ➕ 1,780,711 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:22:07] ✅ 'ejar_units_UserInfoL0_geom' — 1,780,711 rows in 2297.0s (775 r/s)
+✅ [18:22:07] 🟢 Workspace 'layers_2026_tmp.ejar_units_UserInfoL0_geom_tmp' ready (structure-only, empty).
+🔹 [18:22:07] 📋 layers_2026.emergency_security_CL17_geom ➜ layers_2026_tmp.emergency_security_CL17_geom
+🔹 [18:22:08] 🔄 [MERGE] 'layers_2026_tmp.emergency_security_CL17_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:22:09] ✅  Index 'uq_emergency_security_cl17_geom_1776173352' created.
+✅ [18:22:09] ✅  Index 'idx_emergency_security_cl17_geom_geom' created.
+✅ [18:22:09] 📊 [MERGE SUMMARY] 'layers_2026_tmp.emergency_security_CL17_geom' — ➕ 1,464 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:22:09] ✅ 'emergency_security_CL17_geom' — 1,464 rows in 2.3s (627 r/s)
+✅ [18:22:10] 🟢 Workspace 'layers_2026_tmp.emergency_security_CL17_geom_tmp' ready (structure-only, empty).
+🔹 [18:22:10] 📋 layers_2026.emergency_security_GLL17_geom ➜ layers_2026_tmp.emergency_security_GLL17_geom
+🔹 [18:22:10] 🔄 [MERGE] 'layers_2026_tmp.emergency_security_GLL17_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:22:12] ✅  Index 'uq_emergency_security_gll17_geom_1776276636' created.
+✅ [18:22:12] ✅  Index 'idx_emergency_security_gll17_geom_geom' created.
+✅ [18:22:12] 📊 [MERGE SUMMARY] 'layers_2026_tmp.emergency_security_GLL17_geom' — ➕ 1,464 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:22:12] ✅ 'emergency_security_GLL17_geom' — 1,464 rows in 2.2s (652 r/s)
+✅ [18:22:12] 🟢 Workspace 'layers_2026_tmp.emergency_security_GLL17_geom_tmp' ready (structure-only, empty).
+🔹 [18:22:12] 📋 layers_2026.encroachments_SL9_geom ➜ layers_2026_tmp.encroachments_SL9_geom
+🔹 [18:22:12] 🔄 [MERGE] 'layers_2026_tmp.encroachments_SL9_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:22:54] ✅  Index 'uq_elevation_pts_cpncl11_geom_1776264590' created.
+✅ [18:23:05] ✅  Index 'idx_elevation_pts_cpncl11_geom_geom' created.
+✅ [18:23:05] 📊 [MERGE SUMMARY] 'layers_2026_tmp.elevation_pts_cpncL11_geom' — ➕ 638,701 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:05] ✅ 'elevation_pts_cpncL11_geom' — 638,701 rows in 893.3s (715 r/s)
+✅ [18:23:05] 🟢 Workspace 'layers_2026_tmp.elevation_pts_cpncL11_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:05] 📋 layers_2026.entertainment_CL16_geom ➜ layers_2026_tmp.entertainment_CL16_geom
+🔹 [18:23:05] 🔄 [MERGE] 'layers_2026_tmp.entertainment_CL16_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:06] ✅  Index 'uq_entertainment_cl16_geom_1776173881' created.
+✅ [18:23:06] ✅  Index 'idx_entertainment_cl16_geom_geom' created.
+✅ [18:23:06] 📊 [MERGE SUMMARY] 'layers_2026_tmp.entertainment_CL16_geom' — ➕ 28 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:06] ✅ 'entertainment_CL16_geom' — 28 rows in 0.5s (56 r/s)
+✅ [18:23:06] 🟢 Workspace 'layers_2026_tmp.entertainment_CL16_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:06] 📋 layers_2026.entertainment_GLL16_geom ➜ layers_2026_tmp.entertainment_GLL16_geom
+🔹 [18:23:06] 🔄 [MERGE] 'layers_2026_tmp.entertainment_GLL16_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:06] ✅  Index 'uq_entertainment_gll16_geom_1776276634' created.
+✅ [18:23:06] ✅  Index 'idx_entertainment_gll16_geom_geom' created.
+✅ [18:23:06] 📊 [MERGE SUMMARY] 'layers_2026_tmp.entertainment_GLL16_geom' — ➕ 28 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:06] ✅ 'entertainment_GLL16_geom' — 28 rows in 0.3s (110 r/s)
+✅ [18:23:06] 🟢 Workspace 'layers_2026_tmp.entertainment_GLL16_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:06] 📋 layers_2026.eservices_part ➜ layers_2026_tmp.eservices_part
+🔹 [18:23:06] 🔄 [MERGE] 'layers_2026_tmp.eservices_part' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+⚠️  [18:23:07] ❌ 'eservices_part' → can't adapt type 'dict'
+🔹 [18:23:07] 📋 layers_2026.facilities_CL15_geom ➜ layers_2026_tmp.facilities_CL15_geom
+🔹 [18:23:07] 🔄 [MERGE] 'layers_2026_tmp.facilities_CL15_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:17] ✅  Index 'uq_facilities_cl15_geom_1776173231' created.
+✅ [18:23:17] ✅  Index 'idx_facilities_cl15_geom_geom' created.
+✅ [18:23:17] 📊 [MERGE SUMMARY] 'layers_2026_tmp.facilities_CL15_geom' — ➕ 8,333 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:17] ✅ 'facilities_CL15_geom' — 8,333 rows in 10.2s (817 r/s)
+✅ [18:23:17] 🟢 Workspace 'layers_2026_tmp.facilities_CL15_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:17] 📋 layers_2026.facilities_GLL15_geom ➜ layers_2026_tmp.facilities_GLL15_geom
+🔹 [18:23:17] 🔄 [MERGE] 'layers_2026_tmp.facilities_GLL15_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:18] ✅  Index 'uq_encroachments_sl9_geom_1776184994' created.
+✅ [18:23:19] ✅  Index 'idx_encroachments_sl9_geom_geom' created.
+✅ [18:23:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.encroachments_SL9_geom' — ➕ 47,983 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:19] ✅ 'encroachments_SL9_geom' — 47,983 rows in 66.8s (719 r/s)
+✅ [18:23:19] 🟢 Workspace 'layers_2026_tmp.encroachments_SL9_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:19] 📋 layers_2026.fenced_lands_CL32_geom ➜ layers_2026_tmp.fenced_lands_CL32_geom
+🔹 [18:23:19] 🔄 [MERGE] 'layers_2026_tmp.fenced_lands_CL32_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:23] ✅  Index 'uq_fenced_lands_cl32_geom_1776174358' created.
+✅ [18:23:24] ✅  Index 'idx_fenced_lands_cl32_geom_geom' created.
+✅ [18:23:24] 📊 [MERGE SUMMARY] 'layers_2026_tmp.fenced_lands_CL32_geom' — ➕ 3,601 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:24] ✅ 'fenced_lands_CL32_geom' — 3,601 rows in 4.8s (754 r/s)
+✅ [18:23:24] 🟢 Workspace 'layers_2026_tmp.fenced_lands_CL32_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:24] 📋 layers_2026.fenced_lands_SL59_geom ➜ layers_2026_tmp.fenced_lands_SL59_geom
+🔹 [18:23:24] 🔄 [MERGE] 'layers_2026_tmp.fenced_lands_SL59_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:28] ✅  Index 'uq_fenced_lands_sl59_geom_1776273580' created.
+✅ [18:23:28] ✅  Index 'idx_fenced_lands_sl59_geom_geom' created.
+✅ [18:23:28] 📊 [MERGE SUMMARY] 'layers_2026_tmp.fenced_lands_SL59_geom' — ➕ 3,601 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:28] ✅ 'fenced_lands_SL59_geom' — 3,601 rows in 4.8s (746 r/s)
+✅ [18:23:28] 🟢 Workspace 'layers_2026_tmp.fenced_lands_SL59_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:29] 📋 layers_2026.fiber_cables_cpncL15_geom ➜ layers_2026_tmp.fiber_cables_cpncL15_geom
+🔹 [18:23:29] 🔄 [MERGE] 'layers_2026_tmp.fiber_cables_cpncL15_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:29] ✅  Index 'uq_facilities_gll15_geom_1776276630' created.
+✅ [18:23:29] ✅  Index 'idx_facilities_gll15_geom_geom' created.
+✅ [18:23:30] 📊 [MERGE SUMMARY] 'layers_2026_tmp.facilities_GLL15_geom' — ➕ 8,333 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:30] ✅ 'facilities_GLL15_geom' — 8,333 rows in 12.4s (675 r/s)
+✅ [18:23:30] 🟢 Workspace 'layers_2026_tmp.facilities_GLL15_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:30] 📋 layers_2026.fiber_optic_coverage_UserInfoL5_geom ➜ layers_2026_tmp.fiber_optic_coverage_UserInfoL5_geom
+🔹 [18:23:30] 🔄 [MERGE] 'layers_2026_tmp.fiber_optic_coverage_UserInfoL5_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:40] ✅  Index 'uq_fiber_cables_cpncl15_geom_1776264786' created.
+✅ [18:23:40] ✅  Index 'idx_fiber_cables_cpncl15_geom_geom' created.
+✅ [18:23:40] 📊 [MERGE SUMMARY] 'layers_2026_tmp.fiber_cables_cpncL15_geom' — ➕ 8,534 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:40] ✅ 'fiber_cables_cpncL15_geom' — 8,534 rows in 11.3s (752 r/s)
+✅ [18:23:40] 🟢 Workspace 'layers_2026_tmp.fiber_cables_cpncL15_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:40] 📋 layers_2026.financial_CL14_geom ➜ layers_2026_tmp.financial_CL14_geom
+🔹 [18:23:40] 🔄 [MERGE] 'layers_2026_tmp.financial_CL14_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:46] ✅  Index 'uq_financial_cl14_geom_1776016322' created.
+✅ [18:23:46] ✅  Index 'idx_financial_cl14_geom_geom' created.
+✅ [18:23:46] 📊 [MERGE SUMMARY] 'layers_2026_tmp.financial_CL14_geom' — ➕ 4,311 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:46] ✅ 'financial_CL14_geom' — 4,311 rows in 6.4s (679 r/s)
+✅ [18:23:46] 🟢 Workspace 'layers_2026_tmp.financial_CL14_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:46] 📋 layers_2026.financial_GLL14_geom ➜ layers_2026_tmp.financial_GLL14_geom
+🔹 [18:23:47] 🔄 [MERGE] 'layers_2026_tmp.financial_GLL14_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:53] ✅  Index 'uq_financial_gll14_geom_1776276627' created.
+✅ [18:23:53] ✅  Index 'idx_financial_gll14_geom_geom' created.
+✅ [18:23:53] 📊 [MERGE SUMMARY] 'layers_2026_tmp.financial_GLL14_geom' — ➕ 4,312 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:53] ✅ 'financial_GLL14_geom' — 4,312 rows in 6.6s (655 r/s)
+✅ [18:23:53] 🟢 Workspace 'layers_2026_tmp.financial_GLL14_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:53] 📋 layers_2026.flood_channels_CL40_geom ➜ layers_2026_tmp.flood_channels_CL40_geom
+🔹 [18:23:53] 🔄 [MERGE] 'layers_2026_tmp.flood_channels_CL40_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:23:54] ✅  Index 'uq_flood_channels_cl40_geom_1776174534' created.
+✅ [18:23:54] ✅  Index 'idx_flood_channels_cl40_geom_geom' created.
+✅ [18:23:54] 📊 [MERGE SUMMARY] 'layers_2026_tmp.flood_channels_CL40_geom' — ➕ 312 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:23:54] ✅ 'flood_channels_CL40_geom' — 312 rows in 0.9s (331 r/s)
+✅ [18:23:54] 🟢 Workspace 'layers_2026_tmp.flood_channels_CL40_geom_tmp' ready (structure-only, empty).
+🔹 [18:23:54] 📋 layers_2026.flood_channels_SL13_geom ➜ layers_2026_tmp.flood_channels_SL13_geom
+🔹 [18:23:54] 🔄 [MERGE] 'layers_2026_tmp.flood_channels_SL13_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:24:22] ✅  Index 'uq_flood_channels_sl13_geom_1776189010' created.
+✅ [18:24:23] ✅  Index 'idx_flood_channels_sl13_geom_geom' created.
+✅ [18:24:23] 📊 [MERGE SUMMARY] 'layers_2026_tmp.flood_channels_SL13_geom' — ➕ 16,776 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:24:23] ✅ 'flood_channels_SL13_geom' — 16,776 rows in 28.6s (586 r/s)
+✅ [18:24:23] 🟢 Workspace 'layers_2026_tmp.flood_channels_SL13_geom_tmp' ready (structure-only, empty).
+🔹 [18:24:23] 📋 layers_2026.floor_info_GLL48_geom ➜ layers_2026_tmp.floor_info_GLL48_geom
+🔹 [18:24:23] 🔄 [MERGE] 'layers_2026_tmp.floor_info_GLL48_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:24:30] ✅  Index 'uq_floor_info_gll48_geom_1776279170' created.
+✅ [18:24:31] ✅  Index 'idx_floor_info_gll48_geom_geom' created.
+✅ [18:24:31] 📊 [MERGE SUMMARY] 'layers_2026_tmp.floor_info_GLL48_geom' — ➕ 5,519 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:24:31] ✅ 'floor_info_GLL48_geom' — 5,519 rows in 7.8s (708 r/s)
+✅ [18:24:31] 🟢 Workspace 'layers_2026_tmp.floor_info_GLL48_geom_tmp' ready (structure-only, empty).
+🔹 [18:24:31] 📋 layers_2026.food_beverages_CL19_geom ➜ layers_2026_tmp.food_beverages_CL19_geom
+🔹 [18:24:31] 🔄 [MERGE] 'layers_2026_tmp.food_beverages_CL19_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:26:14] ✅  Index 'uq_food_beverages_cl19_geom_1776173474' created.
+✅ [18:26:15] ✅  Index 'idx_food_beverages_cl19_geom_geom' created.
+✅ [18:26:15] 📊 [MERGE SUMMARY] 'layers_2026_tmp.food_beverages_CL19_geom' — ➕ 71,292 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:26:15] ✅ 'food_beverages_CL19_geom' — 71,292 rows in 104.8s (680 r/s)
+✅ [18:26:16] 🟢 Workspace 'layers_2026_tmp.food_beverages_CL19_geom_tmp' ready (structure-only, empty).
+🔹 [18:26:16] 📋 layers_2026.food_beverages_GLL19_geom ➜ layers_2026_tmp.food_beverages_GLL19_geom
+🔹 [18:26:16] 🔄 [MERGE] 'layers_2026_tmp.food_beverages_GLL19_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:27:56] ✅  Index 'uq_food_beverages_gll19_geom_1776276649' created.
+✅ [18:27:56] ✅  Index 'idx_food_beverages_gll19_geom_geom' created.
+✅ [18:27:56] 📊 [MERGE SUMMARY] 'layers_2026_tmp.food_beverages_GLL19_geom' — ➕ 71,292 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:27:56] ✅ 'food_beverages_GLL19_geom' — 71,292 rows in 100.8s (707 r/s)
+✅ [18:27:57] 🟢 Workspace 'layers_2026_tmp.food_beverages_GLL19_geom_tmp' ready (structure-only, empty).
+🔹 [18:27:57] 📋 layers_2026.fountains_MMSL9_geom ➜ layers_2026_tmp.fountains_MMSL9_geom
+🔹 [18:27:57] 🔄 [MERGE] 'layers_2026_tmp.fountains_MMSL9_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:27:57] ✅  Index 'uq_fountains_mmsl9_geom_1776274273' created.
+✅ [18:27:57] ✅  Index 'idx_fountains_mmsl9_geom_geom' created.
+✅ [18:27:57] 📊 [MERGE SUMMARY] 'layers_2026_tmp.fountains_MMSL9_geom' — ➕ 2 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:27:57] ✅ 'fountains_MMSL9_geom' — 2 rows in 0.5s (4 r/s)
+✅ [18:27:57] 🟢 Workspace 'layers_2026_tmp.fountains_MMSL9_geom_tmp' ready (structure-only, empty).
+🔹 [18:27:57] 📋 layers_2026.freightServices_CL13_geom ➜ layers_2026_tmp.freightServices_CL13_geom
+🔹 [18:27:57] 🔄 [MERGE] 'layers_2026_tmp.freightServices_CL13_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:27:58] ✅  Index 'uq_freightservices_cl13_geom_1776016255' created.
+✅ [18:27:58] ✅  Index 'idx_freightservices_cl13_geom_geom' created.
+✅ [18:27:58] 📊 [MERGE SUMMARY] 'layers_2026_tmp.freightServices_CL13_geom' — ➕ 197 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:27:58] ✅ 'freightServices_CL13_geom' — 197 rows in 0.5s (433 r/s)
+✅ [18:27:58] 🟢 Workspace 'layers_2026_tmp.freightServices_CL13_geom_tmp' ready (structure-only, empty).
+🔹 [18:27:58] 📋 layers_2026.freight_services_GLL13_geom ➜ layers_2026_tmp.freight_services_GLL13_geom
+🔹 [18:27:58] 🔄 [MERGE] 'layers_2026_tmp.freight_services_GLL13_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:27:58] ✅  Index 'uq_freight_services_gll13_geom_1776276624' created.
+✅ [18:27:58] ✅  Index 'idx_freight_services_gll13_geom_geom' created.
+✅ [18:27:58] 📊 [MERGE SUMMARY] 'layers_2026_tmp.freight_services_GLL13_geom' — ➕ 197 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:27:58] ✅ 'freight_services_GLL13_geom' — 197 rows in 0.5s (422 r/s)
+✅ [18:27:58] 🟢 Workspace 'layers_2026_tmp.freight_services_GLL13_geom_tmp' ready (structure-only, empty).
+🔹 [18:27:58] 📋 layers_2026.future_mosques_SL50_geom ➜ layers_2026_tmp.future_mosques_SL50_geom
+🔹 [18:27:58] 🔄 [MERGE] 'layers_2026_tmp.future_mosques_SL50_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:28:19] ✅  Index 'uq_future_mosques_sl50_geom_1776273443' created.
+✅ [18:28:19] ✅  Index 'idx_future_mosques_sl50_geom_geom' created.
+✅ [18:28:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.future_mosques_SL50_geom' — ➕ 15,590 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:28:19] ✅ 'future_mosques_SL50_geom' — 15,590 rows in 21.2s (737 r/s)
+✅ [18:28:20] 🟢 Workspace 'layers_2026_tmp.future_mosques_SL50_geom_tmp' ready (structure-only, empty).
+🔹 [18:28:20] 📋 layers_2026.gas_auto_services_GLL12_geom ➜ layers_2026_tmp.gas_auto_services_GLL12_geom
+🔹 [18:28:21] 🔄 [MERGE] 'layers_2026_tmp.gas_auto_services_GLL12_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:28:35] ✅  Index 'uq_gas_auto_services_gll12_geom_1776276621' created.
+✅ [18:28:35] ✅  Index 'idx_gas_auto_services_gll12_geom_geom' created.
+✅ [18:28:35] 📊 [MERGE SUMMARY] 'layers_2026_tmp.gas_auto_services_GLL12_geom' — ➕ 9,218 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:28:35] ✅ 'gas_auto_services_GLL12_geom' — 9,218 rows in 15.0s (616 r/s)
+✅ [18:28:35] 🟢 Workspace 'layers_2026_tmp.gas_auto_services_GLL12_geom_tmp' ready (structure-only, empty).
+🔹 [18:28:35] 📋 layers_2026.gas_stations_CL12geom ➜ layers_2026_tmp.gas_stations_CL12geom
+🔹 [18:28:35] 🔄 [MERGE] 'layers_2026_tmp.gas_stations_CL12geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:28:51] ✅  Index 'uq_gas_stations_cl12geom_1776016208' created.
+✅ [18:28:51] ✅  Index 'idx_gas_stations_cl12geom_geom' created.
+✅ [18:28:51] 📊 [MERGE SUMMARY] 'layers_2026_tmp.gas_stations_CL12geom' — ➕ 9,217 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:28:51] ✅ 'gas_stations_CL12geom' — 9,217 rows in 16.5s (557 r/s)
+✅ [18:28:51] 🟢 Workspace 'layers_2026_tmp.gas_stations_CL12geom_tmp' ready (structure-only, empty).
+🔹 [18:28:52] 📋 layers_2026.gas_stations_SMFL10_geom ➜ layers_2026_tmp.gas_stations_SMFL10_geom
+🔹 [18:28:52] 🔄 [MERGE] 'layers_2026_tmp.gas_stations_SMFL10_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:28:58] ✅  Index 'uq_gas_stations_smfl10_geom_1776274949' created.
+✅ [18:28:58] ✅  Index 'idx_gas_stations_smfl10_geom_geom' created.
+✅ [18:28:58] 📊 [MERGE SUMMARY] 'layers_2026_tmp.gas_stations_SMFL10_geom' — ➕ 4,488 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:28:58] ✅ 'gas_stations_SMFL10_geom' — 4,488 rows in 6.6s (680 r/s)
+✅ [18:28:58] 🟢 Workspace 'layers_2026_tmp.gas_stations_SMFL10_geom_tmp' ready (structure-only, empty).
+🔹 [18:28:58] 📋 layers_2026.geoimporter_history ➜ layers_2026_tmp.geoimporter_history
+🔹 [18:28:58] 🔄 [MERGE] 'layers_2026_tmp.geoimporter_history' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:28:59] 📊 [MERGE SUMMARY] 'layers_2026_tmp.geoimporter_history' — ➕ 263 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:28:59] ✅ 'geoimporter_history' — 263 rows in 0.5s (558 r/s)
+✅ [18:28:59] 🟢 Workspace 'layers_2026_tmp.geoimporter_history_tmp' ready (structure-only, empty).
+🔹 [18:28:59] 📋 layers_2026.geoimporter_jobs ➜ layers_2026_tmp.geoimporter_jobs
+🔹 [18:28:59] 🔄 [MERGE] 'layers_2026_tmp.geoimporter_jobs' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['job_id']
+✅ [18:28:59] ✅  Index 'geoimporter_jobs_file_signature_key' created.
+✅ [18:28:59] 📊 [MERGE SUMMARY] 'layers_2026_tmp.geoimporter_jobs' — ➕ 0 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:28:59] ✅ 'geoimporter_jobs' — 0 rows in 0.2s (0 r/s)
+✅ [18:28:59] 🟢 Workspace 'layers_2026_tmp.geoimporter_jobs_tmp' ready (structure-only, empty).
+🔹 [18:28:59] 📋 layers_2026.geoimporter_mappings ➜ layers_2026_tmp.geoimporter_mappings
+🔹 [18:28:59] 🔄 [MERGE] 'layers_2026_tmp.geoimporter_mappings' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:07] ✅  Index 'geoimporter_mappings_table_name_original_field_key' created.
+✅ [18:29:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.geoimporter_mappings' — ➕ 7,753 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:07] ✅ 'geoimporter_mappings' — 7,753 rows in 8.2s (944 r/s)
+✅ [18:29:07] 🟢 Workspace 'layers_2026_tmp.geoimporter_mappings_tmp' ready (structure-only, empty).
+🔹 [18:29:07] 📋 layers_2026.geoimporter_profiles ➜ layers_2026_tmp.geoimporter_profiles
+🔹 [18:29:07] 🔄 [MERGE] 'layers_2026_tmp.geoimporter_profiles' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['table_name']
+⚠️  [18:29:07] ❌ 'geoimporter_profiles' → can't adapt type 'dict'
+🔹 [18:29:07] 📋 layers_2026.geology_cpncL14_geom ➜ layers_2026_tmp.geology_cpncL14_geom
+🔹 [18:29:07] 🔄 [MERGE] 'layers_2026_tmp.geology_cpncL14_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:08] ✅  Index 'uq_geology_cpncl14_geom_1776264783' created.
+✅ [18:29:08] ✅  Index 'idx_geology_cpncl14_geom_geom' created.
+✅ [18:29:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.geology_cpncL14_geom' — ➕ 377 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:08] ✅ 'geology_cpncL14_geom' — 377 rows in 0.8s (488 r/s)
+✅ [18:29:08] 🟢 Workspace 'layers_2026_tmp.geology_cpncL14_geom_tmp' ready (structure-only, empty).
+🔹 [18:29:08] 📋 layers_2026.giga_projects_CL51_geom ➜ layers_2026_tmp.giga_projects_CL51_geom
+🔹 [18:29:08] 🔄 [MERGE] 'layers_2026_tmp.giga_projects_CL51_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:08] ✅  Index 'uq_giga_projects_cl51_geom_1776179416' created.
+✅ [18:29:08] ✅  Index 'idx_giga_projects_cl51_geom_geom' created.
+✅ [18:29:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.giga_projects_CL51_geom' — ➕ 24 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:08] ✅ 'giga_projects_CL51_geom' — 24 rows in 0.3s (80 r/s)
+✅ [18:29:08] 🟢 Workspace 'layers_2026_tmp.giga_projects_CL51_geom_tmp' ready (structure-only, empty).
+🔹 [18:29:09] 📋 layers_2026.giga_projects_SL53_geom ➜ layers_2026_tmp.giga_projects_SL53_geom
+🔹 [18:29:09] 🔄 [MERGE] 'layers_2026_tmp.giga_projects_SL53_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:09] ✅  Index 'uq_giga_projects_sl53_geom_1776273468' created.
+✅ [18:29:09] ✅  Index 'idx_giga_projects_sl53_geom_geom' created.
+✅ [18:29:09] 📊 [MERGE SUMMARY] 'layers_2026_tmp.giga_projects_SL53_geom' — ➕ 24 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:09] ✅ 'giga_projects_SL53_geom' — 24 rows in 0.3s (85 r/s)
+✅ [18:29:09] 🟢 Workspace 'layers_2026_tmp.giga_projects_SL53_geom_tmp' ready (structure-only, empty).
+🔹 [18:29:09] 📋 layers_2026.government_GLL11_geom ➜ layers_2026_tmp.government_GLL11_geom
+🔹 [18:29:09] 🔄 [MERGE] 'layers_2026_tmp.government_GLL11_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:18] ✅  Index 'uq_government_gll11_geom_1776276617' created.
+✅ [18:29:18] ✅  Index 'idx_government_gll11_geom_geom' created.
+✅ [18:29:18] 📊 [MERGE SUMMARY] 'layers_2026_tmp.government_GLL11_geom' — ➕ 6,961 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:19] ✅ 'government_GLL11_geom' — 6,961 rows in 9.6s (724 r/s)
+✅ [18:29:19] 🟢 Workspace 'layers_2026_tmp.government_GLL11_geom_tmp' ready (structure-only, empty).
+🔹 [18:29:19] 📋 layers_2026.government_education_SL35_geom ➜ layers_2026_tmp.government_education_SL35_geom
+🔹 [18:29:19] 🔄 [MERGE] 'layers_2026_tmp.government_education_SL35_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:19] ✅  Index 'uq_government_education_sl35_geom_1776273312' created.
+✅ [18:29:19] ✅  Index 'idx_government_education_sl35_geom_geom' created.
+✅ [18:29:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.government_education_SL35_geom' — ➕ 71 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:19] ✅ 'government_education_SL35_geom' — 71 rows in 0.4s (163 r/s)
+✅ [18:29:19] 🟢 Workspace 'layers_2026_tmp.government_education_SL35_geom_tmp' ready (structure-only, empty).
+🔹 [18:29:19] 📋 layers_2026.government_facilities_CL11_geom ➜ layers_2026_tmp.government_facilities_CL11_geom
+🔹 [18:29:19] 🔄 [MERGE] 'layers_2026_tmp.government_facilities_CL11_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:31] ✅  Index 'uq_government_facilities_cl11_geom_1776016127' created.
+✅ [18:29:31] ✅  Index 'idx_government_facilities_cl11_geom_geom' created.
+✅ [18:29:31] 📊 [MERGE SUMMARY] 'layers_2026_tmp.government_facilities_CL11_geom' — ➕ 8,960 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:31] ✅ 'government_facilities_CL11_geom' — 8,960 rows in 11.5s (779 r/s)
+✅ [18:29:31] 🟢 Workspace 'layers_2026_tmp.government_facilities_CL11_geom_tmp' ready (structure-only, empty).
+🔹 [18:29:31] 📋 layers_2026.governorates_GLL37_geom ➜ layers_2026_tmp.governorates_GLL37_geom
+🔹 [18:29:31] 🔄 [MERGE] 'layers_2026_tmp.governorates_GLL37_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:32] ✅  Index 'uq_governorates_gll37_geom_1776277285' created.
+✅ [18:29:32] ✅  Index 'idx_governorates_gll37_geom_geom' created.
+✅ [18:29:32] 📊 [MERGE SUMMARY] 'layers_2026_tmp.governorates_GLL37_geom' — ➕ 150 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:32] ✅ 'governorates_GLL37_geom' — 150 rows in 1.0s (153 r/s)
+✅ [18:29:32] 🟢 Workspace 'layers_2026_tmp.governorates_GLL37_geom_tmp' ready (structure-only, empty).
+🔹 [18:29:32] 📋 layers_2026.governorates_geom ➜ layers_2026_tmp.governorates_geom
+🔹 [18:29:32] 🔄 [MERGE] 'layers_2026_tmp.governorates_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:33] ✅  Index 'uq_governorates_geom_1775993304' created.
+✅ [18:29:33] ✅  Index 'idx_governorates_geom_geom' created.
+✅ [18:29:33] 📊 [MERGE SUMMARY] 'layers_2026_tmp.governorates_geom' — ➕ 150 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:33] ✅ 'governorates_geom' — 150 rows in 1.0s (152 r/s)
+✅ [18:29:33] 🟢 Workspace 'layers_2026_tmp.governorates_geom_tmp' ready (structure-only, empty).
+🔹 [18:29:33] 📋 layers_2026.guide_signs_MMSL17_geom ➜ layers_2026_tmp.guide_signs_MMSL17_geom
+🔹 [18:29:33] 🔄 [MERGE] 'layers_2026_tmp.guide_signs_MMSL17_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:29:50] ✅  Index 'uq_guide_signs_mmsl17_geom_1776274200' created.
+✅ [18:29:50] ✅  Index 'idx_guide_signs_mmsl17_geom_geom' created.
+✅ [18:29:50] 📊 [MERGE SUMMARY] 'layers_2026_tmp.guide_signs_MMSL17_geom' — ➕ 14,064 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:29:50] ✅ 'guide_signs_MMSL17_geom' — 14,064 rows in 17.7s (795 r/s)
+✅ [18:29:51] 🟢 Workspace 'layers_2026_tmp.guide_signs_MMSL17_geom_tmp' ready (structure-only, empty).
+🔹 [18:29:51] 📋 layers_2026.health_facilities_SL61_geom ➜ layers_2026_tmp.health_facilities_SL61_geom
+🔹 [18:29:51] 🔄 [MERGE] 'layers_2026_tmp.health_facilities_SL61_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:30:11] ✅  Index 'uq_health_facilities_sl61_geom_1776273585' created.
+✅ [18:30:11] ✅  Index 'idx_health_facilities_sl61_geom_geom' created.
+✅ [18:30:11] 📊 [MERGE SUMMARY] 'layers_2026_tmp.health_facilities_SL61_geom' — ➕ 14,675 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:30:11] ✅ 'health_facilities_SL61_geom' — 14,675 rows in 20.5s (714 r/s)
+✅ [18:30:11] 🟢 Workspace 'layers_2026_tmp.health_facilities_SL61_geom_tmp' ready (structure-only, empty).
+🔹 [18:30:11] 📋 layers_2026.health_lands_unused_SL69_geom ➜ layers_2026_tmp.health_lands_unused_SL69_geom
+🔹 [18:30:12] 🔄 [MERGE] 'layers_2026_tmp.health_lands_unused_SL69_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:30:19] ✅  Index 'uq_health_lands_unused_sl69_geom_1776273665' created.
+✅ [18:30:19] ✅  Index 'idx_health_lands_unused_sl69_geom_geom' created.
+✅ [18:30:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.health_lands_unused_SL69_geom' — ➕ 3,955 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:30:19] ✅ 'health_lands_unused_SL69_geom' — 3,955 rows in 7.4s (532 r/s)
+✅ [18:30:19] 🟢 Workspace 'layers_2026_tmp.health_lands_unused_SL69_geom_tmp' ready (structure-only, empty).
+🔹 [18:30:19] 📋 layers_2026.health_lands_used_SL68_geom ➜ layers_2026_tmp.health_lands_used_SL68_geom
+🔹 [18:30:19] 🔄 [MERGE] 'layers_2026_tmp.health_lands_used_SL68_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:30:23] ✅  Index 'uq_health_lands_used_sl68_geom_1776273662' created.
+✅ [18:30:23] ✅  Index 'idx_health_lands_used_sl68_geom_geom' created.
+✅ [18:30:23] 📊 [MERGE SUMMARY] 'layers_2026_tmp.health_lands_used_SL68_geom' — ➕ 2,764 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:30:23] ✅ 'health_lands_used_SL68_geom' — 2,764 rows in 4.5s (618 r/s)
+✅ [18:30:23] 🟢 Workspace 'layers_2026_tmp.health_lands_used_SL68_geom_tmp' ready (structure-only, empty).
+🔹 [18:30:23] 📋 layers_2026.health_services_cpncL2_geom ➜ layers_2026_tmp.health_services_cpncL2_geom
+🔹 [18:30:24] 🔄 [MERGE] 'layers_2026_tmp.health_services_cpncL2_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:30:32] ✅  Index 'uq_health_services_cpncl2_geom_1776265805' created.
+✅ [18:30:32] ✅  Index 'idx_health_services_cpncl2_geom_geom' created.
+✅ [18:30:32] 📊 [MERGE SUMMARY] 'layers_2026_tmp.health_services_cpncL2_geom' — ➕ 5,452 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:30:32] ✅ 'health_services_cpncL2_geom' — 5,452 rows in 8.2s (664 r/s)
+✅ [18:30:32] 🟢 Workspace 'layers_2026_tmp.health_services_cpncL2_geom_tmp' ready (structure-only, empty).
+🔹 [18:30:32] 📋 layers_2026.healthcare_CL10_geom ➜ layers_2026_tmp.healthcare_CL10_geom
+🔹 [18:30:32] 🔄 [MERGE] 'layers_2026_tmp.healthcare_CL10_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:30:58] ✅  Index 'uq_healthcare_cl10_geom_1776016057' created.
+✅ [18:30:58] ✅  Index 'idx_healthcare_cl10_geom_geom' created.
+✅ [18:30:58] 📊 [MERGE SUMMARY] 'layers_2026_tmp.healthcare_CL10_geom' — ➕ 14,674 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:30:58] ✅ 'healthcare_CL10_geom' — 14,674 rows in 26.6s (551 r/s)
+✅ [18:30:59] 🟢 Workspace 'layers_2026_tmp.healthcare_CL10_geom_tmp' ready (structure-only, empty).
+🔹 [18:30:59] 📋 layers_2026.healthcare_GLL10_geom ➜ layers_2026_tmp.healthcare_GLL10_geom
+🔹 [18:30:59] 🔄 [MERGE] 'layers_2026_tmp.healthcare_GLL10_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:31:21] ✅  Index 'uq_healthcare_gll10_geom_1776276611' created.
+✅ [18:31:21] ✅  Index 'idx_healthcare_gll10_geom_geom' created.
+✅ [18:31:21] 📊 [MERGE SUMMARY] 'layers_2026_tmp.healthcare_GLL10_geom' — ➕ 12,675 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:31:21] ✅ 'healthcare_GLL10_geom' — 12,675 rows in 22.0s (575 r/s)
+✅ [18:31:21] 🟢 Workspace 'layers_2026_tmp.healthcare_GLL10_geom_tmp' ready (structure-only, empty).
+🔹 [18:31:21] 📋 layers_2026.heritage_sites_HeritageSiteL0_geom ➜ layers_2026_tmp.heritage_sites_HeritageSiteL0_geom
+🔹 [18:31:21] 🔄 [MERGE] 'layers_2026_tmp.heritage_sites_HeritageSiteL0_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:31:23] ✅  Index 'uq_heritage_sites_heritagesitel0_geom_1776269872' created.
+✅ [18:31:23] ✅  Index 'idx_heritage_sites_heritagesitel0_geom_geom' created.
+✅ [18:31:23] 📊 [MERGE SUMMARY] 'layers_2026_tmp.heritage_sites_HeritageSiteL0_geom' — ➕ 998 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:31:23] ✅ 'heritage_sites_HeritageSiteL0_geom' — 998 rows in 2.6s (379 r/s)
+✅ [18:31:23] 🟢 Workspace 'layers_2026_tmp.heritage_sites_HeritageSiteL0_geom_tmp' ready (structure-only, empty).
+🔹 [18:31:24] 📋 layers_2026.high_importance_areas_SL23_geom ➜ layers_2026_tmp.high_importance_areas_SL23_geom
+🔹 [18:31:24] 🔄 [MERGE] 'layers_2026_tmp.high_importance_areas_SL23_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:31:27] ✅  Index 'uq_high_importance_areas_sl23_geom_1776189732' created.
+✅ [18:31:27] ✅  Index 'idx_high_importance_areas_sl23_geom_geom' created.
+✅ [18:31:27] 📊 [MERGE SUMMARY] 'layers_2026_tmp.high_importance_areas_SL23_geom' — ➕ 1,384 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:31:27] ✅ 'high_importance_areas_SL23_geom' — 1,384 rows in 3.4s (411 r/s)
+✅ [18:31:27] 🟢 Workspace 'layers_2026_tmp.high_importance_areas_SL23_geom_tmp' ready (structure-only, empty).
+🔹 [18:31:27] 📋 layers_2026.high_profile_streets_SL60_geom ➜ layers_2026_tmp.high_profile_streets_SL60_geom
+🔹 [18:31:27] 🔄 [MERGE] 'layers_2026_tmp.high_profile_streets_SL60_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:31:28] ✅  Index 'uq_high_profile_streets_sl60_geom_1776273583' created.
+✅ [18:31:28] ✅  Index 'idx_high_profile_streets_sl60_geom_geom' created.
+✅ [18:31:28] 📊 [MERGE SUMMARY] 'layers_2026_tmp.high_profile_streets_SL60_geom' — ➕ 141 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:31:28] ✅ 'high_profile_streets_SL60_geom' — 141 rows in 0.7s (211 r/s)
+✅ [18:31:28] 🟢 Workspace 'layers_2026_tmp.high_profile_streets_SL60_geom_tmp' ready (structure-only, empty).
+🔹 [18:31:28] 📋 layers_2026.hospitals_SMFL0_geom ➜ layers_2026_tmp.hospitals_SMFL0_geom
+🔹 [18:31:28] 🔄 [MERGE] 'layers_2026_tmp.hospitals_SMFL0_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:31:28] ✅  Index 'uq_hospitals_smfl0_geom_1776274939' created.
+✅ [18:31:28] ✅  Index 'idx_hospitals_smfl0_geom_geom' created.
+✅ [18:31:28] 📊 [MERGE SUMMARY] 'layers_2026_tmp.hospitals_SMFL0_geom' — ➕ 224 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:31:28] ✅ 'hospitals_SMFL0_geom' — 224 rows in 0.5s (408 r/s)
+✅ [18:31:28] 🟢 Workspace 'layers_2026_tmp.hospitals_SMFL0_geom_tmp' ready (structure-only, empty).
+🔹 [18:31:28] 📋 layers_2026.hotels_CL9_geom ➜ layers_2026_tmp.hotels_CL9_geom
+🔹 [18:31:28] 🔄 [MERGE] 'layers_2026_tmp.hotels_CL9_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:31:41] ✅  Index 'uq_hotels_cl9_geom_1776015910' created.
+✅ [18:31:41] ✅  Index 'idx_hotels_cl9_geom_geom' created.
+✅ [18:31:41] 📊 [MERGE SUMMARY] 'layers_2026_tmp.hotels_CL9_geom' — ➕ 8,815 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:31:41] ✅ 'hotels_CL9_geom' — 8,815 rows in 12.8s (687 r/s)
+✅ [18:31:41] 🟢 Workspace 'layers_2026_tmp.hotels_CL9_geom_tmp' ready (structure-only, empty).
+🔹 [18:31:41] 📋 layers_2026.hotels_hospitality_GLL9_geom ➜ layers_2026_tmp.hotels_hospitality_GLL9_geom
+🔹 [18:31:41] 🔄 [MERGE] 'layers_2026_tmp.hotels_hospitality_GLL9_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:31:53] ✅  Index 'uq_hotels_hospitality_gll9_geom_1776279209' created.
+✅ [18:31:53] ✅  Index 'idx_hotels_hospitality_gll9_geom_geom' created.
+✅ [18:31:53] 📊 [MERGE SUMMARY] 'layers_2026_tmp.hotels_hospitality_GLL9_geom' — ➕ 8,815 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:31:53] ✅ 'hotels_hospitality_GLL9_geom' — 8,815 rows in 12.1s (726 r/s)
+✅ [18:31:53] 🟢 Workspace 'layers_2026_tmp.hotels_hospitality_GLL9_geom_tmp' ready (structure-only, empty).
+🔹 [18:31:54] 📋 layers_2026.hotels_hospitality_SMFL8_geom ➜ layers_2026_tmp.hotels_hospitality_SMFL8_geom
+🔹 [18:31:54] 🔄 [MERGE] 'layers_2026_tmp.hotels_hospitality_SMFL8_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:32:08] ✅  Index 'uq_hotels_hospitality_smfl8_geom_1776275015' created.
+✅ [18:32:08] ✅  Index 'idx_hotels_hospitality_smfl8_geom_geom' created.
+✅ [18:32:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.hotels_hospitality_SMFL8_geom' — ➕ 8,815 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:32:08] ✅ 'hotels_hospitality_SMFL8_geom' — 8,815 rows in 14.5s (609 r/s)
+✅ [18:32:08] 🟢 Workspace 'layers_2026_tmp.hotels_hospitality_SMFL8_geom_tmp' ready (structure-only, empty).
+🔹 [18:32:08] 📋 layers_2026.industrial_zones_CL8_geom ➜ layers_2026_tmp.industrial_zones_CL8_geom
+🔹 [18:32:08] 🔄 [MERGE] 'layers_2026_tmp.industrial_zones_CL8_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:33:04] ✅  Index 'uq_industrial_zones_cl8_geom_1776015852' created.
+✅ [18:33:04] ✅  Index 'idx_industrial_zones_cl8_geom_geom' created.
+✅ [18:33:04] 📊 [MERGE SUMMARY] 'layers_2026_tmp.industrial_zones_CL8_geom' — ➕ 36,202 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:33:04] ✅ 'industrial_zones_CL8_geom' — 36,202 rows in 55.9s (647 r/s)
+✅ [18:33:04] 🟢 Workspace 'layers_2026_tmp.industrial_zones_CL8_geom_tmp' ready (structure-only, empty).
+🔹 [18:33:04] 📋 layers_2026.info_boards_MMSL12_geom ➜ layers_2026_tmp.info_boards_MMSL12_geom
+🔹 [18:33:04] 🔄 [MERGE] 'layers_2026_tmp.info_boards_MMSL12_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:33:05] ✅  Index 'uq_info_boards_mmsl12_geom_1776274189' created.
+✅ [18:33:05] ✅  Index 'idx_info_boards_mmsl12_geom_geom' created.
+✅ [18:33:05] 📊 [MERGE SUMMARY] 'layers_2026_tmp.info_boards_MMSL12_geom' — ➕ 257 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:33:05] ✅ 'info_boards_MMSL12_geom' — 257 rows in 0.8s (341 r/s)
+✅ [18:33:05] 🟢 Workspace 'layers_2026_tmp.info_boards_MMSL12_geom_tmp' ready (structure-only, empty).
+🔹 [18:33:05] 📋 layers_2026.informal_mashabbat_CL59_geom ➜ layers_2026_tmp.informal_mashabbat_CL59_geom
+🔹 [18:33:05] 🔄 [MERGE] 'layers_2026_tmp.informal_mashabbat_CL59_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:33:06] ✅  Index 'uq_informal_mashabbat_cl59_geom_1776179703' created.
+✅ [18:33:06] ✅  Index 'idx_informal_mashabbat_cl59_geom_geom' created.
+✅ [18:33:06] 📊 [MERGE SUMMARY] 'layers_2026_tmp.informal_mashabbat_CL59_geom' — ➕ 421 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:33:06] ✅ 'informal_mashabbat_CL59_geom' — 421 rows in 0.8s (545 r/s)
+✅ [18:33:06] 🟢 Workspace 'layers_2026_tmp.informal_mashabbat_CL59_geom_tmp' ready (structure-only, empty).
+🔹 [18:33:06] 📋 layers_2026.intl_boundaries_GLL46_geom ➜ layers_2026_tmp.intl_boundaries_GLL46_geom
+🔹 [18:33:06] 🔄 [MERGE] 'layers_2026_tmp.intl_boundaries_GLL46_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:33:06] ✅  Index 'uq_intl_boundaries_gll46_geom_1776278683' created.
+✅ [18:33:06] ✅  Index 'idx_intl_boundaries_gll46_geom_geom' created.
+✅ [18:33:06] 📊 [MERGE SUMMARY] 'layers_2026_tmp.intl_boundaries_GLL46_geom' — ➕ 1 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:33:06] ✅ 'intl_boundaries_GLL46_geom' — 1 rows in 0.4s (2 r/s)
+✅ [18:33:06] 🟢 Workspace 'layers_2026_tmp.intl_boundaries_GLL46_geom_tmp' ready (structure-only, empty).
+🔹 [18:33:06] 📋 layers_2026.investment_contracts_SL64_geom ➜ layers_2026_tmp.investment_contracts_SL64_geom
+🔹 [18:33:06] 🔄 [MERGE] 'layers_2026_tmp.investment_contracts_SL64_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:33:07] ✅  Index 'uq_investment_contracts_sl64_geom_1776273652' created.
+✅ [18:33:07] ✅  Index 'idx_investment_contracts_sl64_geom_geom' created.
+✅ [18:33:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.investment_contracts_SL64_geom' — ➕ 361 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:33:07] ✅ 'investment_contracts_SL64_geom' — 361 rows in 0.7s (511 r/s)
+✅ [18:33:07] 🟢 Workspace 'layers_2026_tmp.investment_contracts_SL64_geom_tmp' ready (structure-only, empty).
+🔹 [18:33:07] 📋 layers_2026.investment_opportunities_CL55_geom ➜ layers_2026_tmp.investment_opportunities_CL55_geom
+🔹 [18:33:07] 🔄 [MERGE] 'layers_2026_tmp.investment_opportunities_CL55_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:33:08] ✅  Index 'uq_investment_opportunities_cl55_geom_1776179956' created.
+✅ [18:33:08] ✅  Index 'idx_investment_opportunities_cl55_geom_geom' created.
+✅ [18:33:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.investment_opportunities_CL55_geom' — ➕ 826 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:33:08] ✅ 'investment_opportunities_CL55_geom' — 826 rows in 1.2s (675 r/s)
+✅ [18:33:08] 🟢 Workspace 'layers_2026_tmp.investment_opportunities_CL55_geom_tmp' ready (structure-only, empty).
+🔹 [18:33:08] 📋 layers_2026.land_app_parts ➜ layers_2026_tmp.land_app_parts
+🔹 [18:33:08] 🔄 [MERGE] 'layers_2026_tmp.land_app_parts' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:45:39] ✅  Index 'uq_fiber_optic_coverage_userinfol5_geom_1776193643' created.
+✅ [18:45:56] ✅  Index 'idx_fiber_optic_coverage_userinfol5_geom_geom' created.
+✅ [18:45:56] 📊 [MERGE SUMMARY] 'layers_2026_tmp.fiber_optic_coverage_UserInfoL5_geom' — ➕ 930,033 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:45:56] ✅ 'fiber_optic_coverage_UserInfoL5_geom' — 930,033 rows in 1346.4s (691 r/s)
+✅ [18:45:56] 🟢 Workspace 'layers_2026_tmp.fiber_optic_coverage_UserInfoL5_geom_tmp' ready (structure-only, empty).
+🔹 [18:45:56] 📋 layers_2026.land_grant_plans_SL51_geom ➜ layers_2026_tmp.land_grant_plans_SL51_geom
+🔹 [18:45:57] 🔄 [MERGE] 'layers_2026_tmp.land_grant_plans_SL51_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [18:46:03] ✅  Index 'uq_land_grant_plans_sl51_geom_1776273449' created.
+✅ [18:46:03] ✅  Index 'idx_land_grant_plans_sl51_geom_geom' created.
+✅ [18:46:03] 📊 [MERGE SUMMARY] 'layers_2026_tmp.land_grant_plans_SL51_geom' — ➕ 3,624 new rows inserted,  ✏️  0 existing rows updated.
+✅ [18:46:03] ✅ 'land_grant_plans_SL51_geom' — 3,624 rows in 7.1s (509 r/s)
+✅ [18:46:03] 🟢 Workspace 'layers_2026_tmp.land_grant_plans_SL51_geom_tmp' ready (structure-only, empty).
+🔹 [18:46:04] 📋 layers_2026.land_parcels_geom ➜ layers_2026_tmp.land_parcels_geom
+🔹 [18:46:04] 🔄 [MERGE] 'layers_2026_tmp.land_parcels_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:15:08] ✅  Index 'idx_land_app_parts_geom' created.
+✅ [19:15:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.land_app_parts' — ➕ 1,619,852 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:15:08] ✅ 'land_app_parts' — 1,619,852 rows in 2519.4s (643 r/s)
+✅ [19:15:08] 🟢 Workspace 'layers_2026_tmp.land_app_parts_tmp' ready (structure-only, empty).
+🔹 [19:15:08] 📋 layers_2026.landcover_GLL44_geom ➜ layers_2026_tmp.landcover_GLL44_geom
+🔹 [19:15:08] 🔄 [MERGE] 'layers_2026_tmp.landcover_GLL44_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:15:15] ✅  Index 'uq_landcover_gll44_geom_1776278671' created.
+✅ [19:15:15] ✅  Index 'idx_landcover_gll44_geom_geom' created.
+✅ [19:15:15] 📊 [MERGE SUMMARY] 'layers_2026_tmp.landcover_GLL44_geom' — ➕ 4,174 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:15:15] ✅ 'landcover_GLL44_geom' — 4,174 rows in 6.8s (617 r/s)
+✅ [19:15:15] 🟢 Workspace 'layers_2026_tmp.landcover_GLL44_geom_tmp' ready (structure-only, empty).
+🔹 [19:15:15] 📋 layers_2026.landmarks_CL25_geom ➜ layers_2026_tmp.landmarks_CL25_geom
+🔹 [19:15:15] 🔄 [MERGE] 'layers_2026_tmp.landmarks_CL25_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:15:15] ✅  Index 'uq_landmarks_cl25_geom_1776014386' created.
+✅ [19:15:15] ✅  Index 'idx_landmarks_cl25_geom_geom' created.
+✅ [19:15:15] 📊 [MERGE SUMMARY] 'layers_2026_tmp.landmarks_CL25_geom' — ➕ 188 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:15:15] ✅ 'landmarks_CL25_geom' — 188 rows in 0.5s (375 r/s)
+✅ [19:15:15] 🟢 Workspace 'layers_2026_tmp.landmarks_CL25_geom_tmp' ready (structure-only, empty).
+🔹 [19:15:15] 📋 layers_2026.landmarks_GLL25_geom ➜ layers_2026_tmp.landmarks_GLL25_geom
+🔹 [19:15:15] 🔄 [MERGE] 'layers_2026_tmp.landmarks_GLL25_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:15:16] ✅  Index 'uq_landmarks_gll25_geom_1776276700' created.
+✅ [19:15:16] ✅  Index 'idx_landmarks_gll25_geom_geom' created.
+✅ [19:15:16] 📊 [MERGE SUMMARY] 'layers_2026_tmp.landmarks_GLL25_geom' — ➕ 188 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:15:16] ✅ 'landmarks_GLL25_geom' — 188 rows in 0.5s (345 r/s)
+✅ [19:15:16] 🟢 Workspace 'layers_2026_tmp.landmarks_GLL25_geom_tmp' ready (structure-only, empty).
+🔹 [19:15:16] 📋 layers_2026.layer_19_lastobjectid_0_regon__city_ ➜ layers_2026_tmp.layer_19_lastobjectid_0_regon__city_
+🔹 [19:15:16] 🔄 [MERGE] 'layers_2026_tmp.layer_19_lastobjectid_0_regon__city_' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:15:16] ✅  Index 'uq_layer_19_lastobjectid_0_regon__city__1776268725' created.
+✅ [19:15:16] ✅  Index 'idx_layer_19_lastobjectid_0_regon__city__geom' created.
+✅ [19:15:16] 📊 [MERGE SUMMARY] 'layers_2026_tmp.layer_19_lastobjectid_0_regon__city_' — ➕ 4 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:15:16] ✅ 'layer_19_lastobjectid_0_regon__city_' — 4 rows in 0.3s (16 r/s)
+✅ [19:15:16] 🟢 Workspace 'layers_2026_tmp.layer_19_lastobjectid_0_regon__city__tmp' ready (structure-only, empty).
+🔹 [19:15:16] 📋 layers_2026.layer_28_testtttttttt ➜ layers_2026_tmp.layer_28_testtttttttt
+🔹 [19:15:16] 🔄 [MERGE] 'layers_2026_tmp.layer_28_testtttttttt' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:15:53] ✅  Index 'uq_layer_28_testtttttttt_1776620133' created.
+✅ [19:15:54] ✅  Index 'idx_layer_28_testtttttttt_geom' created.
+✅ [19:15:54] 📊 [MERGE SUMMARY] 'layers_2026_tmp.layer_28_testtttttttt' — ➕ 22,429 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:15:54] ✅ 'layer_28_testtttttttt' — 22,429 rows in 37.4s (599 r/s)
+✅ [19:15:54] 🟢 Workspace 'layers_2026_tmp.layer_28_testtttttttt_tmp' ready (structure-only, empty).
+🔹 [19:15:54] 📋 layers_2026.maintenance_priority_SL30_geom ➜ layers_2026_tmp.maintenance_priority_SL30_geom
+🔹 [19:15:54] 🔄 [MERGE] 'layers_2026_tmp.maintenance_priority_SL30_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:16:36] ✅  Index 'uq_maintenance_priority_sl30_geom_1776189786' created.
+✅ [19:16:36] ✅  Index 'idx_maintenance_priority_sl30_geom_geom' created.
+✅ [19:16:36] 📊 [MERGE SUMMARY] 'layers_2026_tmp.maintenance_priority_SL30_geom' — ➕ 22,919 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:16:36] ✅ 'maintenance_priority_SL30_geom' — 22,919 rows in 42.4s (540 r/s)
+✅ [19:16:36] 🟢 Workspace 'layers_2026_tmp.maintenance_priority_SL30_geom_tmp' ready (structure-only, empty).
+🔹 [19:16:36] 📋 layers_2026.manholes_MMSL25_geom ➜ layers_2026_tmp.manholes_MMSL25_geom
+🔹 [19:16:37] 🔄 [MERGE] 'layers_2026_tmp.manholes_MMSL25_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:16:39] ✅  Index 'uq_manholes_mmsl25_geom_1776274254' created.
+✅ [19:16:39] ✅  Index 'idx_manholes_mmsl25_geom_geom' created.
+✅ [19:16:39] 📊 [MERGE SUMMARY] 'layers_2026_tmp.manholes_MMSL25_geom' — ➕ 1,737 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:16:39] ✅ 'manholes_MMSL25_geom' — 1,737 rows in 2.7s (642 r/s)
+✅ [19:16:39] 🟢 Workspace 'layers_2026_tmp.manholes_MMSL25_geom_tmp' ready (structure-only, empty).
+🔹 [19:16:39] 📋 layers_2026.markets_SMFL5_geom ➜ layers_2026_tmp.markets_SMFL5_geom
+🔹 [19:16:39] 🔄 [MERGE] 'layers_2026_tmp.markets_SMFL5_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:16:40] ✅  Index 'uq_markets_smfl5_geom_1776274994' created.
+✅ [19:16:40] ✅  Index 'idx_markets_smfl5_geom_geom' created.
+✅ [19:16:40] 📊 [MERGE SUMMARY] 'layers_2026_tmp.markets_SMFL5_geom' — ➕ 684 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:16:40] ✅ 'markets_SMFL5_geom' — 684 rows in 1.3s (545 r/s)
+✅ [19:16:40] 🟢 Workspace 'layers_2026_tmp.markets_SMFL5_geom_tmp' ready (structure-only, empty).
+🔹 [19:16:40] 📋 layers_2026.media_CL7_geom ➜ layers_2026_tmp.media_CL7_geom
+🔹 [19:16:41] 🔄 [MERGE] 'layers_2026_tmp.media_CL7_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:16:41] ✅  Index 'uq_media_cl7_geom_1776015783' created.
+✅ [19:16:41] ✅  Index 'idx_media_cl7_geom_geom' created.
+✅ [19:16:41] 📊 [MERGE SUMMARY] 'layers_2026_tmp.media_CL7_geom' — ➕ 44 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:16:41] ✅ 'media_CL7_geom' — 44 rows in 0.4s (113 r/s)
+✅ [19:16:41] 🟢 Workspace 'layers_2026_tmp.media_CL7_geom_tmp' ready (structure-only, empty).
+🔹 [19:16:41] 📋 layers_2026.media_GLL7_geom ➜ layers_2026_tmp.media_GLL7_geom
+🔹 [19:16:41] 🔄 [MERGE] 'layers_2026_tmp.media_GLL7_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:16:41] ✅  Index 'uq_media_gll7_geom_1776279203' created.
+✅ [19:16:41] ✅  Index 'idx_media_gll7_geom_geom' created.
+✅ [19:16:41] 📊 [MERGE SUMMARY] 'layers_2026_tmp.media_GLL7_geom' — ➕ 44 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:16:41] ✅ 'media_GLL7_geom' — 44 rows in 0.3s (148 r/s)
+✅ [19:16:41] 🟢 Workspace 'layers_2026_tmp.media_GLL7_geom_tmp' ready (structure-only, empty).
+🔹 [19:16:41] 📋 layers_2026.metal_barriers_MMSL10_geom ➜ layers_2026_tmp.metal_barriers_MMSL10_geom
+🔹 [19:16:41] 🔄 [MERGE] 'layers_2026_tmp.metal_barriers_MMSL10_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:16:41] ✅  Index 'uq_metal_barriers_mmsl10_geom_1776274185' created.
+✅ [19:16:41] ✅  Index 'idx_metal_barriers_mmsl10_geom_geom' created.
+✅ [19:16:41] 📊 [MERGE SUMMARY] 'layers_2026_tmp.metal_barriers_MMSL10_geom' — ➕ 2 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:16:41] ✅ 'metal_barriers_MMSL10_geom' — 2 rows in 0.3s (7 r/s)
+✅ [19:16:42] 🟢 Workspace 'layers_2026_tmp.metal_barriers_MMSL10_geom_tmp' ready (structure-only, empty).
+🔹 [19:16:42] 📋 layers_2026.ministry_headquarters_SL16_geom ➜ layers_2026_tmp.ministry_headquarters_SL16_geom
+🔹 [19:16:42] 🔄 [MERGE] 'layers_2026_tmp.ministry_headquarters_SL16_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:16:42] ✅  Index 'uq_ministry_headquarters_sl16_geom_1776189707' created.
+✅ [19:16:42] ✅  Index 'idx_ministry_headquarters_sl16_geom_geom' created.
+✅ [19:16:42] 📊 [MERGE SUMMARY] 'layers_2026_tmp.ministry_headquarters_SL16_geom' — ➕ 6 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:16:42] ✅ 'ministry_headquarters_SL16_geom' — 6 rows in 0.8s (8 r/s)
+✅ [19:16:42] 🟢 Workspace 'layers_2026_tmp.ministry_headquarters_SL16_geom_tmp' ready (structure-only, empty).
+🔹 [19:16:43] 📋 layers_2026.mosques_SMFL3_geom ➜ layers_2026_tmp.mosques_SMFL3_geom
+🔹 [19:16:43] 🔄 [MERGE] 'layers_2026_tmp.mosques_SMFL3_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:19:36] ✅  Index 'uq_mosques_smfl3_geom_1776274970' created.
+✅ [19:19:38] ✅  Index 'idx_mosques_smfl3_geom_geom' created.
+✅ [19:19:38] 📊 [MERGE SUMMARY] 'layers_2026_tmp.mosques_SMFL3_geom' — ➕ 103,457 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:19:38] ✅ 'mosques_SMFL3_geom' — 103,457 rows in 175.1s (591 r/s)
+✅ [19:19:38] 🟢 Workspace 'layers_2026_tmp.mosques_SMFL3_geom_tmp' ready (structure-only, empty).
+🔹 [19:19:38] 📋 layers_2026.municipal_assets_CL34_geom ➜ layers_2026_tmp.municipal_assets_CL34_geom
+🔹 [19:19:38] 🔄 [MERGE] 'layers_2026_tmp.municipal_assets_CL34_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:21:46] ✅  Index 'uq_municipal_assets_cl34_geom_1776174416' created.
+✅ [19:21:48] ✅  Index 'idx_municipal_assets_cl34_geom_geom' created.
+✅ [19:21:48] 📊 [MERGE SUMMARY] 'layers_2026_tmp.municipal_assets_CL34_geom' — ➕ 101,368 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:21:48] ✅ 'municipal_assets_CL34_geom' — 101,368 rows in 130.1s (779 r/s)
+✅ [19:21:48] 🟢 Workspace 'layers_2026_tmp.municipal_assets_CL34_geom_tmp' ready (structure-only, empty).
+🔹 [19:21:48] 📋 layers_2026.municipal_lands_SL7_geom ➜ layers_2026_tmp.municipal_lands_SL7_geom
+🔹 [19:21:48] 🔄 [MERGE] 'layers_2026_tmp.municipal_lands_SL7_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:07] ✅  Index 'uq_municipal_lands_sl7_geom_1776181030' created.
+✅ [19:24:08] ✅  Index 'idx_municipal_lands_sl7_geom_geom' created.
+✅ [19:24:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.municipal_lands_SL7_geom' — ➕ 106,368 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:08] ✅ 'municipal_lands_SL7_geom' — 106,368 rows in 140.0s (760 r/s)
+✅ [19:24:08] 🟢 Workspace 'layers_2026_tmp.municipal_lands_SL7_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:08] 📋 layers_2026.municipal_service_offices_SL14_geom ➜ layers_2026_tmp.municipal_service_offices_SL14_geom
+🔹 [19:24:09] 🔄 [MERGE] 'layers_2026_tmp.municipal_service_offices_SL14_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:09] ✅  Index 'uq_municipal_service_offices_sl14_geom_1776189029' created.
+✅ [19:24:09] ✅  Index 'idx_municipal_service_offices_sl14_geom_geom' created.
+✅ [19:24:09] 📊 [MERGE SUMMARY] 'layers_2026_tmp.municipal_service_offices_SL14_geom' — ➕ 328 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:09] ✅ 'municipal_service_offices_SL14_geom' — 328 rows in 0.9s (355 r/s)
+✅ [19:24:09] 🟢 Workspace 'layers_2026_tmp.municipal_service_offices_SL14_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:09] 📋 layers_2026.municipal_services_SL5_geom ➜ layers_2026_tmp.municipal_services_SL5_geom
+🔹 [19:24:09] 🔄 [MERGE] 'layers_2026_tmp.municipal_services_SL5_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:10] ✅  Index 'uq_municipal_services_sl5_geom_1776181388' created.
+✅ [19:24:10] ✅  Index 'idx_municipal_services_sl5_geom_geom' created.
+✅ [19:24:10] 📊 [MERGE SUMMARY] 'layers_2026_tmp.municipal_services_SL5_geom' — ➕ 328 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:10] ✅ 'municipal_services_SL5_geom' — 328 rows in 0.7s (474 r/s)
+✅ [19:24:10] 🟢 Workspace 'layers_2026_tmp.municipal_services_SL5_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:10] 📋 layers_2026.municipalities_GLL35_geom ➜ layers_2026_tmp.municipalities_GLL35_geom
+🔹 [19:24:10] 🔄 [MERGE] 'layers_2026_tmp.municipalities_GLL35_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:11] ✅  Index 'uq_municipalities_gll35_geom_1776277265' created.
+✅ [19:24:11] ✅  Index 'idx_municipalities_gll35_geom_geom' created.
+✅ [19:24:11] 📊 [MERGE SUMMARY] 'layers_2026_tmp.municipalities_GLL35_geom' — ➕ 285 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:11] ✅ 'municipalities_GLL35_geom' — 285 rows in 1.5s (186 r/s)
+✅ [19:24:12] 🟢 Workspace 'layers_2026_tmp.municipalities_GLL35_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:12] 📋 layers_2026.municipalities_SL18_geom ➜ layers_2026_tmp.municipalities_SL18_geom
+🔹 [19:24:12] 🔄 [MERGE] 'layers_2026_tmp.municipalities_SL18_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:13] ✅  Index 'uq_municipalities_sl18_geom_1776189711' created.
+✅ [19:24:13] ✅  Index 'idx_municipalities_sl18_geom_geom' created.
+✅ [19:24:13] 📊 [MERGE SUMMARY] 'layers_2026_tmp.municipalities_SL18_geom' — ➕ 334 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:13] ✅ 'municipalities_SL18_geom' — 334 rows in 1.1s (309 r/s)
+✅ [19:24:13] 🟢 Workspace 'layers_2026_tmp.municipalities_SL18_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:13] 📋 layers_2026.municipalities_geom ➜ layers_2026_tmp.municipalities_geom
+🔹 [19:24:13] 🔄 [MERGE] 'layers_2026_tmp.municipalities_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:14] ✅  Index 'uq_municipalities_geom_1775993242' created.
+✅ [19:24:14] ✅  Index 'idx_municipalities_geom_geom' created.
+✅ [19:24:14] 📊 [MERGE SUMMARY] 'layers_2026_tmp.municipalities_geom' — ➕ 285 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:14] ✅ 'municipalities_geom' — 285 rows in 1.4s (211 r/s)
+✅ [19:24:14] 🟢 Workspace 'layers_2026_tmp.municipalities_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:14] 📋 layers_2026.municipality_offices_SMFL12_geom ➜ layers_2026_tmp.municipality_offices_SMFL12_geom
+🔹 [19:24:14] 🔄 [MERGE] 'layers_2026_tmp.municipality_offices_SMFL12_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:15] ✅  Index 'uq_municipality_offices_smfl12_geom_1776274954' created.
+✅ [19:24:15] ✅  Index 'idx_municipality_offices_smfl12_geom_geom' created.
+✅ [19:24:15] 📊 [MERGE SUMMARY] 'layers_2026_tmp.municipality_offices_SMFL12_geom' — ➕ 890 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:16] ✅ 'municipality_offices_SMFL12_geom' — 890 rows in 1.3s (660 r/s)
+✅ [19:24:16] 🟢 Workspace 'layers_2026_tmp.municipality_offices_SMFL12_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:16] 📋 layers_2026.non_maintenance_priority_SL32_geom ➜ layers_2026_tmp.non_maintenance_priority_SL32_geom
+🔹 [19:24:16] 🔄 [MERGE] 'layers_2026_tmp.non_maintenance_priority_SL32_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:16] ✅  Index 'uq_non_maintenance_priority_sl32_geom_1776273289' created.
+✅ [19:24:16] ✅  Index 'idx_non_maintenance_priority_sl32_geom_geom' created.
+✅ [19:24:16] 📊 [MERGE SUMMARY] 'layers_2026_tmp.non_maintenance_priority_SL32_geom' — ➕ 29 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:16] ✅ 'non_maintenance_priority_SL32_geom' — 29 rows in 0.3s (91 r/s)
+✅ [19:24:16] 🟢 Workspace 'layers_2026_tmp.non_maintenance_priority_SL32_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:16] 📋 layers_2026.non_priority_areas_SL29_geom ➜ layers_2026_tmp.non_priority_areas_SL29_geom
+🔹 [19:24:16] 🔄 [MERGE] 'layers_2026_tmp.non_priority_areas_SL29_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:19] ✅  Index 'uq_non_priority_areas_sl29_geom_1776189783' created.
+✅ [19:24:19] ✅  Index 'idx_non_priority_areas_sl29_geom_geom' created.
+✅ [19:24:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.non_priority_areas_SL29_geom' — ➕ 2,066 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:19] ✅ 'non_priority_areas_SL29_geom' — 2,066 rows in 2.7s (753 r/s)
+✅ [19:24:19] 🟢 Workspace 'layers_2026_tmp.non_priority_areas_SL29_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:19] 📋 layers_2026.non_rehabilitation_priority_SL33_geom ➜ layers_2026_tmp.non_rehabilitation_priority_SL33_geom
+🔹 [19:24:19] 🔄 [MERGE] 'layers_2026_tmp.non_rehabilitation_priority_SL33_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:24:19] ✅  Index 'uq_non_rehabilitation_priority_sl33_geom_1776273291' created.
+✅ [19:24:19] ✅  Index 'idx_non_rehabilitation_priority_sl33_geom_geom' created.
+✅ [19:24:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.non_rehabilitation_priority_SL33_geom' — ➕ 7 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:24:19] ✅ 'non_rehabilitation_priority_SL33_geom' — 7 rows in 0.2s (29 r/s)
+✅ [19:24:19] 🟢 Workspace 'layers_2026_tmp.non_rehabilitation_priority_SL33_geom_tmp' ready (structure-only, empty).
+🔹 [19:24:19] 📋 layers_2026.nwc_facilities_UserInfoL1_geom ➜ layers_2026_tmp.nwc_facilities_UserInfoL1_geom
+🔹 [19:24:19] 🔄 [MERGE] 'layers_2026_tmp.nwc_facilities_UserInfoL1_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:57:33] ✅  Index 'uq_nwc_facilities_userinfol1_geom_1776191998' created.
+✅ [19:57:58] ✅  Index 'idx_nwc_facilities_userinfol1_geom_geom' created.
+✅ [19:57:58] 📊 [MERGE SUMMARY] 'layers_2026_tmp.nwc_facilities_UserInfoL1_geom' — ➕ 1,372,291 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:57:58] ✅ 'nwc_facilities_UserInfoL1_geom' — 1,372,291 rows in 2018.4s (680 r/s)
+✅ [19:57:58] 🟢 Workspace 'layers_2026_tmp.nwc_facilities_UserInfoL1_geom_tmp' ready (structure-only, empty).
+🔹 [19:57:58] 📋 layers_2026.other_facilities_SL38_geom ➜ layers_2026_tmp.other_facilities_SL38_geom
+🔹 [19:57:58] 🔄 [MERGE] 'layers_2026_tmp.other_facilities_SL38_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [19:57:58] ✅  Index 'uq_other_facilities_sl38_geom_1776273324' created.
+✅ [19:57:58] ✅  Index 'idx_other_facilities_sl38_geom_geom' created.
+✅ [19:57:58] 📊 [MERGE SUMMARY] 'layers_2026_tmp.other_facilities_SL38_geom' — ➕ 106 new rows inserted,  ✏️  0 existing rows updated.
+✅ [19:57:58] ✅ 'other_facilities_SL38_geom' — 106 rows in 0.6s (179 r/s)
+✅ [19:57:58] 🟢 Workspace 'layers_2026_tmp.other_facilities_SL38_geom_tmp' ready (structure-only, empty).
+🔹 [19:57:58] 📋 layers_2026.parcel_units_GLL47_geom ➜ layers_2026_tmp.parcel_units_GLL47_geom
+🔹 [19:57:59] 🔄 [MERGE] 'layers_2026_tmp.parcel_units_GLL47_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:14:06] ✅  Index 'uq_parcel_units_gll47_geom_1776278698' created.
+✅ [20:14:20] ✅  Index 'idx_parcel_units_gll47_geom_geom' created.
+✅ [20:14:20] 📊 [MERGE SUMMARY] 'layers_2026_tmp.parcel_units_GLL47_geom' — ➕ 773,040 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:14:20] ✅ 'parcel_units_GLL47_geom' — 773,040 rows in 981.2s (788 r/s)
+✅ [20:14:20] 🟢 Workspace 'layers_2026_tmp.parcel_units_GLL47_geom_tmp' ready (structure-only, empty).
+🔹 [20:14:20] 📋 layers_2026.parks_SL2_geom ➜ layers_2026_tmp.parks_SL2_geom
+🔹 [20:14:21] 🔄 [MERGE] 'layers_2026_tmp.parks_SL2_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:14:30] ✅  Index 'uq_parks_sl2_geom_1776181379' created.
+✅ [20:14:30] ✅  Index 'idx_parks_sl2_geom_geom' created.
+✅ [20:14:30] 📊 [MERGE SUMMARY] 'layers_2026_tmp.parks_SL2_geom' — ➕ 6,142 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:14:30] ✅ 'parks_SL2_geom' — 6,142 rows in 10.5s (585 r/s)
+✅ [20:14:31] 🟢 Workspace 'layers_2026_tmp.parks_SL2_geom_tmp' ready (structure-only, empty).
+🔹 [20:14:31] 📋 layers_2026.parks_SMFL4_geom ➜ layers_2026_tmp.parks_SMFL4_geom
+🔹 [20:14:32] 🔄 [MERGE] 'layers_2026_tmp.parks_SMFL4_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:14:42] ✅  Index 'uq_parks_smfl4_geom_1776274990' created.
+✅ [20:14:42] ✅  Index 'idx_parks_smfl4_geom_geom' created.
+✅ [20:14:42] 📊 [MERGE SUMMARY] 'layers_2026_tmp.parks_SMFL4_geom' — ➕ 6,325 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:14:42] ✅ 'parks_SMFL4_geom' — 6,325 rows in 11.7s (540 r/s)
+✅ [20:14:42] 🟢 Workspace 'layers_2026_tmp.parks_SMFL4_geom_tmp' ready (structure-only, empty).
+🔹 [20:14:42] 📋 layers_2026.parks_projects_CL38_geom ➜ layers_2026_tmp.parks_projects_CL38_geom
+🔹 [20:14:43] 🔄 [MERGE] 'layers_2026_tmp.parks_projects_CL38_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:14:44] ✅  Index 'uq_parks_projects_cl38_geom_1776174499' created.
+✅ [20:14:44] ✅  Index 'idx_parks_projects_cl38_geom_geom' created.
+✅ [20:14:44] 📊 [MERGE SUMMARY] 'layers_2026_tmp.parks_projects_CL38_geom' — ➕ 1 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:14:44] ✅ 'parks_projects_CL38_geom' — 1 rows in 1.5s (1 r/s)
+✅ [20:14:44] 🟢 Workspace 'layers_2026_tmp.parks_projects_CL38_geom_tmp' ready (structure-only, empty).
+🔹 [20:14:44] 📋 layers_2026.parks_projects_SL11_geom ➜ layers_2026_tmp.parks_projects_SL11_geom
+🔹 [20:14:45] 🔄 [MERGE] 'layers_2026_tmp.parks_projects_SL11_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:14:46] ✅  Index 'uq_parks_projects_sl11_geom_1776189004' created.
+✅ [20:14:46] ✅  Index 'idx_parks_projects_sl11_geom_geom' created.
+✅ [20:14:46] 📊 [MERGE SUMMARY] 'layers_2026_tmp.parks_projects_SL11_geom' — ➕ 10 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:14:46] ✅ 'parks_projects_SL11_geom' — 10 rows in 2.0s (5 r/s)
+✅ [20:14:46] 🟢 Workspace 'layers_2026_tmp.parks_projects_SL11_geom_tmp' ready (structure-only, empty).
+🔹 [20:14:47] 📋 layers_2026.parks_projects_SL46_geom ➜ layers_2026_tmp.parks_projects_SL46_geom
+🔹 [20:14:47] 🔄 [MERGE] 'layers_2026_tmp.parks_projects_SL46_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:14:48] ✅  Index 'uq_parks_projects_sl46_geom_1776273404' created.
+✅ [20:14:48] ✅  Index 'idx_parks_projects_sl46_geom_geom' created.
+✅ [20:14:48] 📊 [MERGE SUMMARY] 'layers_2026_tmp.parks_projects_SL46_geom' — ➕ 115 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:14:48] ✅ 'parks_projects_SL46_geom' — 115 rows in 1.8s (64 r/s)
+✅ [20:14:48] 🟢 Workspace 'layers_2026_tmp.parks_projects_SL46_geom_tmp' ready (structure-only, empty).
+🔹 [20:14:49] 📋 layers_2026.parks_squares_CL6_geom ➜ layers_2026_tmp.parks_squares_CL6_geom
+🔹 [20:14:49] 🔄 [MERGE] 'layers_2026_tmp.parks_squares_CL6_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:15:08] ✅  Index 'uq_parks_squares_cl6_geom_1776015726' created.
+✅ [20:15:08] ✅  Index 'idx_parks_squares_cl6_geom_geom' created.
+✅ [20:15:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.parks_squares_CL6_geom' — ➕ 10,997 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:15:08] ✅ 'parks_squares_CL6_geom' — 10,997 rows in 19.8s (556 r/s)
+✅ [20:15:08] 🟢 Workspace 'layers_2026_tmp.parks_squares_CL6_geom_tmp' ready (structure-only, empty).
+🔹 [20:15:08] 📋 layers_2026.parks_squares_GLL6_geom ➜ layers_2026_tmp.parks_squares_GLL6_geom
+🔹 [20:15:09] 🔄 [MERGE] 'layers_2026_tmp.parks_squares_GLL6_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:15:27] ✅  Index 'uq_parks_squares_gll6_geom_1776279199' created.
+✅ [20:15:27] ✅  Index 'idx_parks_squares_gll6_geom_geom' created.
+✅ [20:15:27] 📊 [MERGE SUMMARY] 'layers_2026_tmp.parks_squares_GLL6_geom' — ➕ 10,997 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:15:27] ✅ 'parks_squares_GLL6_geom' — 10,997 rows in 18.6s (592 r/s)
+✅ [20:15:27] 🟢 Workspace 'layers_2026_tmp.parks_squares_GLL6_geom_tmp' ready (structure-only, empty).
+🔹 [20:15:27] 📋 layers_2026.planning_projects_CL50_geom ➜ layers_2026_tmp.planning_projects_CL50_geom
+🔹 [20:15:27] 🔄 [MERGE] 'layers_2026_tmp.planning_projects_CL50_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:15:35] ✅  Index 'uq_planning_projects_cl50_geom_1776176933' created.
+✅ [20:15:36] ✅  Index 'idx_planning_projects_cl50_geom_geom' created.
+✅ [20:15:36] 📊 [MERGE SUMMARY] 'layers_2026_tmp.planning_projects_CL50_geom' — ➕ 3,624 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:15:36] ✅ 'planning_projects_CL50_geom' — 3,624 rows in 8.6s (421 r/s)
+✅ [20:15:36] 🟢 Workspace 'layers_2026_tmp.planning_projects_CL50_geom_tmp' ready (structure-only, empty).
+🔹 [20:15:36] 📋 layers_2026.plans_SL1_geom ➜ layers_2026_tmp.plans_SL1_geom
+🔹 [20:15:36] 🔄 [MERGE] 'layers_2026_tmp.plans_SL1_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:17:34] ✅  Index 'uq_plans_sl1_geom_1776181322' created.
+✅ [20:17:35] ✅  Index 'idx_plans_sl1_geom_geom' created.
+✅ [20:17:35] 📊 [MERGE SUMMARY] 'layers_2026_tmp.plans_SL1_geom' — ➕ 56,865 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:17:35] ✅ 'plans_SL1_geom' — 56,865 rows in 119.4s (476 r/s)
+✅ [20:17:35] 🟢 Workspace 'layers_2026_tmp.plans_SL1_geom_tmp' ready (structure-only, empty).
+🔹 [20:17:35] 📋 layers_2026.planted_areas_GLL43_geom ➜ layers_2026_tmp.planted_areas_GLL43_geom
+🔹 [20:17:36] 🔄 [MERGE] 'layers_2026_tmp.planted_areas_GLL43_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:18:12] ✅  Index 'uq_planted_areas_gll43_geom_1776278661' created.
+✅ [20:18:12] ✅  Index 'idx_planted_areas_gll43_geom_geom' created.
+✅ [20:18:12] 📊 [MERGE SUMMARY] 'layers_2026_tmp.planted_areas_GLL43_geom' — ➕ 22,241 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:18:12] ✅ 'planted_areas_GLL43_geom' — 22,241 rows in 36.6s (608 r/s)
+✅ [20:18:12] 🟢 Workspace 'layers_2026_tmp.planted_areas_GLL43_geom_tmp' ready (structure-only, empty).
+🔹 [20:18:12] 📋 layers_2026.pop_density_cpncL12_geom ➜ layers_2026_tmp.pop_density_cpncL12_geom
+🔹 [20:18:13] 🔄 [MERGE] 'layers_2026_tmp.pop_density_cpncL12_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:25:00] ✅  Index 'uq_pop_density_cpncl12_geom_1776264693' created.
+✅ [20:25:05] ✅  Index 'idx_pop_density_cpncl12_geom_geom' created.
+✅ [20:25:05] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_density_cpncL12_geom' — ➕ 280,665 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:25:05] ✅ 'pop_density_cpncL12_geom' — 280,665 rows in 412.8s (680 r/s)
+✅ [20:25:05] 🟢 Workspace 'layers_2026_tmp.pop_density_cpncL12_geom_tmp' ready (structure-only, empty).
+🔹 [20:25:05] 📋 layers_2026.pop_lvl08_25_6km_PopGridL9_geom ➜ layers_2026_tmp.pop_lvl08_25_6km_PopGridL9_geom
+🔹 [20:25:05] 🔄 [MERGE] 'layers_2026_tmp.pop_lvl08_25_6km_PopGridL9_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:25:07] ✅  Index 'uq_pop_lvl08_25_6km_popgridl9_geom_1776274596' created.
+✅ [20:25:07] ✅  Index 'idx_pop_lvl08_25_6km_popgridl9_geom_geom' created.
+✅ [20:25:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_lvl08_25_6km_PopGridL9_geom' — ➕ 1,435 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:25:07] ✅ 'pop_lvl08_25_6km_PopGridL9_geom' — 1,435 rows in 2.2s (650 r/s)
+✅ [20:25:07] 🟢 Workspace 'layers_2026_tmp.pop_lvl08_25_6km_PopGridL9_geom_tmp' ready (structure-only, empty).
+🔹 [20:25:07] 📋 layers_2026.pop_lvl09_12_8km_PopGridL8_geom ➜ layers_2026_tmp.pop_lvl09_12_8km_PopGridL8_geom
+🔹 [20:25:07] 🔄 [MERGE] 'layers_2026_tmp.pop_lvl09_12_8km_PopGridL8_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:25:12] ✅  Index 'uq_pop_lvl09_12_8km_popgridl8_geom_1776274593' created.
+✅ [20:25:12] ✅  Index 'idx_pop_lvl09_12_8km_popgridl8_geom_geom' created.
+✅ [20:25:12] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_lvl09_12_8km_PopGridL8_geom' — ➕ 3,336 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:25:12] ✅ 'pop_lvl09_12_8km_PopGridL8_geom' — 3,336 rows in 4.5s (747 r/s)
+✅ [20:25:12] 🟢 Workspace 'layers_2026_tmp.pop_lvl09_12_8km_PopGridL8_geom_tmp' ready (structure-only, empty).
+🔹 [20:25:12] 📋 layers_2026.pop_lvl10_6_4km_PopGridL7_geom ➜ layers_2026_tmp.pop_lvl10_6_4km_PopGridL7_geom
+🔹 [20:25:12] 🔄 [MERGE] 'layers_2026_tmp.pop_lvl10_6_4km_PopGridL7_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:25:20] ✅  Index 'uq_pop_lvl10_6_4km_popgridl7_geom_1776274589' created.
+✅ [20:25:20] ✅  Index 'idx_pop_lvl10_6_4km_popgridl7_geom_geom' created.
+✅ [20:25:20] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_lvl10_6_4km_PopGridL7_geom' — ➕ 6,811 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:25:20] ✅ 'pop_lvl10_6_4km_PopGridL7_geom' — 6,811 rows in 8.6s (789 r/s)
+✅ [20:25:20] 🟢 Workspace 'layers_2026_tmp.pop_lvl10_6_4km_PopGridL7_geom_tmp' ready (structure-only, empty).
+🔹 [20:25:21] 📋 layers_2026.pop_lvl11_3_2km_PopGridL6_geom ➜ layers_2026_tmp.pop_lvl11_3_2km_PopGridL6_geom
+🔹 [20:25:21] 🔄 [MERGE] 'layers_2026_tmp.pop_lvl11_3_2km_PopGridL6_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:25:36] ✅  Index 'uq_pop_lvl11_3_2km_popgridl6_geom_1776274584' created.
+✅ [20:25:36] ✅  Index 'idx_pop_lvl11_3_2km_popgridl6_geom_geom' created.
+✅ [20:25:36] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_lvl11_3_2km_PopGridL6_geom' — ➕ 12,990 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:25:36] ✅ 'pop_lvl11_3_2km_PopGridL6_geom' — 12,990 rows in 15.9s (816 r/s)
+✅ [20:25:36] 🟢 Workspace 'layers_2026_tmp.pop_lvl11_3_2km_PopGridL6_geom_tmp' ready (structure-only, empty).
+🔹 [20:25:37] 📋 layers_2026.pop_lvl12_1_6km_PopGridL5_geom ➜ layers_2026_tmp.pop_lvl12_1_6km_PopGridL5_geom
+🔹 [20:25:37] 🔄 [MERGE] 'layers_2026_tmp.pop_lvl12_1_6km_PopGridL5_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:26:07] ✅  Index 'uq_pop_lvl12_1_6km_popgridl5_geom_1776274577' created.
+✅ [20:26:07] ✅  Index 'idx_pop_lvl12_1_6km_popgridl5_geom_geom' created.
+✅ [20:26:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_lvl12_1_6km_PopGridL5_geom' — ➕ 23,921 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:26:07] ✅ 'pop_lvl12_1_6km_PopGridL5_geom' — 23,921 rows in 30.7s (780 r/s)
+✅ [20:26:07] 🟢 Workspace 'layers_2026_tmp.pop_lvl12_1_6km_PopGridL5_geom_tmp' ready (structure-only, empty).
+🔹 [20:26:07] 📋 layers_2026.pop_lvl13_800m_PopGridL4_geom ➜ layers_2026_tmp.pop_lvl13_800m_PopGridL4_geom
+🔹 [20:26:08] 🔄 [MERGE] 'layers_2026_tmp.pop_lvl13_800m_PopGridL4_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:27:13] ✅  Index 'uq_pop_lvl13_800m_popgridl4_geom_1776274565' created.
+✅ [20:27:13] ✅  Index 'idx_pop_lvl13_800m_popgridl4_geom_geom' created.
+✅ [20:27:13] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_lvl13_800m_PopGridL4_geom' — ➕ 43,880 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:27:13] ✅ 'pop_lvl13_800m_PopGridL4_geom' — 43,880 rows in 66.0s (665 r/s)
+✅ [20:27:13] 🟢 Workspace 'layers_2026_tmp.pop_lvl13_800m_PopGridL4_geom_tmp' ready (structure-only, empty).
+🔹 [20:27:13] 📋 layers_2026.pop_lvl14_400m_PopGridL3_geom ➜ layers_2026_tmp.pop_lvl14_400m_PopGridL3_geom
+🔹 [20:27:14] 🔄 [MERGE] 'layers_2026_tmp.pop_lvl14_400m_PopGridL3_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:27:14] ✅  Index 'uq_pop_lvl14_400m_popgridl3_geom_1776274563' created.
+✅ [20:27:14] ✅  Index 'idx_pop_lvl14_400m_popgridl3_geom_geom' created.
+✅ [20:27:14] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_lvl14_400m_PopGridL3_geom' — ➕ 77 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:27:14] ✅ 'pop_lvl14_400m_PopGridL3_geom' — 77 rows in 0.8s (92 r/s)
+✅ [20:27:14] 🟢 Workspace 'layers_2026_tmp.pop_lvl14_400m_PopGridL3_geom_tmp' ready (structure-only, empty).
+🔹 [20:27:14] 📋 layers_2026.pop_lvl15_200m_PopGridL2_geom ➜ layers_2026_tmp.pop_lvl15_200m_PopGridL2_geom
+🔹 [20:27:14] 🔄 [MERGE] 'layers_2026_tmp.pop_lvl15_200m_PopGridL2_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:30:56] ✅  Index 'uq_pop_lvl15_200m_popgridl2_geom_1776274525' created.
+✅ [20:30:58] ✅  Index 'idx_pop_lvl15_200m_popgridl2_geom_geom' created.
+✅ [20:30:58] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_lvl15_200m_PopGridL2_geom' — ➕ 161,545 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:30:58] ✅ 'pop_lvl15_200m_PopGridL2_geom' — 161,545 rows in 223.7s (722 r/s)
+✅ [20:30:58] 🟢 Workspace 'layers_2026_tmp.pop_lvl15_200m_PopGridL2_geom_tmp' ready (structure-only, empty).
+🔹 [20:30:58] 📋 layers_2026.pop_lvl16_100m_PopGridL1_geom ➜ layers_2026_tmp.pop_lvl16_100m_PopGridL1_geom
+🔹 [20:30:59] 🔄 [MERGE] 'layers_2026_tmp.pop_lvl16_100m_PopGridL1_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:33:08] ✅  Index 'uq_pop_lvl16_100m_popgridl1_geom_1776274503' created.
+✅ [20:33:09] ✅  Index 'idx_pop_lvl16_100m_popgridl1_geom_geom' created.
+✅ [20:33:09] 📊 [MERGE SUMMARY] 'layers_2026_tmp.pop_lvl16_100m_PopGridL1_geom' — ➕ 74,000 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:33:09] ✅ 'pop_lvl16_100m_PopGridL1_geom' — 74,000 rows in 130.5s (567 r/s)
+✅ [20:33:09] 🟢 Workspace 'layers_2026_tmp.pop_lvl16_100m_PopGridL1_geom_tmp' ready (structure-only, empty).
+🔹 [20:33:09] 📋 layers_2026.priority_area_boundaries_SL47_geom ➜ layers_2026_tmp.priority_area_boundaries_SL47_geom
+🔹 [20:33:09] 🔄 [MERGE] 'layers_2026_tmp.priority_area_boundaries_SL47_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:33:12] ✅  Index 'uq_priority_area_boundaries_sl47_geom_1776273406' created.
+✅ [20:33:12] ✅  Index 'idx_priority_area_boundaries_sl47_geom_geom' created.
+✅ [20:33:12] 📊 [MERGE SUMMARY] 'layers_2026_tmp.priority_area_boundaries_SL47_geom' — ➕ 1,497 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:33:12] ✅ 'priority_area_boundaries_SL47_geom' — 1,497 rows in 3.0s (492 r/s)
+✅ [20:33:12] 🟢 Workspace 'layers_2026_tmp.priority_area_boundaries_SL47_geom_tmp' ready (structure-only, empty).
+🔹 [20:33:12] 📋 layers_2026.priority_areas_CL48_geom ➜ layers_2026_tmp.priority_areas_CL48_geom
+🔹 [20:33:12] 🔄 [MERGE] 'layers_2026_tmp.priority_areas_CL48_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:33:15] ✅  Index 'uq_priority_areas_cl48_geom_1776176790' created.
+✅ [20:33:15] ✅  Index 'idx_priority_areas_cl48_geom_geom' created.
+✅ [20:33:15] 📊 [MERGE SUMMARY] 'layers_2026_tmp.priority_areas_CL48_geom' — ➕ 1,384 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:33:15] ✅ 'priority_areas_CL48_geom' — 1,384 rows in 3.1s (449 r/s)
+✅ [20:33:15] 🟢 Workspace 'layers_2026_tmp.priority_areas_CL48_geom_tmp' ready (structure-only, empty).
+🔹 [20:33:15] 📋 layers_2026.priority_areas_SL28_geom ➜ layers_2026_tmp.priority_areas_SL28_geom
+🔹 [20:33:15] 🔄 [MERGE] 'layers_2026_tmp.priority_areas_SL28_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:35:32] ✅  Index 'uq_priority_areas_sl28_geom_1776189747' created.
+✅ [20:35:33] ✅  Index 'idx_priority_areas_sl28_geom_geom' created.
+✅ [20:35:33] 📊 [MERGE SUMMARY] 'layers_2026_tmp.priority_areas_SL28_geom' — ➕ 80,851 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:35:33] ✅ 'priority_areas_SL28_geom' — 80,851 rows in 137.7s (587 r/s)
+✅ [20:35:33] 🟢 Workspace 'layers_2026_tmp.priority_areas_SL28_geom_tmp' ready (structure-only, empty).
+🔹 [20:35:33] 📋 layers_2026.private_education_SL36_geom ➜ layers_2026_tmp.private_education_SL36_geom
+🔹 [20:35:34] 🔄 [MERGE] 'layers_2026_tmp.private_education_SL36_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:36:16] ✅  Index 'uq_private_education_sl36_geom_1776273314' created.
+✅ [20:36:17] ✅  Index 'idx_private_education_sl36_geom_geom' created.
+✅ [20:36:17] 📊 [MERGE SUMMARY] 'layers_2026_tmp.private_education_SL36_geom' — ➕ 31,727 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:36:17] ✅ 'private_education_SL36_geom' — 31,727 rows in 43.6s (727 r/s)
+✅ [20:36:17] 🟢 Workspace 'layers_2026_tmp.private_education_SL36_geom_tmp' ready (structure-only, empty).
+🔹 [20:36:17] 📋 layers_2026.project_sites_SL4_geom ➜ layers_2026_tmp.project_sites_SL4_geom
+🔹 [20:36:17] 🔄 [MERGE] 'layers_2026_tmp.project_sites_SL4_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:36:22] ✅  Index 'uq_project_sites_sl4_geom_1776181385' created.
+✅ [20:36:22] ✅  Index 'idx_project_sites_sl4_geom_geom' created.
+✅ [20:36:22] 📊 [MERGE SUMMARY] 'layers_2026_tmp.project_sites_SL4_geom' — ➕ 3,249 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:36:22] ✅ 'project_sites_SL4_geom' — 3,249 rows in 5.2s (628 r/s)
+✅ [20:36:22] 🟢 Workspace 'layers_2026_tmp.project_sites_SL4_geom_tmp' ready (structure-only, empty).
+🔹 [20:36:22] 📋 layers_2026.proposed_painted_streets_SL67_geom ➜ layers_2026_tmp.proposed_painted_streets_SL67_geom
+🔹 [20:36:22] 🔄 [MERGE] 'layers_2026_tmp.proposed_painted_streets_SL67_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:36:25] ✅  Index 'uq_proposed_painted_streets_sl67_geom_1776273659' created.
+✅ [20:36:25] ✅  Index 'idx_proposed_painted_streets_sl67_geom_geom' created.
+✅ [20:36:25] 📊 [MERGE SUMMARY] 'layers_2026_tmp.proposed_painted_streets_SL67_geom' — ➕ 2,019 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:36:25] ✅ 'proposed_painted_streets_SL67_geom' — 2,019 rows in 2.7s (744 r/s)
+✅ [20:36:25] 🟢 Workspace 'layers_2026_tmp.proposed_painted_streets_SL67_geom_tmp' ready (structure-only, empty).
+🔹 [20:36:25] 📋 layers_2026.rainfall_locations_CL47_geom ➜ layers_2026_tmp.rainfall_locations_CL47_geom
+🔹 [20:36:25] 🔄 [MERGE] 'layers_2026_tmp.rainfall_locations_CL47_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:36:28] ✅  Index 'uq_rainfall_locations_cl47_geom_1776176767' created.
+✅ [20:36:28] ✅  Index 'idx_rainfall_locations_cl47_geom_geom' created.
+✅ [20:36:28] 📊 [MERGE SUMMARY] 'layers_2026_tmp.rainfall_locations_CL47_geom' — ➕ 2,353 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:36:28] ✅ 'rainfall_locations_CL47_geom' — 2,353 rows in 3.3s (713 r/s)
+✅ [20:36:28] 🟢 Workspace 'layers_2026_tmp.rainfall_locations_CL47_geom_tmp' ready (structure-only, empty).
+🔹 [20:36:28] 📋 layers_2026.rainwater_collection_points_SL40_geom ➜ layers_2026_tmp.rainwater_collection_points_SL40_geom
+🔹 [20:36:29] 🔄 [MERGE] 'layers_2026_tmp.rainwater_collection_points_SL40_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:36:31] ✅  Index 'uq_rainwater_collection_points_sl40_geom_1776273329' created.
+✅ [20:36:31] ✅  Index 'idx_rainwater_collection_points_sl40_geom_geom' created.
+✅ [20:36:31] 📊 [MERGE SUMMARY] 'layers_2026_tmp.rainwater_collection_points_SL40_geom' — ➕ 2,353 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:36:32] ✅ 'rainwater_collection_points_SL40_geom' — 2,353 rows in 3.1s (756 r/s)
+✅ [20:36:32] 🟢 Workspace 'layers_2026_tmp.rainwater_collection_points_SL40_geom_tmp' ready (structure-only, empty).
+🔹 [20:36:32] 📋 layers_2026.rainwater_collection_sites_SL63_geom ➜ layers_2026_tmp.rainwater_collection_sites_SL63_geom
+🔹 [20:36:32] 🔄 [MERGE] 'layers_2026_tmp.rainwater_collection_sites_SL63_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:36:38] ✅  Index 'uq_rainwater_collection_sites_sl63_geom_1776273643' created.
+✅ [20:36:38] ✅  Index 'idx_rainwater_collection_sites_sl63_geom_geom' created.
+✅ [20:36:38] 📊 [MERGE SUMMARY] 'layers_2026_tmp.rainwater_collection_sites_SL63_geom' — ➕ 4,801 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:36:38] ✅ 'rainwater_collection_sites_SL63_geom' — 4,801 rows in 6.4s (754 r/s)
+✅ [20:36:38] 🟢 Workspace 'layers_2026_tmp.rainwater_collection_sites_SL63_geom_tmp' ready (structure-only, empty).
+🔹 [20:36:38] 📋 layers_2026.rainwater_collection_streets_SL41_geom ➜ layers_2026_tmp.rainwater_collection_streets_SL41_geom
+🔹 [20:36:38] 🔄 [MERGE] 'layers_2026_tmp.rainwater_collection_streets_SL41_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:36:40] ✅  Index 'uq_rainwater_collection_streets_sl41_geom_1776273332' created.
+✅ [20:36:40] ✅  Index 'idx_rainwater_collection_streets_sl41_geom_geom' created.
+✅ [20:36:40] 📊 [MERGE SUMMARY] 'layers_2026_tmp.rainwater_collection_streets_SL41_geom' — ➕ 1,005 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:36:40] ✅ 'rainwater_collection_streets_SL41_geom' — 1,005 rows in 1.9s (540 r/s)
+✅ [20:36:40] 🟢 Workspace 'layers_2026_tmp.rainwater_collection_streets_SL41_geom_tmp' ready (structure-only, empty).
+🔹 [20:36:40] 📋 layers_2026.rainwater_heatmaps_SL42_geom ➜ layers_2026_tmp.rainwater_heatmaps_SL42_geom
+🔹 [20:36:40] 🔄 [MERGE] 'layers_2026_tmp.rainwater_heatmaps_SL42_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:36:45] ✅  Index 'uq_rainwater_heatmaps_sl42_geom_1776273336' created.
+✅ [20:36:45] ✅  Index 'idx_rainwater_heatmaps_sl42_geom_geom' created.
+✅ [20:36:45] 📊 [MERGE SUMMARY] 'layers_2026_tmp.rainwater_heatmaps_SL42_geom' — ➕ 2,353 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:36:45] ✅ 'rainwater_heatmaps_SL42_geom' — 2,353 rows in 5.1s (462 r/s)
+✅ [20:36:45] 🟢 Workspace 'layers_2026_tmp.rainwater_heatmaps_SL42_geom_tmp' ready (structure-only, empty).
+🔹 [20:36:45] 📋 layers_2026.reg_signs_MMSL14_geom ➜ layers_2026_tmp.reg_signs_MMSL14_geom
+🔹 [20:36:46] 🔄 [MERGE] 'layers_2026_tmp.reg_signs_MMSL14_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:37:00] ✅  Index 'uq_reg_signs_mmsl14_geom_1776274191' created.
+✅ [20:37:00] ✅  Index 'idx_reg_signs_mmsl14_geom_geom' created.
+✅ [20:37:00] 📊 [MERGE SUMMARY] 'layers_2026_tmp.reg_signs_MMSL14_geom' — ➕ 11,593 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:37:00] ✅ 'reg_signs_MMSL14_geom' — 11,593 rows in 15.1s (767 r/s)
+✅ [20:37:00] 🟢 Workspace 'layers_2026_tmp.reg_signs_MMSL14_geom_tmp' ready (structure-only, empty).
+🔹 [20:37:00] 📋 layers_2026.regions_geom ➜ layers_2026_tmp.regions_geom
+🔹 [20:37:01] 🔄 [MERGE] 'layers_2026_tmp.regions_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:37:03] ✅  Index 'uq_regions_geom_1775993433' created.
+✅ [20:37:03] ✅  Index 'idx_regions_geom_geom' created.
+✅ [20:37:03] 📊 [MERGE SUMMARY] 'layers_2026_tmp.regions_geom' — ➕ 26 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:37:04] ✅ 'regions_geom' — 26 rows in 3.1s (8 r/s)
+✅ [20:37:04] 🟢 Workspace 'layers_2026_tmp.regions_geom_tmp' ready (structure-only, empty).
+🔹 [20:37:04] 📋 layers_2026.rehabilitation_priority_SL31_geom ➜ layers_2026_tmp.rehabilitation_priority_SL31_geom
+🔹 [20:37:04] 🔄 [MERGE] 'layers_2026_tmp.rehabilitation_priority_SL31_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:37:14] ✅  Index 'uq_rehabilitation_priority_sl31_geom_1776273283' created.
+✅ [20:37:14] ✅  Index 'idx_rehabilitation_priority_sl31_geom_geom' created.
+✅ [20:37:14] 📊 [MERGE SUMMARY] 'layers_2026_tmp.rehabilitation_priority_SL31_geom' — ➕ 6,590 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:37:14] ✅ 'rehabilitation_priority_SL31_geom' — 6,590 rows in 10.2s (645 r/s)
+✅ [20:37:14] 🟢 Workspace 'layers_2026_tmp.rehabilitation_priority_SL31_geom_tmp' ready (structure-only, empty).
+🔹 [20:37:14] 📋 layers_2026.religious_CL5_geom ➜ layers_2026_tmp.religious_CL5_geom
+🔹 [20:37:14] 🔄 [MERGE] 'layers_2026_tmp.religious_CL5_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:39:42] ✅  Index 'uq_religious_cl5_geom_1776015591' created.
+✅ [20:39:44] ✅  Index 'idx_religious_cl5_geom_geom' created.
+✅ [20:39:44] 📊 [MERGE SUMMARY] 'layers_2026_tmp.religious_CL5_geom' — ➕ 103,458 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:39:44] ✅ 'religious_CL5_geom' — 103,458 rows in 150.1s (689 r/s)
+✅ [20:39:44] 🟢 Workspace 'layers_2026_tmp.religious_CL5_geom_tmp' ready (structure-only, empty).
+🔹 [20:39:44] 📋 layers_2026.religious_GLL5_geom ➜ layers_2026_tmp.religious_GLL5_geom
+🔹 [20:39:45] 🔄 [MERGE] 'layers_2026_tmp.religious_GLL5_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:42:04] ✅  Index 'uq_religious_gll5_geom_1776279176' created.
+✅ [20:42:06] ✅  Index 'idx_religious_gll5_geom_geom' created.
+✅ [20:42:06] 📊 [MERGE SUMMARY] 'layers_2026_tmp.religious_GLL5_geom' — ➕ 103,458 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:42:06] ✅ 'religious_GLL5_geom' — 103,458 rows in 141.5s (731 r/s)
+✅ [20:42:06] 🟢 Workspace 'layers_2026_tmp.religious_GLL5_geom_tmp' ready (structure-only, empty).
+🔹 [20:42:06] 📋 layers_2026.religious_services_SL49_geom ➜ layers_2026_tmp.religious_services_SL49_geom
+🔹 [20:42:06] 🔄 [MERGE] 'layers_2026_tmp.religious_services_SL49_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:44:28] ✅  Index 'uq_religious_services_sl49_geom_1776273417' created.
+✅ [20:44:29] ✅  Index 'idx_religious_services_sl49_geom_geom' created.
+✅ [20:44:29] 📊 [MERGE SUMMARY] 'layers_2026_tmp.religious_services_SL49_geom' — ➕ 103,458 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:44:29] ✅ 'religious_services_SL49_geom' — 103,458 rows in 143.5s (721 r/s)
+✅ [20:44:29] 🟢 Workspace 'layers_2026_tmp.religious_services_SL49_geom_tmp' ready (structure-only, empty).
+🔹 [20:44:30] 📋 layers_2026.restaurants_SMFL6_geom ➜ layers_2026_tmp.restaurants_SMFL6_geom
+🔹 [20:44:30] 🔄 [MERGE] 'layers_2026_tmp.restaurants_SMFL6_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:46:06] ✅  Index 'uq_restaurants_smfl6_geom_1776274996' created.
+✅ [20:46:07] ✅  Index 'idx_restaurants_smfl6_geom_geom' created.
+✅ [20:46:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.restaurants_SMFL6_geom' — ➕ 71,292 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:46:07] ✅ 'restaurants_SMFL6_geom' — 71,292 rows in 97.6s (731 r/s)
+✅ [20:46:07] 🟢 Workspace 'layers_2026_tmp.restaurants_SMFL6_geom_tmp' ready (structure-only, empty).
+🔹 [20:46:07] 📋 layers_2026.restricted_sites_UGL0_geom ➜ layers_2026_tmp.restricted_sites_UGL0_geom
+🔹 [20:46:08] 🔄 [MERGE] 'layers_2026_tmp.restricted_sites_UGL0_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [20:54:14] ✅  Index 'uq_restricted_sites_ugl0_geom_1776342480' created.
+✅ [20:54:18] ✅  Index 'idx_restricted_sites_ugl0_geom_geom' created.
+✅ [20:54:18] 📊 [MERGE SUMMARY] 'layers_2026_tmp.restricted_sites_UGL0_geom' — ➕ 205,273 new rows inserted,  ✏️  0 existing rows updated.
+✅ [20:54:18] ✅ 'restricted_sites_UGL0_geom' — 205,273 rows in 490.5s (419 r/s)
+✅ [20:54:18] 🟢 Workspace 'layers_2026_tmp.restricted_sites_UGL0_geom_tmp' ready (structure-only, empty).
+🔹 [20:54:18] 📋 layers_2026.road_centerlines_geom ➜ layers_2026_tmp.road_centerlines_geom
+🔹 [20:54:18] 🔄 [MERGE] 'layers_2026_tmp.road_centerlines_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+⚠️  [23:17:45] ⟳ 'ejar_contracts_UserInfoL8_geom' attempt 1/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+🔹 [23:17:47] 📋 layers_2026.ejar_contracts_UserInfoL8_geom ➜ layers_2026_tmp.ejar_contracts_UserInfoL8_geom
+⚠️  [23:17:47] ⚠️  PK already exists on 'layers_2026_tmp.ejar_contracts_UserInfoL8_geom' — skipped.
+🔹 [23:17:47] 🔄 [MERGE] 'layers_2026_tmp.ejar_contracts_UserInfoL8_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+⚠️  [23:17:48] ⟳ 'road_centerlines_geom' attempt 1/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [23:17:48] ⟳ 'ejar_contracts_UserInfoL6_geom' attempt 1/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [23:17:48] ⟳ 'land_parcels_geom' attempt 1/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+🔹 [23:17:50] 📋 layers_2026.land_parcels_geom ➜ layers_2026_tmp.land_parcels_geom
+🔹 [23:17:50] 📋 layers_2026.road_centerlines_geom ➜ layers_2026_tmp.road_centerlines_geom
+🔹 [23:17:50] 📋 layers_2026.ejar_contracts_UserInfoL6_geom ➜ layers_2026_tmp.ejar_contracts_UserInfoL6_geom
+⚠️  [23:17:50] ⚠️  PK already exists on 'layers_2026_tmp.road_centerlines_geom' — skipped.
+⚠️  [23:17:50] ⚠️  PK already exists on 'layers_2026_tmp.ejar_contracts_UserInfoL6_geom' — skipped.
+⚠️  [23:17:50] ⚠️  PK already exists on 'layers_2026_tmp.land_parcels_geom' — skipped.
+🔹 [23:17:50] 🔄 [MERGE] 'layers_2026_tmp.road_centerlines_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [23:17:50] 🔄 [MERGE] 'layers_2026_tmp.land_parcels_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [23:17:50] 🔄 [MERGE] 'layers_2026_tmp.ejar_contracts_UserInfoL6_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:04:57] ✅  Index 'uq_road_centerlines_geom_1776009205' created.
+✅ [00:06:18] ✅  Index 'idx_road_centerlines_geom_geom' created.
+✅ [00:06:18] 📊 [MERGE SUMMARY] 'layers_2026_tmp.road_centerlines_geom' — ➕ 612,440 new rows inserted,  ✏️  220,000 existing rows updated.
+✅ [00:06:18] ✅ 'road_centerlines_geom' — 832,440 rows in 11520.4s (72 r/s)
+✅ [00:06:18] 🟢 Workspace 'layers_2026_tmp.road_centerlines_geom_tmp' ready (structure-only, empty).
+🔹 [00:06:19] 📋 layers_2026.road_cooling_projects_CL54_geom ➜ layers_2026_tmp.road_cooling_projects_CL54_geom
+🔹 [00:06:19] 🔄 [MERGE] 'layers_2026_tmp.road_cooling_projects_CL54_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:06:39] ✅  Index 'uq_road_cooling_projects_cl54_geom_1776179687' created.
+✅ [00:06:40] ✅  Index 'idx_road_cooling_projects_cl54_geom_geom' created.
+✅ [00:06:40] 📊 [MERGE SUMMARY] 'layers_2026_tmp.road_cooling_projects_CL54_geom' — ➕ 8,348 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:06:40] ✅ 'road_cooling_projects_CL54_geom' — 8,348 rows in 21.1s (395 r/s)
+✅ [00:06:40] 🟢 Workspace 'layers_2026_tmp.road_cooling_projects_CL54_geom_tmp' ready (structure-only, empty).
+🔹 [00:06:40] 📋 layers_2026.road_lights_MMSL19_geom ➜ layers_2026_tmp.road_lights_MMSL19_geom
+🔹 [00:06:41] 🔄 [MERGE] 'layers_2026_tmp.road_lights_MMSL19_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:11:21] ✅  Index 'uq_road_lights_mmsl19_geom_1776274208' created.
+✅ [00:11:24] ✅  Index 'idx_road_lights_mmsl19_geom_geom' created.
+✅ [00:11:24] 📊 [MERGE SUMMARY] 'layers_2026_tmp.road_lights_MMSL19_geom' — ➕ 148,209 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:11:24] ✅ 'road_lights_MMSL19_geom' — 148,209 rows in 283.9s (522 r/s)
+✅ [00:11:24] 🟢 Workspace 'layers_2026_tmp.road_lights_MMSL19_geom_tmp' ready (structure-only, empty).
+🔹 [00:11:24] 📋 layers_2026.road_network_cpncL13_geom ➜ layers_2026_tmp.road_network_cpncL13_geom
+🔹 [00:11:25] 🔄 [MERGE] 'layers_2026_tmp.road_network_cpncL13_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:13:45] ✅  Index 'uq_road_network_cpncl13_geom_1776264755' created.
+✅ [00:13:52] ✅  Index 'idx_road_network_cpncl13_geom_geom' created.
+✅ [00:13:52] 📊 [MERGE SUMMARY] 'layers_2026_tmp.road_network_cpncL13_geom' — ➕ 70,000 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:13:52] ✅ 'road_network_cpncL13_geom' — 70,000 rows in 148.2s (472 r/s)
+✅ [00:13:53] 🟢 Workspace 'layers_2026_tmp.road_network_cpncL13_geom_tmp' ready (structure-only, empty).
+🔹 [00:13:54] 📋 layers_2026.saudi_post_parcels_UserInfoL03_geom ➜ layers_2026_tmp.saudi_post_parcels_UserInfoL03_geom
+🔹 [00:13:55] 🔄 [MERGE] 'layers_2026_tmp.saudi_post_parcels_UserInfoL03_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+⚠️  [00:55:18] ⟳ 'saudi_post_parcels_UserInfoL03_geom' attempt 1/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [00:55:41] ⟳ 'saudi_post_parcels_UserInfoL03_geom' attempt 2/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (172.31.67.122), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:56:06] ⟳ 'saudi_post_parcels_UserInfoL03_geom' attempt 3/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (172.31.67.122), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:56:06] ❌ 'saudi_post_parcels_UserInfoL03_geom' → connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (172.31.67.122), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:56:27] ⟳ 'schools_SMFL1_geom' attempt 1/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (172.31.67.122), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:56:50] ⟳ 'schools_SMFL1_geom' attempt 2/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:57:15] ⟳ 'schools_SMFL1_geom' attempt 3/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:57:15] ❌ 'schools_SMFL1_geom' → connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:57:36] ⟳ 'sculptures_MMSL15_geom' attempt 1/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:57:59] ⟳ 'sculptures_MMSL15_geom' attempt 2/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:24] ⟳ 'sculptures_MMSL15_geom' attempt 3/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:24] ❌ 'sculptures_MMSL15_geom' → connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:33] ⟳ 'sec_facilities_UserInfoL2_geom' attempt 1/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:36] ⟳ 'sec_facilities_UserInfoL2_geom' attempt 2/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:41] ⟳ 'sec_facilities_UserInfoL2_geom' attempt 3/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:41] ❌ 'sec_facilities_UserInfoL2_geom' → connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:42] ⟳ 'security_shelters_MMSL11_geom' attempt 1/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:45] ⟳ 'security_shelters_MMSL11_geom' attempt 2/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:50] ⟳ 'security_shelters_MMSL11_geom' attempt 3/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:50] ❌ 'security_shelters_MMSL11_geom' → connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:51] ⟳ 'self_build_projects_SL34_geom' attempt 1/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:54] ⟳ 'self_build_projects_SL34_geom' attempt 2/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+⚠️  [00:58:59] ⟳ 'self_build_projects_SL34_geom' attempt 3/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: FATAL:  the database system is starting up
+
+⚠️  [00:58:59] ❌ 'self_build_projects_SL34_geom' → connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: FATAL:  the database system is starting up
+
+⚠️  [00:58:59] ⟳ 'service_name_mapping' attempt 1/3: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: FATAL:  the database system is starting up
+
+🔹 [00:59:01] 📋 layers_2026.service_name_mapping ➜ layers_2026_tmp.service_name_mapping
+🔹 [00:59:02] 🔄 [MERGE] 'layers_2026_tmp.service_name_mapping' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:02] ✅  Index 'service_name_mapping_original_name_key' created.
+✅ [00:59:02] 📊 [MERGE SUMMARY] 'layers_2026_tmp.service_name_mapping' — ➕ 458 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:02] ✅ 'service_name_mapping' — 458 rows in 3.3s (138 r/s)
+✅ [00:59:02] 🟢 Workspace 'layers_2026_tmp.service_name_mapping_tmp' ready (structure-only, empty).
+🔹 [00:59:02] 📋 layers_2026.signal_ctrl_MMSL20_geom ➜ layers_2026_tmp.signal_ctrl_MMSL20_geom
+🔹 [00:59:03] 🔄 [MERGE] 'layers_2026_tmp.signal_ctrl_MMSL20_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:03] ✅  Index 'uq_signal_ctrl_mmsl20_geom_1776274236' created.
+✅ [00:59:03] ✅  Index 'idx_signal_ctrl_mmsl20_geom_geom' created.
+✅ [00:59:03] 📊 [MERGE SUMMARY] 'layers_2026_tmp.signal_ctrl_MMSL20_geom' — ➕ 76 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:03] ✅ 'signal_ctrl_MMSL20_geom' — 76 rows in 0.4s (174 r/s)
+✅ [00:59:03] 🟢 Workspace 'layers_2026_tmp.signal_ctrl_MMSL20_geom_tmp' ready (structure-only, empty).
+🔹 [00:59:03] 📋 layers_2026.slums_demolition_plans_CL33_geom ➜ layers_2026_tmp.slums_demolition_plans_CL33_geom
+🔹 [00:59:03] 🔄 [MERGE] 'layers_2026_tmp.slums_demolition_plans_CL33_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:03] ✅  Index 'uq_slums_demolition_plans_cl33_geom_1776174388' created.
+✅ [00:59:03] ✅  Index 'idx_slums_demolition_plans_cl33_geom_geom' created.
+✅ [00:59:03] 📊 [MERGE SUMMARY] 'layers_2026_tmp.slums_demolition_plans_CL33_geom' — ➕ 34 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:03] ✅ 'slums_demolition_plans_CL33_geom' — 34 rows in 0.3s (112 r/s)
+✅ [00:59:03] 🟢 Workspace 'layers_2026_tmp.slums_demolition_plans_CL33_geom_tmp' ready (structure-only, empty).
+🔹 [00:59:03] 📋 layers_2026.social_services_GLL4_geom ➜ layers_2026_tmp.social_services_GLL4_geom
+🔹 [00:59:03] 🔄 [MERGE] 'layers_2026_tmp.social_services_GLL4_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:04] ✅  Index 'uq_social_services_gll4_geom_1776277292' created.
+✅ [00:59:04] ✅  Index 'idx_social_services_gll4_geom_geom' created.
+✅ [00:59:04] 📊 [MERGE SUMMARY] 'layers_2026_tmp.social_services_GLL4_geom' — ➕ 607 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:04] ✅ 'social_services_GLL4_geom' — 607 rows in 0.8s (744 r/s)
+✅ [00:59:04] 🟢 Workspace 'layers_2026_tmp.social_services_GLL4_geom_tmp' ready (structure-only, empty).
+🔹 [00:59:04] 📋 layers_2026.sports_CL3_geom ➜ layers_2026_tmp.sports_CL3_geom
+🔹 [00:59:04] 🔄 [MERGE] 'layers_2026_tmp.sports_CL3_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:10] ✅  Index 'uq_sports_cl3_geom_1776015491' created.
+✅ [00:59:10] ✅  Index 'idx_sports_cl3_geom_geom' created.
+✅ [00:59:10] 📊 [MERGE SUMMARY] 'layers_2026_tmp.sports_CL3_geom' — ➕ 2,149 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:10] ✅ 'sports_CL3_geom' — 2,149 rows in 6.1s (350 r/s)
+✅ [00:59:10] 🟢 Workspace 'layers_2026_tmp.sports_CL3_geom_tmp' ready (structure-only, empty).
+🔹 [00:59:10] 📋 layers_2026.sports_GLL3_geom ➜ layers_2026_tmp.sports_GLL3_geom
+🔹 [00:59:10] 🔄 [MERGE] 'layers_2026_tmp.sports_GLL3_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:13] ✅  Index 'uq_sports_gll3_geom_1776277225' created.
+✅ [00:59:13] ✅  Index 'idx_sports_gll3_geom_geom' created.
+✅ [00:59:13] 📊 [MERGE SUMMARY] 'layers_2026_tmp.sports_GLL3_geom' — ➕ 2,149 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:13] ✅ 'sports_GLL3_geom' — 2,149 rows in 2.5s (859 r/s)
+✅ [00:59:13] 🟢 Workspace 'layers_2026_tmp.sports_GLL3_geom_tmp' ready (structure-only, empty).
+🔹 [00:59:13] 📋 layers_2026.sports_SMFL9_geom ➜ layers_2026_tmp.sports_SMFL9_geom
+🔹 [00:59:13] 🔄 [MERGE] 'layers_2026_tmp.sports_SMFL9_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:15] ✅  Index 'uq_sports_smfl9_geom_1776275019' created.
+✅ [00:59:15] ✅  Index 'idx_sports_smfl9_geom_geom' created.
+✅ [00:59:16] 📊 [MERGE SUMMARY] 'layers_2026_tmp.sports_SMFL9_geom' — ➕ 2,149 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:16] ✅ 'sports_SMFL9_geom' — 2,149 rows in 2.6s (839 r/s)
+✅ [00:59:16] 🟢 Workspace 'layers_2026_tmp.sports_SMFL9_geom_tmp' ready (structure-only, empty).
+🔹 [00:59:16] 📋 layers_2026.sports_fac_MMSL1_geom ➜ layers_2026_tmp.sports_fac_MMSL1_geom
+🔹 [00:59:16] 🔄 [MERGE] 'layers_2026_tmp.sports_fac_MMSL1_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:16] ✅  Index 'uq_sports_fac_mmsl1_geom_1776274182' created.
+✅ [00:59:16] ✅  Index 'idx_sports_fac_mmsl1_geom_geom' created.
+✅ [00:59:16] 📊 [MERGE SUMMARY] 'layers_2026_tmp.sports_fac_MMSL1_geom' — ➕ 348 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:16] ✅ 'sports_fac_MMSL1_geom' — 348 rows in 0.4s (797 r/s)
+✅ [00:59:16] 🟢 Workspace 'layers_2026_tmp.sports_fac_MMSL1_geom_tmp' ready (structure-only, empty).
+🔹 [00:59:16] 📋 layers_2026.squares_MMSL18_geom ➜ layers_2026_tmp.squares_MMSL18_geom
+🔹 [00:59:16] 🔄 [MERGE] 'layers_2026_tmp.squares_MMSL18_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:16] ✅  Index 'uq_squares_mmsl18_geom_1776274205' created.
+✅ [00:59:16] ✅  Index 'idx_squares_mmsl18_geom_geom' created.
+✅ [00:59:16] 📊 [MERGE SUMMARY] 'layers_2026_tmp.squares_MMSL18_geom' — ➕ 29 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:16] ✅ 'squares_MMSL18_geom' — 29 rows in 0.2s (148 r/s)
+✅ [00:59:16] 🟢 Workspace 'layers_2026_tmp.squares_MMSL18_geom_tmp' ready (structure-only, empty).
+🔹 [00:59:16] 📋 layers_2026.stations_SL6_geom ➜ layers_2026_tmp.stations_SL6_geom
+🔹 [00:59:16] 🔄 [MERGE] 'layers_2026_tmp.stations_SL6_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [00:59:21] ✅  Index 'uq_stations_sl6_geom_1776181390' created.
+✅ [00:59:21] ✅  Index 'idx_stations_sl6_geom_geom' created.
+✅ [00:59:21] 📊 [MERGE SUMMARY] 'layers_2026_tmp.stations_SL6_geom' — ➕ 4,488 new rows inserted,  ✏️  0 existing rows updated.
+✅ [00:59:21] ✅ 'stations_SL6_geom' — 4,488 rows in 4.3s (1,046 r/s)
+✅ [00:59:21] 🟢 Workspace 'layers_2026_tmp.stations_SL6_geom_tmp' ready (structure-only, empty).
+🔹 [00:59:21] 📋 layers_2026.street_centerline_GLL28_geom ➜ layers_2026_tmp.street_centerline_GLL28_geom
+🔹 [00:59:21] 🔄 [MERGE] 'layers_2026_tmp.street_centerline_GLL28_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [01:16:56] ✅  Index 'uq_street_centerline_gll28_geom_1776276709' created.
+✅ [01:17:05] ✅  Index 'idx_street_centerline_gll28_geom_geom' created.
+✅ [01:17:05] 📊 [MERGE SUMMARY] 'layers_2026_tmp.street_centerline_GLL28_geom' — ➕ 832,441 new rows inserted,  ✏️  0 existing rows updated.
+✅ [01:17:05] ✅ 'street_centerline_GLL28_geom' — 832,441 rows in 1064.9s (782 r/s)
+✅ [01:17:06] 🟢 Workspace 'layers_2026_tmp.street_centerline_GLL28_geom_tmp' ready (structure-only, empty).
+🔹 [01:17:06] 📋 layers_2026.street_projects_CL42_geom ➜ layers_2026_tmp.street_projects_CL42_geom
+🔹 [01:17:06] 🔄 [MERGE] 'layers_2026_tmp.street_projects_CL42_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [01:18:44] ✅  Index 'uq_street_projects_cl42_geom_1776176482' created.
+✅ [01:18:44] ✅  Index 'idx_street_projects_cl42_geom_geom' created.
+✅ [01:18:44] 📊 [MERGE SUMMARY] 'layers_2026_tmp.street_projects_CL42_geom' — ➕ 82,917 new rows inserted,  ✏️  0 existing rows updated.
+✅ [01:18:45] ✅ 'street_projects_CL42_geom' — 82,917 rows in 98.9s (839 r/s)
+✅ [01:18:45] 🟢 Workspace 'layers_2026_tmp.street_projects_CL42_geom_tmp' ready (structure-only, empty).
+🔹 [01:18:45] 📋 layers_2026.sub_municipalities_GLL34_geom ➜ layers_2026_tmp.sub_municipalities_GLL34_geom
+🔹 [01:18:45] 🔄 [MERGE] 'layers_2026_tmp.sub_municipalities_GLL34_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [01:18:45] ✅  Index 'uq_sub_municipalities_gll34_geom_1776277258' created.
+✅ [01:18:45] ✅  Index 'idx_sub_municipalities_gll34_geom_geom' created.
+✅ [01:18:46] 📊 [MERGE SUMMARY] 'layers_2026_tmp.sub_municipalities_GLL34_geom' — ➕ 285 new rows inserted,  ✏️  0 existing rows updated.
+✅ [01:18:46] ✅ 'sub_municipalities_GLL34_geom' — 285 rows in 0.7s (395 r/s)
+✅ [01:18:46] 🟢 Workspace 'layers_2026_tmp.sub_municipalities_GLL34_geom_tmp' ready (structure-only, empty).
+🔹 [01:18:46] 📋 layers_2026.sub_municipalities_SL20_geom ➜ layers_2026_tmp.sub_municipalities_SL20_geom
+🔹 [01:18:46] 🔄 [MERGE] 'layers_2026_tmp.sub_municipalities_SL20_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [01:18:46] ✅  Index 'uq_sub_municipalities_sl20_geom_1776189715' created.
+✅ [01:18:46] ✅  Index 'idx_sub_municipalities_sl20_geom_geom' created.
+✅ [01:18:46] 📊 [MERGE SUMMARY] 'layers_2026_tmp.sub_municipalities_SL20_geom' — ➕ 134 new rows inserted,  ✏️  0 existing rows updated.
+✅ [01:18:46] ✅ 'sub_municipalities_SL20_geom' — 134 rows in 0.3s (405 r/s)
+✅ [01:18:46] 🟢 Workspace 'layers_2026_tmp.sub_municipalities_SL20_geom_tmp' ready (structure-only, empty).
+🔹 [01:18:46] 📋 layers_2026.subdivision_boundaries_GLL41_geom ➜ layers_2026_tmp.subdivision_boundaries_GLL41_geom
+🔹 [01:18:46] 🔄 [MERGE] 'layers_2026_tmp.subdivision_boundaries_GLL41_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [01:25:56] ✅  Index 'uq_subdivision_boundaries_gll41_geom_1776278469' created.
+✅ [01:26:03] ✅  Index 'idx_subdivision_boundaries_gll41_geom_geom' created.
+✅ [01:26:03] 📊 [MERGE SUMMARY] 'layers_2026_tmp.subdivision_boundaries_GLL41_geom' — ➕ 394,000 new rows inserted,  ✏️  0 existing rows updated.
+✅ [01:26:03] ✅ 'subdivision_boundaries_GLL41_geom' — 394,000 rows in 437.0s (902 r/s)
+✅ [01:26:03] 🟢 Workspace 'layers_2026_tmp.subdivision_boundaries_GLL41_geom_tmp' ready (structure-only, empty).
+🔹 [01:26:03] 📋 layers_2026.subdivision_parcels_UGL3_geom ➜ layers_2026_tmp.subdivision_parcels_UGL3_geom
+🔹 [01:26:04] 🔄 [MERGE] 'layers_2026_tmp.subdivision_parcels_UGL3_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+⚠️  [02:54:40] ⟳ 'land_parcels_geom' attempt 2/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [02:54:40] ⟳ 'ejar_contracts_UserInfoL8_geom' attempt 2/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [02:54:40] ⟳ 'ejar_contracts_UserInfoL6_geom' attempt 2/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+🔹 [02:54:44] 📋 layers_2026.land_parcels_geom ➜ layers_2026_tmp.land_parcels_geom
+🔹 [02:54:44] 📋 layers_2026.ejar_contracts_UserInfoL8_geom ➜ layers_2026_tmp.ejar_contracts_UserInfoL8_geom
+🔹 [02:54:44] 📋 layers_2026.ejar_contracts_UserInfoL6_geom ➜ layers_2026_tmp.ejar_contracts_UserInfoL6_geom
+⚠️  [02:54:44] ⚠️  PK already exists on 'layers_2026_tmp.ejar_contracts_UserInfoL8_geom' — skipped.
+⚠️  [02:54:44] ⚠️  PK already exists on 'layers_2026_tmp.land_parcels_geom' — skipped.
+⚠️  [02:54:44] ⚠️  PK already exists on 'layers_2026_tmp.ejar_contracts_UserInfoL6_geom' — skipped.
+🔹 [02:54:44] 🔄 [MERGE] 'layers_2026_tmp.ejar_contracts_UserInfoL6_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [02:54:44] 🔄 [MERGE] 'layers_2026_tmp.ejar_contracts_UserInfoL8_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [02:54:44] 🔄 [MERGE] 'layers_2026_tmp.land_parcels_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+⚠️  [06:36:09] ⟳ 'ejar_contracts_UserInfoL6_geom' attempt 3/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [06:36:09] ❌ 'ejar_contracts_UserInfoL6_geom' → server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [06:36:09] ⟳ 'subdivision_parcels_UGL3_geom' attempt 1/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [06:36:09] ⟳ 'ejar_contracts_UserInfoL8_geom' attempt 3/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [06:36:09] ⟳ 'land_parcels_geom' attempt 3/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [06:36:09] ❌ 'ejar_contracts_UserInfoL8_geom' → server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [06:36:09] ❌ 'land_parcels_geom' → server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+🔹 [06:36:09] 📋 layers_2026.subdivision_plans_GLL42_geom ➜ layers_2026_tmp.subdivision_plans_GLL42_geom
+🔹 [06:36:09] 📋 layers_2026.subdivision_plans_UGL2_geom ➜ layers_2026_tmp.subdivision_plans_UGL2_geom
+🔹 [06:36:09] 📋 layers_2026.telecom_boundaries_CL31_geom ➜ layers_2026_tmp.telecom_boundaries_CL31_geom
+🔹 [06:36:09] 🔄 [MERGE] 'layers_2026_tmp.telecom_boundaries_CL31_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [06:36:09] 🔄 [MERGE] 'layers_2026_tmp.subdivision_plans_UGL2_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [06:36:09] 🔄 [MERGE] 'layers_2026_tmp.subdivision_plans_GLL42_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:36:10] ✅  Index 'uq_telecom_boundaries_cl31_geom_1776174335' created.
+✅ [06:36:10] ✅  Index 'idx_telecom_boundaries_cl31_geom_geom' created.
+✅ [06:36:10] 📊 [MERGE SUMMARY] 'layers_2026_tmp.telecom_boundaries_CL31_geom' — ➕ 438 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:36:10] ✅ 'telecom_boundaries_CL31_geom' — 438 rows in 1.3s (346 r/s)
+✅ [06:36:10] 🟢 Workspace 'layers_2026_tmp.telecom_boundaries_CL31_geom_tmp' ready (structure-only, empty).
+🔹 [06:36:10] 📋 layers_2026.tnmot_roads_GLL29_geom ➜ layers_2026_tmp.tnmot_roads_GLL29_geom
+🔹 [06:36:10] 🔄 [MERGE] 'layers_2026_tmp.tnmot_roads_GLL29_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [06:36:11] 📋 layers_2026.subdivision_parcels_UGL3_geom ➜ layers_2026_tmp.subdivision_parcels_UGL3_geom
+⚠️  [06:36:11] ⚠️  PK already exists on 'layers_2026_tmp.subdivision_parcels_UGL3_geom' — skipped.
+🔹 [06:36:11] 🔄 [MERGE] 'layers_2026_tmp.subdivision_parcels_UGL3_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:38:01] ✅  Index 'uq_subdivision_plans_ugl2_geom_1776343140' created.
+✅ [06:38:03] ✅  Index 'idx_subdivision_plans_ugl2_geom_geom' created.
+✅ [06:38:03] 📊 [MERGE SUMMARY] 'layers_2026_tmp.subdivision_plans_UGL2_geom' — ➕ 57,026 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:38:03] ✅ 'subdivision_plans_UGL2_geom' — 57,026 rows in 114.1s (500 r/s)
+✅ [06:38:03] 🟢 Workspace 'layers_2026_tmp.subdivision_plans_UGL2_geom_tmp' ready (structure-only, empty).
+🔹 [06:38:03] 📋 layers_2026.tourism_CL1_geom ➜ layers_2026_tmp.tourism_CL1_geom
+🔹 [06:38:04] 🔄 [MERGE] 'layers_2026_tmp.tourism_CL1_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:38:05] ✅  Index 'uq_tourism_cl2_geom_1776014537' created.
+✅ [06:38:05] ✅  Index 'idx_tourism_cl2_geom_geom' created.
+✅ [06:38:05] 📊 [MERGE SUMMARY] 'layers_2026_tmp.tourism_CL1_geom' — ➕ 527 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:38:05] ✅ 'tourism_CL1_geom' — 527 rows in 2.2s (243 r/s)
+✅ [06:38:05] 🟢 Workspace 'layers_2026_tmp.tourism_CL1_geom_tmp' ready (structure-only, empty).
+🔹 [06:38:05] 📋 layers_2026.tourism_GLL1_geom ➜ layers_2026_tmp.tourism_GLL1_geom
+🔹 [06:38:06] 🔄 [MERGE] 'layers_2026_tmp.tourism_GLL1_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:38:06] ✅  Index 'uq_subdivision_plans_gll42_geom_1776278607' created.
+✅ [06:38:07] ✅  Index 'uq_tourism_gll1_geom_1776276609' created.
+✅ [06:38:07] ✅  Index 'idx_subdivision_plans_gll42_geom_geom' created.
+✅ [06:38:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.subdivision_plans_GLL42_geom' — ➕ 57,031 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:38:07] ✅ 'subdivision_plans_GLL42_geom' — 57,031 rows in 118.8s (480 r/s)
+✅ [06:38:08] ✅  Index 'idx_tourism_gll1_geom_geom' created.
+✅ [06:38:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.tourism_GLL1_geom' — ➕ 528 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:38:08] ✅ 'tourism_GLL1_geom' — 528 rows in 2.6s (205 r/s)
+✅ [06:38:08] 🟢 Workspace 'layers_2026_tmp.subdivision_plans_GLL42_geom_tmp' ready (structure-only, empty).
+✅ [06:38:09] 🟢 Workspace 'layers_2026_tmp.tourism_GLL1_geom_tmp' ready (structure-only, empty).
+🔹 [06:38:09] 📋 layers_2026.transportation_CL2_geom ➜ layers_2026_tmp.transportation_CL2_geom
+🔹 [06:38:09] 📋 layers_2026.traffic_signals_MMSL21_geom ➜ layers_2026_tmp.traffic_signals_MMSL21_geom
+🔹 [06:38:10] 🔄 [MERGE] 'layers_2026_tmp.traffic_signals_MMSL21_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [06:38:10] 🔄 [MERGE] 'layers_2026_tmp.transportation_CL2_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:38:12] ✅  Index 'uq_traffic_signals_mmsl21_geom_1776274238' created.
+✅ [06:38:12] ✅  Index 'idx_traffic_signals_mmsl21_geom_geom' created.
+✅ [06:38:12] 📊 [MERGE SUMMARY] 'layers_2026_tmp.traffic_signals_MMSL21_geom' — ➕ 1,456 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:38:12] ✅ 'traffic_signals_MMSL21_geom' — 1,456 rows in 3.8s (381 r/s)
+✅ [06:38:12] 🟢 Workspace 'layers_2026_tmp.traffic_signals_MMSL21_geom_tmp' ready (structure-only, empty).
+🔹 [06:38:12] 📋 layers_2026.transportation_GLL2_geom ➜ layers_2026_tmp.transportation_GLL2_geom
+🔹 [06:38:12] 🔄 [MERGE] 'layers_2026_tmp.transportation_GLL2_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:38:17] ✅  Index 'uq_transportation_cl2_geom_1776015443' created.
+✅ [06:38:17] ✅  Index 'idx_transportation_cl2_geom_geom' created.
+✅ [06:38:17] 📊 [MERGE SUMMARY] 'layers_2026_tmp.transportation_CL2_geom' — ➕ 5,751 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:38:17] ✅ 'transportation_CL2_geom' — 5,751 rows in 7.8s (741 r/s)
+✅ [06:38:17] 🟢 Workspace 'layers_2026_tmp.transportation_CL2_geom_tmp' ready (structure-only, empty).
+🔹 [06:38:17] 📋 layers_2026.trash_bins_MMSL22_geom ➜ layers_2026_tmp.trash_bins_MMSL22_geom
+🔹 [06:38:17] 🔄 [MERGE] 'layers_2026_tmp.trash_bins_MMSL22_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:38:19] ✅  Index 'uq_transportation_gll2_geom_1776276666' created.
+✅ [06:38:19] ✅  Index 'idx_transportation_gll2_geom_geom' created.
+✅ [06:38:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.transportation_GLL2_geom' — ➕ 5,748 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:38:19] ✅ 'transportation_GLL2_geom' — 5,748 rows in 6.8s (846 r/s)
+✅ [06:38:19] 🟢 Workspace 'layers_2026_tmp.transportation_GLL2_geom_tmp' ready (structure-only, empty).
+🔹 [06:38:19] 📋 layers_2026.tree_locations_SL62_geom ➜ layers_2026_tmp.tree_locations_SL62_geom
+🔹 [06:38:19] 🔄 [MERGE] 'layers_2026_tmp.tree_locations_SL62_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:38:20] ✅  Index 'uq_tnmot_roads_gll29_geom_1776277190' created.
+✅ [06:38:22] ✅  Index 'idx_tnmot_roads_gll29_geom_geom' created.
+✅ [06:38:22] 📊 [MERGE SUMMARY] 'layers_2026_tmp.tnmot_roads_GLL29_geom' — ➕ 87,756 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:38:22] ✅ 'tnmot_roads_GLL29_geom' — 87,756 rows in 131.7s (666 r/s)
+✅ [06:38:22] 🟢 Workspace 'layers_2026_tmp.tnmot_roads_GLL29_geom_tmp' ready (structure-only, empty).
+🔹 [06:38:22] 📋 layers_2026.trees_MMSL0_geom ➜ layers_2026_tmp.trees_MMSL0_geom
+🔹 [06:38:22] 🔄 [MERGE] 'layers_2026_tmp.trees_MMSL0_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:39:06] ✅  Index 'uq_trash_bins_mmsl22_geom_1776274240' created.
+✅ [06:39:06] ✅  Index 'idx_trash_bins_mmsl22_geom_geom' created.
+✅ [06:39:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.trash_bins_MMSL22_geom' — ➕ 45,223 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:39:07] ✅ 'trash_bins_MMSL22_geom' — 45,223 rows in 49.6s (912 r/s)
+✅ [06:39:07] 🟢 Workspace 'layers_2026_tmp.trash_bins_MMSL22_geom_tmp' ready (structure-only, empty).
+🔹 [06:39:07] 📋 layers_2026.tunnel_zones_cpncL18_geom ➜ layers_2026_tmp.tunnel_zones_cpncL18_geom
+🔹 [06:39:07] 🔄 [MERGE] 'layers_2026_tmp.tunnel_zones_cpncL18_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:39:07] ✅  Index 'uq_tunnel_zones_cpncl18_geom_1776265792' created.
+✅ [06:39:07] ✅  Index 'idx_tunnel_zones_cpncl18_geom_geom' created.
+✅ [06:39:07] 📊 [MERGE SUMMARY] 'layers_2026_tmp.tunnel_zones_cpncL18_geom' — ➕ 13 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:39:07] ✅ 'tunnel_zones_cpncL18_geom' — 13 rows in 0.6s (21 r/s)
+✅ [06:39:07] 🟢 Workspace 'layers_2026_tmp.tunnel_zones_cpncL18_geom_tmp' ready (structure-only, empty).
+🔹 [06:39:07] 📋 layers_2026.tunnels_cpncL17_geom ➜ layers_2026_tmp.tunnels_cpncL17_geom
+🔹 [06:39:07] 🔄 [MERGE] 'layers_2026_tmp.tunnels_cpncL17_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:39:08] ✅  Index 'uq_tunnels_cpncl17_geom_1776265790' created.
+✅ [06:39:08] ✅  Index 'idx_tunnels_cpncl17_geom_geom' created.
+✅ [06:39:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.tunnels_cpncL17_geom' — ➕ 13 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:39:08] ✅ 'tunnels_cpncL17_geom' — 13 rows in 0.6s (23 r/s)
+✅ [06:39:08] 🟢 Workspace 'layers_2026_tmp.tunnels_cpncL17_geom_tmp' ready (structure-only, empty).
+🔹 [06:39:08] 📋 layers_2026.universities_SL37_geom ➜ layers_2026_tmp.universities_SL37_geom
+🔹 [06:39:08] 🔄 [MERGE] 'layers_2026_tmp.universities_SL37_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:39:09] ✅  Index 'uq_universities_sl37_geom_1776273322' created.
+✅ [06:39:09] ✅  Index 'idx_universities_sl37_geom_geom' created.
+✅ [06:39:09] 📊 [MERGE SUMMARY] 'layers_2026_tmp.universities_SL37_geom' — ➕ 426 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:39:09] ✅ 'universities_SL37_geom' — 426 rows in 1.3s (335 r/s)
+✅ [06:39:09] 🟢 Workspace 'layers_2026_tmp.universities_SL37_geom_tmp' ready (structure-only, empty).
+🔹 [06:39:09] 📋 layers_2026.universities_SMFL2_geom ➜ layers_2026_tmp.universities_SMFL2_geom
+🔹 [06:39:09] 🔄 [MERGE] 'layers_2026_tmp.universities_SMFL2_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:39:10] ✅  Index 'uq_universities_smfl2_geom_1776274967' created.
+✅ [06:39:10] ✅  Index 'idx_universities_smfl2_geom_geom' created.
+✅ [06:39:10] 📊 [MERGE SUMMARY] 'layers_2026_tmp.universities_SMFL2_geom' — ➕ 162 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:39:10] ✅ 'universities_SMFL2_geom' — 162 rows in 0.6s (267 r/s)
+✅ [06:39:10] 🟢 Workspace 'layers_2026_tmp.universities_SMFL2_geom_tmp' ready (structure-only, empty).
+🔹 [06:39:10] 📋 layers_2026.urban_boundaries_UGL1_geom ➜ layers_2026_tmp.urban_boundaries_UGL1_geom
+🔹 [06:39:10] 🔄 [MERGE] 'layers_2026_tmp.urban_boundaries_UGL1_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:40:19] ✅  Index 'uq_urban_boundaries_ugl1_geom_1776343093' created.
+✅ [06:40:19] ✅  Index 'idx_urban_boundaries_ugl1_geom_geom' created.
+✅ [06:40:19] 📊 [MERGE SUMMARY] 'layers_2026_tmp.urban_boundaries_UGL1_geom' — ➕ 33,200 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:40:19] ✅ 'urban_boundaries_UGL1_geom' — 33,200 rows in 69.6s (477 r/s)
+✅ [06:40:20] 🟢 Workspace 'layers_2026_tmp.urban_boundaries_UGL1_geom_tmp' ready (structure-only, empty).
+🔹 [06:40:20] 📋 layers_2026.urban_centers_SL52_geom ➜ layers_2026_tmp.urban_centers_SL52_geom
+🔹 [06:40:20] 🔄 [MERGE] 'layers_2026_tmp.urban_centers_SL52_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:40:20] ✅  Index 'uq_urban_centers_sl52_geom_1776273465' created.
+✅ [06:40:20] ✅  Index 'idx_urban_centers_sl52_geom_geom' created.
+✅ [06:40:20] 📊 [MERGE SUMMARY] 'layers_2026_tmp.urban_centers_SL52_geom' — ➕ 97 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:40:20] ✅ 'urban_centers_SL52_geom' — 97 rows in 0.6s (158 r/s)
+✅ [06:40:20] 🟢 Workspace 'layers_2026_tmp.urban_centers_SL52_geom_tmp' ready (structure-only, empty).
+🔹 [06:40:20] 📋 layers_2026.valley_paths_SL44_geom ➜ layers_2026_tmp.valley_paths_SL44_geom
+🔹 [06:40:20] 🔄 [MERGE] 'layers_2026_tmp.valley_paths_SL44_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:42:26] ✅  Index 'uq_valley_paths_sl44_geom_1776273342' created.
+✅ [06:42:28] ✅  Index 'idx_valley_paths_sl44_geom_geom' created.
+✅ [06:42:28] 📊 [MERGE SUMMARY] 'layers_2026_tmp.valley_paths_SL44_geom' — ➕ 107,304 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:42:28] ✅ 'valley_paths_SL44_geom' — 107,304 rows in 127.6s (841 r/s)
+✅ [06:42:28] 🟢 Workspace 'layers_2026_tmp.valley_paths_SL44_geom_tmp' ready (structure-only, empty).
+🔹 [06:42:28] 📋 layers_2026.valleys_cpncL8_geom ➜ layers_2026_tmp.valleys_cpncL8_geom
+🔹 [06:42:28] 🔄 [MERGE] 'layers_2026_tmp.valleys_cpncL8_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:43:18] ✅  Index 'uq_trees_mmsl0_geom_1776274694' created.
+✅ [06:43:23] ✅  Index 'idx_trees_mmsl0_geom_geom' created.
+✅ [06:43:23] 📊 [MERGE SUMMARY] 'layers_2026_tmp.trees_MMSL0_geom' — ➕ 255,762 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:43:23] ✅ 'trees_MMSL0_geom' — 255,762 rows in 300.9s (850 r/s)
+✅ [06:43:25] 🟢 Workspace 'layers_2026_tmp.trees_MMSL0_geom_tmp' ready (structure-only, empty).
+🔹 [06:43:25] 📋 layers_2026.villages_GLL31_geom ➜ layers_2026_tmp.villages_GLL31_geom
+🔹 [06:43:25] 🔄 [MERGE] 'layers_2026_tmp.villages_GLL31_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:44:07] ✅  Index 'uq_valleys_cpncl8_geom_1776266180' created.
+✅ [06:44:08] ✅  Index 'uq_villages_gll31_geom_1776277228' created.
+✅ [06:44:08] ✅  Index 'idx_valleys_cpncl8_geom_geom' created.
+✅ [06:44:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.valleys_cpncL8_geom' — ➕ 55,708 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:44:08] ✅ 'valleys_cpncL8_geom' — 55,708 rows in 100.2s (556 r/s)
+✅ [06:44:08] ✅  Index 'idx_villages_gll31_geom_geom' created.
+✅ [06:44:08] 📊 [MERGE SUMMARY] 'layers_2026_tmp.villages_GLL31_geom' — ➕ 19,122 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:44:08] 🟢 Workspace 'layers_2026_tmp.valleys_cpncL8_geom_tmp' ready (structure-only, empty).
+✅ [06:44:08] ✅ 'villages_GLL31_geom' — 19,122 rows in 43.6s (439 r/s)
+✅ [06:44:08] 🟢 Workspace 'layers_2026_tmp.villages_GLL31_geom_tmp' ready (structure-only, empty).
+🔹 [06:44:08] 📋 layers_2026.visual_distortion_VDL0_geom ➜ layers_2026_tmp.visual_distortion_VDL0_geom
+🔹 [06:44:08] 📋 layers_2026.violations_CL36_geom ➜ layers_2026_tmp.violations_CL36_geom
+🔹 [06:44:09] 🔄 [MERGE] 'layers_2026_tmp.violations_CL36_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+🔹 [06:44:09] 🔄 [MERGE] 'layers_2026_tmp.visual_distortion_VDL0_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:44:14] ✅  Index 'uq_visual_distortion_vdl0_geom_1776275622' created.
+✅ [06:44:14] ✅  Index 'idx_visual_distortion_vdl0_geom_geom' created.
+✅ [06:44:14] 📊 [MERGE SUMMARY] 'layers_2026_tmp.visual_distortion_VDL0_geom' — ➕ 4,651 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:44:14] ✅ 'visual_distortion_VDL0_geom' — 4,651 rows in 6.1s (768 r/s)
+✅ [06:44:15] 🟢 Workspace 'layers_2026_tmp.visual_distortion_VDL0_geom_tmp' ready (structure-only, empty).
+🔹 [06:44:15] 📋 layers_2026.visual_distortion_priority_areas_SL56_geom ➜ layers_2026_tmp.visual_distortion_priority_areas_SL56_geom
+🔹 [06:44:15] 🔄 [MERGE] 'layers_2026_tmp.visual_distortion_priority_areas_SL56_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:44:18] ✅  Index 'uq_visual_distortion_priority_areas_sl56_geom_1776273497' created.
+✅ [06:44:18] ✅  Index 'idx_visual_distortion_priority_areas_sl56_geom_geom' created.
+✅ [06:44:18] 📊 [MERGE SUMMARY] 'layers_2026_tmp.visual_distortion_priority_areas_SL56_geom' — ➕ 1,384 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:44:18] ✅ 'visual_distortion_priority_areas_SL56_geom' — 1,384 rows in 3.2s (431 r/s)
+✅ [06:44:18] 🟢 Workspace 'layers_2026_tmp.visual_distortion_priority_areas_SL56_geom_tmp' ready (structure-only, empty).
+🔹 [06:44:18] 📋 layers_2026.warehouses_SL0_geom ➜ layers_2026_tmp.warehouses_SL0_geom
+🔹 [06:44:18] 🔄 [MERGE] 'layers_2026_tmp.warehouses_SL0_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:44:48] ✅  Index 'uq_warehouses_sl0_geom_1776181316' created.
+✅ [06:44:49] ✅  Index 'idx_warehouses_sl0_geom_geom' created.
+✅ [06:44:49] 📊 [MERGE SUMMARY] 'layers_2026_tmp.warehouses_SL0_geom' — ➕ 24,737 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:44:49] ✅ 'warehouses_SL0_geom' — 24,737 rows in 30.7s (806 r/s)
+✅ [06:44:49] 🟢 Workspace 'layers_2026_tmp.warehouses_SL0_geom_tmp' ready (structure-only, empty).
+🔹 [06:44:49] 📋 layers_2026.warn_signs_MMSL23_geom ➜ layers_2026_tmp.warn_signs_MMSL23_geom
+🔹 [06:44:49] 🔄 [MERGE] 'layers_2026_tmp.warn_signs_MMSL23_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:45:00] ✅  Index 'uq_warn_signs_mmsl23_geom_1776274250' created.
+✅ [06:45:00] ✅  Index 'idx_warn_signs_mmsl23_geom_geom' created.
+✅ [06:45:00] 📊 [MERGE SUMMARY] 'layers_2026_tmp.warn_signs_MMSL23_geom' — ➕ 10,100 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:45:00] ✅ 'warn_signs_MMSL23_geom' — 10,100 rows in 11.7s (861 r/s)
+✅ [06:45:00] 🟢 Workspace 'layers_2026_tmp.warn_signs_MMSL23_geom_tmp' ready (structure-only, empty).
+🔹 [06:45:01] 📋 layers_2026.waste_bins_MMSL26_geom ➜ layers_2026_tmp.waste_bins_MMSL26_geom
+✅ [06:45:01] ✅  Index 'uq_violations_cl36_geom_1776174454' created.
+🔹 [06:45:01] 🔄 [MERGE] 'layers_2026_tmp.waste_bins_MMSL26_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:45:02] ✅  Index 'idx_violations_cl36_geom_geom' created.
+✅ [06:45:02] 📊 [MERGE SUMMARY] 'layers_2026_tmp.violations_CL36_geom' — ➕ 47,983 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:45:02] ✅ 'violations_CL36_geom' — 47,983 rows in 53.3s (900 r/s)
+✅ [06:45:02] 🟢 Workspace 'layers_2026_tmp.violations_CL36_geom_tmp' ready (structure-only, empty).
+🔹 [06:45:02] 📋 layers_2026.water_meters_cpncL6_geom ➜ layers_2026_tmp.water_meters_cpncL6_geom
+🔹 [06:45:02] 🔄 [MERGE] 'layers_2026_tmp.water_meters_cpncL6_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:45:17] ✅  Index 'uq_waste_bins_mmsl26_geom_1776274256' created.
+✅ [06:45:17] ✅  Index 'idx_waste_bins_mmsl26_geom_geom' created.
+✅ [06:45:17] 📊 [MERGE SUMMARY] 'layers_2026_tmp.waste_bins_MMSL26_geom' — ➕ 14,776 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:45:17] ✅ 'waste_bins_MMSL26_geom' — 14,776 rows in 16.7s (885 r/s)
+✅ [06:45:17] 🟢 Workspace 'layers_2026_tmp.waste_bins_MMSL26_geom_tmp' ready (structure-only, empty).
+🔹 [06:45:17] 📋 layers_2026.water_network_cpncL7_geom ➜ layers_2026_tmp.water_network_cpncL7_geom
+🔹 [06:45:17] 🔄 [MERGE] 'layers_2026_tmp.water_network_cpncL7_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:45:48] ✅  Index 'uq_tree_locations_sl62_geom_1776273590' created.
+✅ [06:45:54] ✅  Index 'idx_tree_locations_sl62_geom_geom' created.
+✅ [06:45:54] 📊 [MERGE SUMMARY] 'layers_2026_tmp.tree_locations_SL62_geom' — ➕ 366,440 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:45:54] ✅ 'tree_locations_SL62_geom' — 366,440 rows in 455.3s (805 r/s)
+✅ [06:45:54] 🟢 Workspace 'layers_2026_tmp.tree_locations_SL62_geom_tmp' ready (structure-only, empty).
+🔹 [06:45:54] 📋 layers_2026.wells_cpncL5_geom ➜ layers_2026_tmp.wells_cpncL5_geom
+🔹 [06:45:54] 🔄 [MERGE] 'layers_2026_tmp.wells_cpncL5_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+✅ [06:45:59] ✅  Index 'uq_wells_cpncl5_geom_1776265820' created.
+✅ [06:45:59] ✅  Index 'idx_wells_cpncl5_geom_geom' created.
+✅ [06:45:59] 📊 [MERGE SUMMARY] 'layers_2026_tmp.wells_cpncL5_geom' — ➕ 2,825 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:45:59] ✅ 'wells_cpncL5_geom' — 2,825 rows in 4.4s (644 r/s)
+✅ [06:45:59] 🟢 Workspace 'layers_2026_tmp.wells_cpncL5_geom_tmp' ready (structure-only, empty).
+✅ [06:59:30] ✅  Index 'uq_water_network_cpncl7_geom_1776266045' created.
+✅ [06:59:41] ✅  Index 'idx_water_network_cpncl7_geom_geom' created.
+✅ [06:59:41] 📊 [MERGE SUMMARY] 'layers_2026_tmp.water_network_cpncL7_geom' — ➕ 810,515 new rows inserted,  ✏️  0 existing rows updated.
+✅ [06:59:41] ✅ 'water_network_cpncL7_geom' — 810,515 rows in 863.4s (939 r/s)
+✅ [06:59:41] 🟢 Workspace 'layers_2026_tmp.water_network_cpncL7_geom_tmp' ready (structure-only, empty).
+✅ [07:09:03] ✅  Index 'uq_water_meters_cpncl6_geom_1776265824' created.
+✅ [07:09:21] ✅  Index 'idx_water_meters_cpncl6_geom_geom' created.
+✅ [07:09:21] 📊 [MERGE SUMMARY] 'layers_2026_tmp.water_meters_cpncL6_geom' — ➕ 1,174,710 new rows inserted,  ✏️  0 existing rows updated.
+✅ [07:09:21] ✅ 'water_meters_cpncL6_geom' — 1,174,710 rows in 1459.1s (805 r/s)
+✅ [07:09:22] 🟢 Workspace 'layers_2026_tmp.water_meters_cpncL6_geom_tmp' ready (structure-only, empty).
+⚠️  [10:11:24] ⟳ 'subdivision_parcels_UGL3_geom' attempt 2/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+🔹 [10:11:28] 📋 layers_2026.subdivision_parcels_UGL3_geom ➜ layers_2026_tmp.subdivision_parcels_UGL3_geom
+⚠️  [10:11:28] ⚠️  PK already exists on 'layers_2026_tmp.subdivision_parcels_UGL3_geom' — skipped.
+🔹 [10:11:28] 🔄 [MERGE] 'layers_2026_tmp.subdivision_parcels_UGL3_geom' exists — using UPSERT (ON CONFLICT DO UPDATE) on PK: ['id']
+⚠️  [14:16:27] ⟳ 'subdivision_parcels_UGL3_geom' attempt 3/3: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+⚠️  [14:16:27] ❌ 'subdivision_parcels_UGL3_geom' → server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+🔹 [14:16:27] ───────────────────────────────────────────────────────
+🔹 [14:16:27] ⏱  Duration: 21:19:06
+🔹 [14:16:27] 📦 Rows: 71,156,152  |  Avg: 927 rows/s
+✅ [14:16:27] 💾 Report: report_ced72014_20260422_165721.json
+✅ [14:16:27] 💾 CSV:    report_ced72014_20260422_165721.csv
+⚠️  [14:16:27] ⚠️  12 failed: eservices_part, geoimporter_profiles, saudi_post_parcels_UserInfoL03_geom, schools_SMFL1_geom, sculptures_MMSL15_geom, sec_facilities_UserInfoL2_geom, security_shelters_MMSL11_geom, self_build_projects_SL34_geom, ejar_contracts_UserInfoL6_geom, ejar_contracts_UserInfoL8_geom, land_parcels_geom, subdivision_parcels_UGL3_geom
+⚠️  [14:16:27] 💾 Checkpoint saved — rerun to resume.
+✅ [14:35:09] ╔══════════════════════════════════════════════════════════════╗
+  MIGRATION REPORT — Session: ced72014
+╠══════════════════════════════════════════════════════════════╣
+  Started:   2026-04-22 16:57:21 UTC
+  Finished:  2026-04-23 14:16:27 UTC
+  Duration:  21:19:05
+──────────────────────────────────────────────────────────────
+  Tables:    237 total
+  ✅ Success: 225
+  ❌ Failed:  12
+  📦 Rows:    24,556,152
+  🚀 Speed:   320 rows/s (avg)
+──────────────────────────────────────────────────────────────
+  FAILED TABLES:
+    ❌ eservices_part
+       Error: can't adapt type 'dict'
+    ❌ geoimporter_profiles
+       Error: can't adapt type 'dict'
+    ❌ saudi_post_parcels_UserInfoL03_geom
+       Error: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (172.31.67.122), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+    ❌ schools_SMFL1_geom
+       Error: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+    ❌ sculptures_MMSL15_geom
+       Error: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+    ❌ sec_facilities_UserInfoL2_geom
+       Error: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+    ❌ security_shelters_MMSL11_geom
+       Error: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+    ❌ self_build_projects_SL34_geom
+       Error: connection to server at "alremaal-db.cmuykkhbcgej.us-east-1.rds.amazonaws.com" (34.225.40.133), port 5432 failed: FATAL:  the database system is starting up
+
+    ❌ ejar_contracts_UserInfoL6_geom
+       Error: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+    ❌ ejar_contracts_UserInfoL8_geom
+       Error: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+    ❌ land_parcels_geom
+       Error: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+    ❌ subdivision_parcels_UGL3_geom
+       Error: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+
+  TOP TABLES BY SIZE:
+    ✅ building_footprints_GLL40_geom            3,164,225 rows   4249.9s        745 r/s
+    ✅ ehkam_records_CL41_geom                   1,886,893 rows   2104.2s        897 r/s
+    ✅ ehkam_records_SL15_geom                   1,886,893 rows   2147.5s        879 r/s
+    ✅ ejar_units_UserInfoL0_geom                1,780,711 rows   2297.0s        775 r/s
+    ✅ land_app_parts                            1,619,852 rows   2519.4s        643 r/s
+    ✅ copper_cables_cpncL16_geom                1,563,582 rows   1778.5s        879 r/s
+    ✅ nwc_facilities_UserInfoL1_geom            1,372,291 rows   2018.4s        680 r/s
+    ✅ water_meters_cpncL6_geom                  1,174,710 rows   1459.1s        805 r/s
+    ✅ fiber_optic_coverage_UserInfoL5_geom        930,033 rows   1346.4s        691 r/s
+    ✅ street_centerline_GLL28_geom                832,441 rows   1064.9s        782 r/s
+╚══════════════════════════════════════════════════════════════╝
+✅ [14:35:33] 💾  Report → report_ced72014_20260422_165721.json
+

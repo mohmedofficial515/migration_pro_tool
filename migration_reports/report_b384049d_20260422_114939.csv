@@ -1,0 +1,2 @@
+﻿table_name,status,rows_migrated,duration_seconds,rows_per_second,error
+SocialServices_CL4_geom_tmp,failed,0,2.31,0.0,name 'total_batch_rows' is not defined

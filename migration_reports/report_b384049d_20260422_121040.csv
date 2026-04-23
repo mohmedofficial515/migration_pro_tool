@@ -1,0 +1,5 @@
+﻿table_name,status,rows_migrated,duration_seconds,rows_per_second,error
+SocialServices_CL4_geom_tmp,failed,0,3.96,0.0,"column ""main_category_code"" of relation ""SocialServices_CL4_geom_tmp"" does not exist
+LINE 1: ...ervicename_en"", ""globalid"", ""street_id"", ""owner"", ""main_cate...
+                                                             ^
+"

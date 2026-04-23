@@ -1,0 +1,12 @@
+{
+  "migration_id": "ff8924b4",
+  "from_dsn_hash": "147afcb13c88",
+  "to_dsn_hash": "147afcb13c88",
+  "table_names": [
+    "subdivision_parcels_UGL3_geom"
+  ],
+  "completed_tables": [],
+  "failed_tables": {},
+  "started_at": "2026-04-23T17:06:48.671583+00:00",
+  "last_updated": "2026-04-23T17:06:48.671601+00:00"
+}

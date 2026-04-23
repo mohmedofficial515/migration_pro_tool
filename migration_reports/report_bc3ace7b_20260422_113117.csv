@@ -1,0 +1,2 @@
+﻿table_name,status,rows_migrated,duration_seconds,rows_per_second,error
+agricultural_GLL24_geom,success,1486,6.06,245.0,

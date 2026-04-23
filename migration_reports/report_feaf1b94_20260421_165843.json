@@ -1,0 +1,23 @@
+{
+  "session_id": "feaf1b94",
+  "started_at": "2026-04-21T16:58:43.067144+00:00",
+  "finished_at": "2026-04-21T16:58:48.562242+00:00",
+  "total_duration_seconds": 5.5,
+  "summary": {
+    "total_tables": 1,
+    "success": 1,
+    "failed": 0,
+    "total_rows": 606,
+    "avg_speed_rows_per_sec": 110.0
+  },
+  "tables": [
+    {
+      "table": "SocialServices_CL4_geom",
+      "status": "success",
+      "rows_migrated": 606,
+      "duration_seconds": 5.455,
+      "rows_per_second": 111.0,
+      "error": null
+    }
+  ]
+}

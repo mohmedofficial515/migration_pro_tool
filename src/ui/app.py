@@ -18,6 +18,7 @@ Preserved from v4.0:
 
 import os
 import threading
+import time
 import tkinter as tk
 from tkinter import ttk, messagebox, font as tkfont
 import psycopg2
@@ -226,11 +227,12 @@ class PanelView(tk.Frame):
     - Bulk action bar with 🔁 Copy and ✂️ Move buttons
     """
 
-    COLS = ("name", "rows", "size")
+    COLS = ("name", "rows", "size", "status")
     COL_CFG = {
-        "name": {"label": "Table Name",  "width": 220, "stretch": True,  "anchor": "w"},
-        "rows": {"label": "Rows",        "width": 90,  "stretch": False, "anchor": "e"},
-        "size": {"label": "Size",        "width": 80,  "stretch": False, "anchor": "e"},
+        "name":   {"label": "Table Name",  "width": 220, "stretch": True,  "anchor": "w"},
+        "rows":   {"label": "Rows",        "width": 90,  "stretch": False, "anchor": "e"},
+        "size":   {"label": "Size",        "width": 80,  "stretch": False, "anchor": "e"},
+        "status": {"label": "Status",      "width": 90,  "stretch": False, "anchor": "center"},
     }
 
     def __init__(self, master, title: str, dsn: str, side: str, app: "App", **kw):
@@ -599,10 +601,11 @@ class PanelView(tk.Frame):
         for i, row in enumerate(rows):
             tag = "even" if i % 2 == 0 else "odd"
             iid = f"{self.side}::{row['name']}"
+            status = row.get("sync_status", "—")
             self.tree.insert(
                 "", "end",
                 iid=iid,
-                values=(row["name"], f"{row['rows']:,}", row["size"]),
+                values=(row["name"], f"{row['rows']:,}", row["size"], status),
                 tags=(tag,),
             )
         self._count_lbl.config(text=f"{len(rows)} tables")
@@ -626,7 +629,7 @@ class PanelView(tk.Frame):
             self._sort_col = col
             self._sort_rev = False
 
-        key_map = {"name": "name", "rows": "rows", "size": "bytes"}
+        key_map = {"name": "name", "rows": "rows", "size": "bytes", "status": "sync_status"}
         key = key_map.get(col, col)
         sorted_rows = sorted(
             self._all_rows,
@@ -713,6 +716,12 @@ class App(tk.Tk):
         self._build_ui()
         self.refresh_ui()
 
+        self._sync_check_in_progress = False
+
+    def destroy(self):
+        self._sync_check_in_progress = False
+        super().destroy()
+
     # ── UI Construction ──────────────────────────────────────
 
     def _build_ui(self) -> None:
@@ -734,6 +743,22 @@ class App(tk.Tk):
             command=self._open_global_chat,
             bg="#1a1f3a", hover="#252b50",
             fg="#a5d6ff", padx=14,
+        ).pack(side="left", fill="y", padx=(0, 4))
+
+        # 🧹 Cleanup stale workspaces button
+        FlatButton(
+            header, text="🧹 Clean Workspace",
+            command=self._cleanup_stale_workspaces,
+            bg="#2a1a0f", hover="#3d2a15",
+            fg="#d29922", padx=14,
+        ).pack(side="left", fill="y", padx=(0, 4))
+        
+        # 🔍 Check Sync Status button
+        FlatButton(
+            header, text="🔍 Check Sync Status",
+            command=self.start_sync_check,
+            bg="#0f2d1a", hover="#1a4a2e",
+            fg="#3fb950", padx=14,
         ).pack(side="left", fill="y", padx=(0, 10))
 
         # Legend
@@ -835,6 +860,115 @@ class App(tk.Tk):
             fg=ACCENT2 if connected == 2 else (WARNING if connected == 1 else DANGER),
         )
 
+    def _safe_after(self, ms: int, func):
+        """Thread-safe wrapper for self.after() — skips if app is already destroyed."""
+        try:
+            self.after(ms, func)
+        except RuntimeError:
+            pass
+
+    def start_sync_check(self):
+        if getattr(self, "_sync_check_in_progress", False):
+            return
+        self._sync_check_in_progress = True
+        threading.Thread(target=self._run_sync_checker_once, daemon=True).start()
+
+    def _run_sync_checker_once(self):
+        """Background thread to check if tables are perfectly synced on demand."""
+        try:
+            src_tables = list(self._src_panel._all_rows)
+            src_schema = self._src_panel.current_schema
+            tgt_schema = self._tgt_panel.current_schema
+            
+            if not src_tables or not self.source_dsn or not self.target_dsn:
+                return
+
+            self._safe_after(0, lambda: self._global_status.config(text="🔍 Checking Sync...", fg="#3fb950"))
+            
+            src_conn = None
+            tgt_conn = None
+            try:
+                src_conn = psycopg2.connect(self.source_dsn, connect_timeout=5)
+                tgt_conn = psycopg2.connect(self.target_dsn, connect_timeout=5)
+                
+                total = len(src_tables)
+                for i, table_dict in enumerate(src_tables):
+                    if not self._sync_check_in_progress:
+                        break
+                        
+                    table_name = table_dict["name"]
+                    self._safe_after(0, lambda t=table_name, p=i+1, tot=total: self._global_status.config(
+                        text=f"🔍 Checking {t} ({p}/{tot})...", fg="#3fb950"
+                    ))
+                    
+                    src_count = None
+                    tgt_count = None
+                    
+                    try:
+                        with src_conn.cursor() as cur:
+                            cur.execute(sql.SQL("SELECT count(*) FROM {}.{}").format(
+                                sql.Identifier(src_schema), sql.Identifier(table_name)
+                            ))
+                            src_count = cur.fetchone()[0]
+                    except Exception:
+                        src_conn.rollback()
+                        
+                    try:
+                        with tgt_conn.cursor() as cur:
+                            cur.execute(
+                                "SELECT 1 FROM information_schema.tables WHERE table_schema=%s AND table_name=%s",
+                                (tgt_schema, table_name)
+                            )
+                            if cur.fetchone():
+                                cur.execute(sql.SQL("SELECT count(*) FROM {}.{}").format(
+                                    sql.Identifier(tgt_schema), sql.Identifier(table_name)
+                                ))
+                                tgt_count = cur.fetchone()[0]
+                    except Exception:
+                        tgt_conn.rollback()
+
+                    status = "—"
+                    if src_count is not None and tgt_count is not None:
+                        if src_count == tgt_count:
+                            status = "✅ Synced"
+                        else:
+                            status = "🔄 Diff"
+                    elif src_count is not None and tgt_count is None:
+                        status = "—"
+                        
+                    table_dict["sync_status"] = status
+                    self._safe_after(0, lambda t=table_name, s=status: self._update_table_status(t, s))
+                    
+                    time.sleep(0.05)
+            except Exception:
+                pass
+            finally:
+                if src_conn: src_conn.close()
+                if tgt_conn: tgt_conn.close()
+                
+            self._safe_after(0, lambda: self._global_status.config(text="✅ Sync Check Complete", fg="#3fb950"))
+            time.sleep(3)
+            self._safe_after(0, lambda: self._global_status.config(text="", fg="#8b949e"))
+        finally:
+            self._sync_check_in_progress = False
+
+    def _update_table_status(self, table_name: str, status: str):
+        """Updates the status cell in the UI safely."""
+        iid = f"source::{table_name}"
+        if self._src_panel.tree.exists(iid):
+            vals = list(self._src_panel.tree.item(iid, "values"))
+            if len(vals) == 4:
+                vals[3] = status
+                self._src_panel.tree.item(iid, values=vals)
+                
+        # Also update target panel if it exists
+        tgt_iid = f"target::{table_name}"
+        if self._tgt_panel.tree.exists(tgt_iid):
+            tgt_vals = list(self._tgt_panel.tree.item(tgt_iid, "values"))
+            if len(tgt_vals) == 4:
+                tgt_vals[3] = status
+                self._tgt_panel.tree.item(tgt_iid, values=tgt_vals)
+
     # ── AI Chat ──────────────────────────────────────────────
 
     def _open_global_chat(self) -> None:
@@ -862,7 +996,136 @@ class App(tk.Tk):
             tables=all_tables,
         )
 
-    # ── Actions ──────────────────────────────────────────────
+    def _cleanup_stale_workspaces(self) -> None:
+        """
+        Scan both DBs for stale _tmp and _bak_ tables left by previous sessions
+        and drop them after user confirmation.
+        Matches: *_tmp, *_tmp_bak_*, *_tmp_bulk_*
+        """
+        self._global_status.config(text="🔍  Scanning for stale workspaces…", fg=WARNING)
+
+        def _scan_and_prompt():
+            results: list[dict] = []
+
+            for label, dsn, schema in [
+                ("SOURCE", self.source_dsn, self._src_panel.current_schema),
+                ("TARGET", self.target_dsn, self._tgt_panel.current_schema),
+            ]:
+                if not dsn:
+                    continue
+                try:
+                    conn = psycopg2.connect(dsn, connect_timeout=5)
+                    conn.autocommit = True
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            """
+                            SELECT
+                                t.table_name,
+                                pg_size_pretty(
+                                    pg_total_relation_size(
+                                        quote_ident(t.table_schema) || '.' ||
+                                        quote_ident(t.table_name)
+                                    )
+                                ) AS size,
+                                pg_total_relation_size(
+                                    quote_ident(t.table_schema) || '.' ||
+                                    quote_ident(t.table_name)
+                                ) AS bytes
+                            FROM information_schema.tables t
+                            WHERE t.table_schema = %s
+                              AND (
+                                  t.table_name LIKE '%%_tmp'
+                               OR t.table_name LIKE '%%_tmp_bak_%%'
+                               OR t.table_name LIKE '%%_tmp_bulk_%%'
+                              )
+                            ORDER BY bytes DESC
+                            """,
+                            (schema,)
+                        )
+                        rows = cur.fetchall()
+                    conn.close()
+                    for row in rows:
+                        results.append({
+                            "label": label, "dsn": dsn,
+                            "schema": schema,
+                            "name": row[0], "size": row[1], "bytes": row[2],
+                        })
+                except Exception:
+                    pass
+
+            self.after(0, lambda: _prompt(results))
+
+        def _prompt(found: list[dict]) -> None:
+            if not found:
+                self._global_status.config(text="✅  No stale workspaces found.", fg=ACCENT2)
+                messagebox.showinfo(
+                    "Clean Workspace",
+                    "✅  No stale _tmp or _bak_ tables found in either database.",
+                    parent=self,
+                )
+                return
+
+            total_bytes = sum(r["bytes"] for r in found)
+            total_size  = f"{total_bytes / (1024**3):.2f} GB" if total_bytes > 1e9 else \
+                          f"{total_bytes / (1024**2):.0f} MB"
+            preview     = "\n".join(
+                f"  [{r['label']}]  {r['schema']}.{r['name']}  ({r['size']})"
+                for r in found[:15]
+            )
+            if len(found) > 15:
+                preview += f"\n  … and {len(found) - 15} more"
+
+            confirmed = messagebox.askyesno(
+                "🧹 Clean Stale Workspaces",
+                f"Found {len(found)} stale workspace table(s) — total: {total_size}\n\n"
+                f"{preview}\n\n"
+                f"Drop ALL of them permanently?",
+                icon="warning",
+                parent=self,
+            )
+            if not confirmed:
+                self._global_status.config(text="", fg=TEXT_DIM)
+                return
+
+            threading.Thread(target=_drop, args=(found,), daemon=True).start()
+
+        def _drop(found: list[dict]) -> None:
+            dropped = 0
+            errors  = 0
+            # Group by dsn+schema to batch in one connection
+            from itertools import groupby
+            key_fn = lambda r: (r["dsn"], r["schema"])
+            for (dsn, schema), group in groupby(sorted(found, key=key_fn), key=key_fn):
+                tables = [r["name"] for r in group]
+                try:
+                    conn = psycopg2.connect(dsn, connect_timeout=5)
+                    conn.autocommit = True
+                    with conn.cursor() as cur:
+                        for name in tables:
+                            cur.execute(
+                                sql.SQL("DROP TABLE IF EXISTS {}.{} CASCADE").format(
+                                    sql.Identifier(schema),
+                                    sql.Identifier(name),
+                                )
+                            )
+                            dropped += 1
+                    conn.close()
+                except Exception:
+                    errors += len(tables)
+
+            def _done():
+                msg = f"✅  Dropped {dropped} stale table(s)."
+                if errors:
+                    msg += f"  ⚠️  {errors} failed."
+                self._global_status.config(text=msg, fg=ACCENT2 if not errors else WARNING)
+                messagebox.showinfo("Done", msg, parent=self)
+                self.refresh_ui()
+
+            self.after(0, _done)
+
+        threading.Thread(target=_scan_and_prompt, daemon=True).start()
+
+
 
     def initiate_bulk_delete(self, side: str, table_names: list[str]) -> None:
         panel  = self._src_panel if side == "source" else self._tgt_panel
@@ -916,6 +1179,7 @@ class App(tk.Tk):
             dsn        = from_dsn,
             src_schema = src_schema,
             tgt_schema = tgt_schema,
+            tgt_dsn    = to_dsn,   # ← used for schema diff in inspector
         )
         table_configs = flow.run()   # blocks — returns list[TableConfig] or None
 
@@ -924,7 +1188,19 @@ class App(tk.Tk):
             return
 
         # Filter out skipped tables
-        active_configs = [c for c in table_configs if not c.skipped]
+        skipped_configs = [c for c in table_configs if c.skipped]
+        active_configs  = [c for c in table_configs if not c.skipped]
+
+        # Print skipped tables to console
+        if skipped_configs:
+            print(f"\n{'─'*55}")
+            print(f"⏭  SKIPPED TABLES ({len(skipped_configs)}):")
+            for c in skipped_configs:
+                src  = c.original_name
+                note = f" → {c.target_name}" if c.target_name and c.target_name != src else ""
+                print(f"   • {src}{note}")
+            print(f"{'─'*55}\n")
+
         if not active_configs:
             messagebox.showinfo("Skipped", "All tables were skipped. Nothing to migrate.")
             return

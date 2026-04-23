@@ -1,0 +1,23 @@
+{
+  "session_id": "56d2a9b3",
+  "started_at": "2026-04-21T11:33:53.572472+00:00",
+  "finished_at": "2026-04-21T11:33:56.349669+00:00",
+  "total_duration_seconds": 2.78,
+  "summary": {
+    "total_tables": 1,
+    "success": 1,
+    "failed": 0,
+    "total_rows": 32,
+    "avg_speed_rows_per_sec": 12.0
+  },
+  "tables": [
+    {
+      "table": "Airports",
+      "status": "success",
+      "rows_migrated": 32,
+      "duration_seconds": 2.77,
+      "rows_per_second": 12.0,
+      "error": null
+    }
+  ]
+}

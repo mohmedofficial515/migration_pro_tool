@@ -1,0 +1,14 @@
+{
+  "migration_id": "f217ab5a",
+  "from_dsn_hash": "147afcb13c88",
+  "to_dsn_hash": "92a7ff4be550",
+  "table_names": [
+    "Transportation"
+  ],
+  "completed_tables": [
+    "Transportation"
+  ],
+  "failed_tables": {},
+  "started_at": "2026-04-21T11:12:33.365935+00:00",
+  "last_updated": "2026-04-21T11:16:22.987315+00:00"
+}

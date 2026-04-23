@@ -193,7 +193,14 @@ class MigrationProgressWindow(tk.Toplevel):
         self._log_txt.pack(side="left", fill="both", expand=True)
         vsb.pack(side="right", fill="y")
 
-    # ── Public API (thread-safe) ─────────────────────────────
+    # ── Public API (thread-safe, TclError-guarded) ────────────
+
+    def _alive(self) -> bool:
+        """Returns False if the window has been destroyed — safe to call from any thread."""
+        try:
+            return bool(self.winfo_exists())
+        except Exception:
+            return False
 
     def log(self, msg: str, status: str = "INFO") -> None:
         if threading.current_thread() is threading.main_thread():
@@ -202,26 +209,68 @@ class MigrationProgressWindow(tk.Toplevel):
             self.after(0, lambda m=msg, s=status: self._log_direct(m, s))
 
     def update_status(self, current_done: int, speed: float, eta: str, current_table: str) -> None:
-        total = self.total_rows_total_batch
-        pct   = current_done / total if total > 0 else 1.0
-        self._pbar["value"] = min(pct, 1.0) * 100
-        self._stats_lbl.config(
-            text=f"{current_done:,} / {total:,} rows ({pct:.1%})  —  {current_table[:40]}"
-        )
-        self._details_lbl.config(
-            text=f"🚀  Speed: {speed:,.0f} rows/s  │  ⏳  ETA: {eta}"
-        )
+        """
+        Progress bar — Hybrid mode:
+        • Row-based  (smooth/continuous) when total_batch_rows > 0  ← preferred
+        • Table-based (step jumps)       when row estimate is zero   ← fallback
+        This prevents the bar from staying at 0% during active UPSERT processing.
+        """
+        if not self._alive():
+            return
+        try:
+            total        = self.total_rows_total_batch        # pg_stat row estimate
+            total_tables = self._total_tables if hasattr(self, "_total_tables") else 0
+            done_tables  = self._done_tables  if hasattr(self, "_done_tables")  else 0
+
+            if total > 0 and current_done > 0:
+                # ── Row-based: smooth continuous movement ──────────────
+                # Cap to (done_tables+workers)/total_tables so it can't
+                # overshoot past the actual table-completion boundary.
+                row_pct   = current_done / int(total)
+                table_cap = (done_tables + max(1, total_tables - done_tables)) / max(total_tables, 1)
+                pct       = min(row_pct, table_cap, 1.0)
+            elif total_tables > 0:
+                # ── Table-based fallback: step at each table finish ────
+                pct = done_tables / total_tables
+            else:
+                pct = 0.0
+
+            self._pbar["value"] = pct * 100
+
+            rows_text = (
+                f"{current_done:,} rows"
+                if total <= 0
+                else f"{current_done:,} / {total:,} rows ({pct:.1%})"
+            )
+            self._stats_lbl.config(text=f"{rows_text}  —  {current_table[:40]}")
+            self._details_lbl.config(text=f"Speed: {speed:,.0f} rows/s  |  ETA: {eta}")
+        except tk.TclError:
+            pass
 
     def update_table_counts(self, total: int, done: int, failed: int) -> None:
+        # Store for table-based progress calculation
+        self._total_tables = total
+        self._done_tables  = done
+
         remaining = total - done - failed
+
         def _update():
-            self._counter_labels["total"].config(text=f"Total: {total}")
-            self._counter_labels["done"].config(text=f"✅ Done: {done}")
-            self._counter_labels["failed"].config(
-                text=f"❌ Failed: {failed}",
-                fg=DANGER if failed > 0 else TEXT_DIM,
-            )
-            self._counter_labels["remaining"].config(text=f"⏳ Remaining: {remaining}")
+            if not self._alive():
+                return
+            try:
+                self._counter_labels["total"].config(text=f"Total: {total}")
+                self._counter_labels["done"].config(text=f"✅ Done: {done}")
+                self._counter_labels["failed"].config(
+                    text=f"❌ Failed: {failed}",
+                    fg=DANGER if failed > 0 else TEXT_DIM,
+                )
+                self._counter_labels["remaining"].config(text=f"⏳ Remaining: {remaining}")
+                if total > 0:
+                    pct = done / total
+                    self._pbar["value"] = min(pct, 1.0) * 100
+            except tk.TclError:
+                pass
+
         if threading.current_thread() is threading.main_thread():
             _update()
         else:
@@ -229,13 +278,19 @@ class MigrationProgressWindow(tk.Toplevel):
 
     def set_active_tables(self, tables: list[str]) -> None:
         def _update():
-            if not tables:
-                self._active_lbl.config(text="Active: ─")
-                self._workers_lbl.config(text="⚙  Idle")
-            else:
-                badges = "  ".join(f"[{t[:22]}]" for t in tables)
-                self._active_lbl.config(text=f"▶  {badges}")
-                self._workers_lbl.config(text=f"⚙  {len(tables)} workers active")
+            if not self._alive():
+                return
+            try:
+                if not tables:
+                    self._active_lbl.config(text="Active: ─")
+                    self._workers_lbl.config(text="⚙  Idle")
+                else:
+                    badges = "  ".join(f"[{t[:22]}]" for t in tables)
+                    self._active_lbl.config(text=f"▶  {badges}")
+                    self._workers_lbl.config(text=f"⚙  {len(tables)} workers active")
+            except tk.TclError:
+                pass
+
         if threading.current_thread() is threading.main_thread():
             _update()
         else:
@@ -243,8 +298,14 @@ class MigrationProgressWindow(tk.Toplevel):
 
     def set_session_id(self, session_id: str, max_workers: int) -> None:
         def _update():
-            self._session_lbl.config(text=f"Session: {session_id}")
-            self._workers_lbl.config(text=f"⚙  MAX_WORKERS: {max_workers}")
+            if not self._alive():
+                return
+            try:
+                self._session_lbl.config(text=f"Session: {session_id}")
+                self._workers_lbl.config(text=f"⚙  MAX_WORKERS: {max_workers}")
+            except tk.TclError:
+                pass
+
         if threading.current_thread() is threading.main_thread():
             _update()
         else:
@@ -252,17 +313,32 @@ class MigrationProgressWindow(tk.Toplevel):
 
     def set_validation_status(self, msg: str, ok: bool = True) -> None:
         color = ACCENT2 if ok else DANGER
+        def _update():
+            if not self._alive():
+                return
+            try:
+                self._validation_lbl.config(text=msg, fg=color)
+            except tk.TclError:
+                pass
+
         if threading.current_thread() is threading.main_thread():
-            self._validation_lbl.config(text=msg, fg=color)
+            _update()
         else:
-            self.after(0, lambda: self._validation_lbl.config(text=msg, fg=color))
+            self.after(0, _update)
 
     def enable_save_report(self, report) -> None:
         self._report = report
         self._save_btn_enabled = True
+
         def _enable():
-            self._save_btn.config(bg="#0d3320", fg=ACCENT2)
-            self._pause_btn.config(bg="#2c2c2c", fg=TEXT_DIM)
+            if not self._alive():
+                return
+            try:
+                self._save_btn.config(bg="#0d3320", fg=ACCENT2)
+                self._pause_btn.config(bg="#2c2c2c", fg=TEXT_DIM)
+            except tk.TclError:
+                pass
+
         if threading.current_thread() is threading.main_thread():
             _enable()
         else:
@@ -271,10 +347,15 @@ class MigrationProgressWindow(tk.Toplevel):
     # ── Private ──────────────────────────────────────────────
 
     def _log_direct(self, msg: str, status: str) -> None:
-        icons = {"SUCCESS": "✅", "ERROR": "⚠️ ", "INFO": "🔹"}
-        prefix = icons.get(status, "🔹")
-        self._log_txt.insert("end", f"{prefix} [{time.strftime('%H:%M:%S')}] {msg}\n")
-        self._log_txt.see("end")
+        try:
+            if not self.winfo_exists():
+                return
+            icons = {"SUCCESS": "✅", "ERROR": "⚠️ ", "INFO": "🔹"}
+            prefix = icons.get(status, "🔹")
+            self._log_txt.insert("end", f"{prefix} [{time.strftime('%H:%M:%S')}] {msg}\n")
+            self._log_txt.see("end")
+        except tk.TclError:
+            pass
 
     def _toggle_pause(self) -> None:
         if self.pause_event.is_set():

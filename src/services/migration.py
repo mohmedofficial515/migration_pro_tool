@@ -11,6 +11,7 @@ New in Phase 5:
 
 import io
 import csv
+import json
 import logging
 import os
 import threading
@@ -112,10 +113,6 @@ def _build_column_def(col: dict) -> str:
     return f'"{col["column_name"]}" {col_type} {null_clause}'.strip()
 
 
-# ──────────────────────────────────────────────────────────
-# NULL-safe COPY chunk (schema-qualified target table)
-# ──────────────────────────────────────────────────────────
-
 def _copy_chunk(
     tgt_conn,
     schema: str,
@@ -123,12 +120,26 @@ def _copy_chunk(
     col_names_quoted: str,
     rows: list,
 ) -> None:
+    """Fast COPY FROM STDIN — used when target table is freshly created."""
     buf = io.StringIO()
     writer = csv.writer(
         buf, delimiter="\t", lineterminator="\n",
         quoting=csv.QUOTE_MINIMAL, escapechar="\\"
     )
-    writer.writerows([["" if v is None else v for v in row] for row in rows])
+    
+    processed_rows = []
+    for row in rows:
+        new_row = []
+        for v in row:
+            if v is None:
+                new_row.append("")
+            elif isinstance(v, (dict, list)):
+                new_row.append(json.dumps(v))
+            else:
+                new_row.append(v)
+        processed_rows.append(new_row)
+        
+    writer.writerows(processed_rows)
     buf.seek(0)
     with tgt_conn.cursor() as cur:
         cur.copy_expert(
@@ -136,6 +147,84 @@ def _copy_chunk(
             f"FROM STDIN WITH (FORMAT CSV, DELIMITER '\t', NULL '', QUOTE '\"')",
             buf,
         )
+
+
+def _upsert_chunk(
+    tgt_conn,
+    schema: str,
+    table: str,
+    col_names: list[str],
+    pk_cols: list[str],
+    rows: list,
+) -> tuple[int, int]:
+    """
+    INSERT ... ON CONFLICT (pk_cols) DO UPDATE SET col=EXCLUDED.col
+    Returns (inserted_new, updated_existing) counts.
+    """
+    if not rows:
+        return 0, 0
+
+    # Build: INSERT INTO "schema"."table" (c1,c2,...)
+    #        VALUES (%s,%s,...)
+    #        ON CONFLICT (pk1,pk2) DO UPDATE SET c1=EXCLUDED.c1, c2=EXCLUDED.c2
+    #        WHERE NOT ("schema"."table" IS NOT DISTINCT FROM EXCLUDED)
+    quoted_cols   = ", ".join(f'"{c}"' for c in col_names)
+    placeholders  = ", ".join(["%s"] * len(col_names))
+    conflict_cols = ", ".join(f'"{c}"' for c in pk_cols)
+    # Only update non-PK columns
+    update_cols   = [c for c in col_names if c not in pk_cols]
+
+    if update_cols:
+        update_set = ", ".join(f'"{c}" = EXCLUDED."{c}"' for c in update_cols)
+        on_conflict = f"ON CONFLICT ({conflict_cols}) DO UPDATE SET {update_set}"
+    else:
+        # Only PK columns — nothing to update, just skip duplicates
+        on_conflict = f"ON CONFLICT ({conflict_cols}) DO NOTHING"
+
+    # Use xmax to detect if it was an update (xmax != 0) or insert (xmax = 0)
+    stmt = (
+        f'INSERT INTO "{schema}"."{table}" ({quoted_cols}) '
+        f"VALUES ({placeholders}) "
+        f"{on_conflict} "
+        f'RETURNING (xmax = 0) AS is_insert'
+    )
+
+    # Process rows to adapt dict/list to Json
+    processed_rows = []
+    for row in rows:
+        new_row = []
+        for v in row:
+            if isinstance(v, (dict, list)):
+                new_row.append(extras.Json(v))
+            else:
+                new_row.append(v)
+        processed_rows.append(tuple(new_row))
+
+    inserted = 0
+    updated  = 0
+    with tgt_conn.cursor() as cur:
+        for row in processed_rows:
+            cur.execute(stmt, row)
+            result = cur.fetchone()
+            if result and result[0]:
+                inserted += 1
+            else:
+                updated += 1
+
+    return inserted, updated
+
+
+def _check_target_table_exists(
+    tgt_conn, schema: str, table: str
+) -> bool:
+    """Return True if the table already exists in the target schema."""
+    with tgt_conn.cursor() as cur:
+        cur.execute(
+            "SELECT 1 FROM information_schema.tables "
+            "WHERE table_schema = %s AND table_name = %s",
+            (schema, table),
+        )
+        return cur.fetchone() is not None
 
 
 # ──────────────────────────────────────────────────────────
@@ -153,12 +242,17 @@ def _migrate_single_table(
     target_name: str | None = None,
     column_renames: dict | None = None,
     selected_columns: list | None = None,
+    progress: dict | None = None,
+    progress_lock: threading.Lock | None = None,
+    total_batch_rows: int = 0,
+    is_retry: bool = False,
 ) -> int:
     """
     Migrates one table from src_schema.table → tgt_schema.target_name.
     - target_name:       override the table name in the target schema
     - column_renames:    dict {original_col → new_col} applied only in target DDL
     - selected_columns:  list of source column names to include (None = all)
+    - is_retry:          True if this is a retry attempt from the outer loop
     """
     target_name      = target_name or table
     column_renames   = column_renames or {}
@@ -241,8 +335,53 @@ def _migrate_single_table(
             cur.execute(f"ROLLBACK TO SAVEPOINT {sp_name}")
             raise RuntimeError(f"Schema DDL failed for '{tgt_schema}.{target_name}': {e}") from e
 
-    # ── Stream data from source (SELECT * — positional COPY) ──
     rows_migrated = 0
+    upsert_inserted = 0
+    upsert_updated  = 0
+
+    # Detect if target already exists → switch to UPSERT mode
+    tgt_exists   = _check_target_table_exists(tgt_conn, tgt_schema, target_name)
+    pk_cols_tgt  = [
+        column_renames.get(p, p) for p in constraints["primary_keys"]
+    ]  # renamed PK columns for the target side
+    use_upsert   = tgt_exists and bool(pk_cols_tgt)
+
+    if tgt_exists:
+        if use_upsert:
+            win.log(
+                f"🔄 [MERGE] '{tgt_schema}.{target_name}' exists — "
+                f"using UPSERT (ON CONFLICT DO UPDATE) on PK: {pk_cols_tgt}"
+            )
+        else:
+            win.log(
+                f"⚠️  [APPEND] '{tgt_schema}.{target_name}' exists but has no PK — "
+                f"appending all rows (duplicates possible).",
+                "ERROR",
+            )
+
+    # ── Intelligent Retry / Duplicates Prevention ──
+    # If the connection drops during a No-PK table, restarting will append rows again.
+    # We truncate it here before selecting from source to ensure a clean slate.
+    if is_retry and not use_upsert:
+        win.log(f"🧹 Retrying table without PK — Truncating '{tgt_schema}.{target_name}' to prevent duplicates.", "ERROR")
+        try:
+            with tgt_conn.cursor() as cur:
+                cur.execute(
+                    sql.SQL("TRUNCATE TABLE {}.{}").format(
+                        sql.Identifier(tgt_schema), sql.Identifier(target_name)
+                    )
+                )
+            tgt_conn.commit()
+            win.log("✅ Truncate successful. Resuming clean copy.")
+        except psycopg2.Error as e:
+            tgt_conn.rollback()
+            win.log(f"⚠️  Truncate failed: {e}", "ERROR")
+
+    # Target column names list (for UPSERT mode)
+    tgt_col_names = [
+        column_renames.get(c["column_name"], c["column_name"]) for c in cols
+    ]
+
     cursor_name = f"cur_{table[:28].replace('-','_').replace(' ','_')}"
 
     with src_conn.cursor(name=cursor_name) as s_cur:
@@ -267,6 +406,7 @@ def _migrate_single_table(
                 )
             )
 
+        _worker_start = time.time()  # local timer for per-chunk speed calc
         while True:
             rows = s_cur.fetchmany(CHUNK_SIZE)
             if not rows:
@@ -281,33 +421,91 @@ def _migrate_single_table(
             # Retry chunk on transient errors
             for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
                 try:
-                    _copy_chunk(tgt_conn, tgt_schema, target_name, col_names_quoted, rows)
+                    # Detect dead connections immediately to avoid wasting time retrying a dead socket
+                    if tgt_conn.closed != 0 or src_conn.closed != 0:
+                        raise psycopg2.OperationalError("Connection structurally closed.")
+
+                    if use_upsert:
+                        ins, upd = _upsert_chunk(
+                            tgt_conn, tgt_schema, target_name,
+                            tgt_col_names, pk_cols_tgt, list(rows)
+                        )
+                        upsert_inserted += ins
+                        upsert_updated  += upd
+                    else:
+                        _copy_chunk(tgt_conn, tgt_schema, target_name, col_names_quoted, rows)
                     tgt_conn.commit()
                     break
                 except RETRYABLE_ERRORS as e:
                     if attempt == MAX_RETRY_ATTEMPTS:
                         raise
+                    tgt_conn.rollback()
                     win.log(f"⟳ Chunk retry {attempt}/{MAX_RETRY_ATTEMPTS} '{table}': {e}", "ERROR")
                     time.sleep(2 ** attempt)
 
             rows_migrated += len(rows)
 
+            # ── Real-time progress update per chunk ──────────────────
+            with progress_lock:
+                progress["rows"] += len(rows)
+                rows_so_far = progress["rows"]
+            elapsed_now = time.time() - _worker_start
+            speed_now   = rows_so_far / elapsed_now if elapsed_now > 0 else 0
+            _remaining  = max(0, int(total_batch_rows) - int(rows_so_far))
+            eta_secs    = _remaining / speed_now if speed_now > 0 else 0
+            eta_now     = time.strftime("%H:%M:%S", time.gmtime(eta_secs))
+            win.after(
+                0,
+                lambda c=rows_so_far, s=speed_now, e=eta_now, t=table:
+                    win.update_status(c, s, e, t)
+            )
+
     # ── Apply indexes in target schema ──
     with tgt_conn.cursor() as cur:
         for idx in constraints["indexes"]:
             try:
-                # Replace source schema name in indexdef with target schema
-                idx_def = idx["indexdef"].replace(
+                orig_idx_name = idx["indexname"]
+                idx_def = idx["indexdef"]
+
+                # 1. Replace source schema with target schema
+                idx_def = idx_def.replace(
                     f'"{src_schema}".', f'"{tgt_schema}".'
                 ).replace(
                     f' {src_schema}.', f' {tgt_schema}.'
                 )
+
+                # 2. Replace original table name with actual target table name
+                #    (critical when copying to a renamed table like Transportation125)
+                if target_name and target_name != table:
+                    idx_def = idx_def.replace(
+                        f'"{table}"', f'"{target_name}"'
+                    ).replace(
+                        f' {table} ', f' {target_name} '
+                    )
+                    # Rename the index itself to avoid conflicts with original
+                    new_idx_name = f"{orig_idx_name}_{target_name[:20]}"
+                    idx_def = idx_def.replace(
+                        f"INDEX {orig_idx_name} ON",
+                        f"INDEX IF NOT EXISTS {new_idx_name} ON",
+                    ).replace(
+                        f"INDEX CONCURRENTLY {orig_idx_name} ON",
+                        f"INDEX CONCURRENTLY IF NOT EXISTS {new_idx_name} ON",
+                    )
+
                 cur.execute(idx_def)
                 tgt_conn.commit()
+                win.log(f"✅  Index '{new_idx_name if target_name and target_name != table else orig_idx_name}' created.", "SUCCESS")
             except psycopg2.Error as e:
                 tgt_conn.rollback()
                 win.log(f"⚠️  Index '{idx['indexname']}' skipped: {e}", "ERROR")
 
+    if use_upsert:
+        win.log(
+            f"📊 [MERGE SUMMARY] '{tgt_schema}.{target_name}' — "
+            f"➕ {upsert_inserted:,} new rows inserted,  "
+            f"✏️  {upsert_updated:,} existing rows updated.",
+            "SUCCESS",
+        )
     return rows_migrated
 
 
@@ -335,6 +533,7 @@ def _worker_migrate_table(
     target_name: str | None = None,
     column_renames: dict | None = None,
     selected_columns: list | None = None,
+    total_batch_rows: int = 0,
 ) -> int:
     """
     Thread-pool worker.
@@ -357,25 +556,28 @@ def _worker_migrate_table(
         tgt_conn = None
         try:
             src_conn = psycopg2.connect(from_dsn)
-            src_conn.autocommit = True
+            src_conn.autocommit = False   # Named cursor requires a transaction (autocommit=False)
             tgt_conn = psycopg2.connect(to_dsn)
             tgt_conn.autocommit = False
 
             rows_done = _migrate_single_table(
                 src_conn, tgt_conn, table, win, pause_event,
-                src_schema     = src_schema,
-                tgt_schema     = tgt_schema,
-                target_name    = target_name,
-                column_renames = column_renames,
+                src_schema       = src_schema,
+                tgt_schema       = tgt_schema,
+                target_name      = target_name,
+                column_renames   = column_renames,
                 selected_columns = selected_columns,
+                progress         = progress,
+                progress_lock    = progress_lock,
+                total_batch_rows = total_batch_rows,
+                is_retry         = (attempt > 1),
             )
 
             duration = timer()
             checkpoint.mark_completed(table)
             report.record_success(table, rows_done, duration)
 
-            with progress_lock:
-                progress["rows"] += rows_done
+            # progress["rows"] is already updated per-chunk inside _migrate_single_table
 
             # Update live counters
             with counters_lock:
@@ -390,11 +592,44 @@ def _worker_migrate_table(
                 "SUCCESS",
             )
 
+            # ── Auto-create Workspace (_tmp) — structure only, NO data copy ──
+            # Rationale: copying all data here would double storage (8 GB → 16 GB).
+            # The workspace is created as an empty shell with full schema + indexes.
+            # AI chat populates it lazily (via _run_sql_on_copy) only when a
+            # WRITE/DANGER query is requested — and only if the workspace is still empty.
+            try:
+                tgt_conn.autocommit = True
+                tmp_name = f"{display_name}_tmp"
+                with tgt_conn.cursor() as cur:
+                    # Drop any stale workspace from a previous session
+                    cur.execute(
+                        sql.SQL("DROP TABLE IF EXISTS {}.{} CASCADE").format(
+                            sql.Identifier(tgt_schema),
+                            sql.Identifier(tmp_name),
+                        )
+                    )
+                    # Create structure + indexes (INCLUDING ALL) — zero rows
+                    cur.execute(
+                        sql.SQL("CREATE TABLE {}.{} (LIKE {}.{} INCLUDING ALL)").format(
+                            sql.Identifier(tgt_schema),
+                            sql.Identifier(tmp_name),
+                            sql.Identifier(tgt_schema),
+                            sql.Identifier(display_name),
+                        )
+                    )
+                win.log(
+                    f"🟢 Workspace '{tgt_schema}.{tmp_name}' ready (structure-only, empty).",
+                    "SUCCESS",
+                )
+                tgt_conn.autocommit = False
+            except psycopg2.Error as e:
+                win.log(f"⚠️  Workspace init failed for '{display_name}': {e}", "ERROR")
+
             # ── Move mode: drop source table after successful copy ──
             if move_mode:
                 try:
+                    src_conn.autocommit = True   # DDL needs autocommit; set before opening cursor
                     with src_conn.cursor() as cur:
-                        src_conn.autocommit = True
                         cur.execute(
                             sql.SQL("DROP TABLE IF EXISTS {}.{} CASCADE").format(
                                 sql.Identifier(src_schema),
@@ -459,7 +694,7 @@ def run_bulk_migration(
     table_names: list[str],
     from_dsn: str,
     to_dsn: str,
-    total_batch_rows: int,
+    total_batch_rows: int | float,
     src_schema: str = "public",
     tgt_schema: str = "public",
     move_mode: bool = False,
@@ -480,11 +715,23 @@ def run_bulk_migration(
     pause_event = win.pause_event
     start_time  = time.time()
 
+    # Count skipped tables (excluded by user in Inspector)
+    skipped_names = [
+        cfg.original_name for cfg in (table_configs or []) if cfg.skipped
+    ]
+
     mode_label = "✂️ MOVE" if move_mode else "🔁 COPY"
     win.log(
         f"{mode_label} | {src_schema} ➜ {tgt_schema} | "
         f"{len(table_names)} tables"
+        + (f"  |  ⏭ {len(skipped_names)} skipped" if skipped_names else "")
     )
+
+    # Log each skipped table explicitly in the progress window
+    if skipped_names:
+        win.log(f"⏭  Skipped tables ({len(skipped_names)}):")
+        for name in skipped_names:
+            win.log(f"       • {name}", "ERROR")
 
     # ── Pre-flight validation ──
     win.log("🔍 Pre-flight validation...")
@@ -540,8 +787,11 @@ def run_bulk_migration(
     active_lock    = threading.Lock()
     counters       = {"total": len(remaining), "done": 0, "failed": 0}
     counters_lock  = threading.Lock()
+    # Shared start-time reference accessible inside worker closures
+    _start_ref     = [start_time]
 
-    win.after(0, lambda: win.update_table_counts(len(remaining), 0, 0))
+    total_tables   = len(remaining)
+    win.after(0, lambda: win.update_table_counts(total_tables, 0, 0))
 
     # ── Parallel execution ──
     win.log(f"🚀 Launching {MAX_WORKERS} parallel workers...")
@@ -564,6 +814,7 @@ def run_bulk_migration(
                 win, pause_event,
                 src_schema, tgt_schema, move_mode,
                 tgt_name, col_renames, sel_cols,
+                total_batch_rows,
             )] = table
 
         for future in as_completed(futures):
@@ -573,16 +824,25 @@ def run_bulk_migration(
             except Exception as e:
                 win.log(f"❌ '{table}' → {e}", "ERROR")
 
-            # Update progress bar
+            # ── Update table-based progress bar on each table completion ──
+            with counters_lock:
+                done_so_far   = counters["done"]
+                failed_so_far = counters["failed"]
             elapsed = time.time() - start_time
             with progress_lock:
                 rows_done = progress["rows"]
             speed    = rows_done / elapsed if elapsed > 0 else 0
-            eta_secs = (total_batch_rows - rows_done) / speed if speed > 0 else 0
+            _remaining_rows = max(0, int(total_batch_rows) - int(rows_done))
+            eta_secs = _remaining_rows / speed if speed > 0 else 0
             eta      = time.strftime("%H:%M:%S", time.gmtime(eta_secs))
             win.after(
-                10,
+                0,
                 lambda c=rows_done, s=speed, e=eta, t=table: win.update_status(c, s, e, t)
+            )
+            win.after(
+                0,
+                lambda tot=total_tables, d=done_so_far, f=failed_so_far:
+                    win.update_table_counts(tot, d, f)
             )
 
     # ── Finalize report ──
@@ -621,4 +881,17 @@ def run_bulk_migration(
         )
 
     win.after(200, lambda: win.log(report.summary_text(), "SUCCESS"))
-    win.after(1500, master_app.refresh_ui)
+    # Auto-reconnect: refresh the main panels 2s after migration finishes
+    # so connection counters and table lists update automatically
+    win.after(2000, _safe_refresh(master_app))
+
+
+def _safe_refresh(app):
+    """Returns a lambda that safely calls refresh_ui even if the app was closed."""
+    def _do():
+        try:
+            if app.winfo_exists():
+                app.refresh_ui()
+        except Exception:
+            pass
+    return _do

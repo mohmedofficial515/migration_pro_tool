@@ -1,5 +1,5 @@
 """
-Ollama Chat Window — Modern Chat UI Edition
+Ollama Chat Window - Modern Chat UI Edition
 ============================================
 Professional bubble-based chat interface connected to local Ollama.
 Pre-loaded with full PostgreSQL table schema context.
@@ -22,6 +22,7 @@ from __future__ import annotations
 import datetime
 import json
 import re
+import time
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -43,6 +44,8 @@ except ImportError:
     _SQL_CONSTITUTION_AVAILABLE = False
     def _build_sql_constitution(schema="public", table="table") -> str:
         return ""
+
+from src.database.inspector import resolve_active_table
 
 try:
     from src.ai.chat_history import ChatHistory
@@ -107,10 +110,10 @@ RISK_COLOR = {
     RISK_WRITE:   "#d29922", RISK_READ:   "#3fb950",
 }
 RISK_LABEL = {
-    RISK_BLOCKED: "⛔  محظور — Blocked",
-    RISK_DANGER:  "🔴  خطر — Structural DDL",
-    RISK_WRITE:   "🟡  تعديل — Data Write",
-    RISK_READ:    "🟢  قراءة — Read Only",
+    RISK_BLOCKED: "[blocked]  محظور - Blocked",
+    RISK_DANGER:  "[red]  خطر - Structural DDL",
+    RISK_WRITE:   "[yellow]  تعديل - Data Write",
+    RISK_READ:    "[green]  قراءة - Read Only",
 }
 RISK_CONFIRM_KEYWORD = {RISK_DANGER: "EXECUTE", RISK_WRITE: "CONFIRM"}
 
@@ -200,7 +203,7 @@ class _Btn(tk.Frame):
                  bg=BTN_BG, fg=TEXT, hov=BTN_HOVER,
                  padx=10, pady=5, font=FONT_UI, **kw):
         super().__init__(master, bg=bg, **kw)
-        self._bg = bg; self._hov = hov; self._cmd = cmd
+        self._bg = bg; self._hov = hov; self._cmd = cmd; self._fg = fg
         self._lbl = tk.Label(self, text=text, bg=bg, fg=fg,
                              font=font, padx=padx, pady=pady, cursor="hand2")
         self._lbl.pack(fill="both", expand=True)
@@ -210,12 +213,24 @@ class _Btn(tk.Frame):
 
     def set_text(self, t): self._lbl.config(text=t)
     def set_fg(self, c):   self._lbl.config(fg=c)
+    
+    def set_disabled(self):
+        self._lbl.unbind("<Enter>")
+        self._lbl.unbind("<Leave>")
+        self._lbl.unbind("<Button-1>")
+        self._lbl.config(fg="#484f58", cursor="arrow")
+
+    def set_enabled(self):
+        self._lbl.bind("<Enter>",    lambda _: self._lbl.config(bg=self._hov))
+        self._lbl.bind("<Leave>",    lambda _: self._lbl.config(bg=self._bg))
+        self._lbl.bind("<Button-1>", lambda _: (self._cmd() if self._cmd else None))
+        self._lbl.config(fg=self._fg, cursor="hand2")
 
 
 # ─── Main Chat Window ─────────────────────────────────────────
 
 class OllamaChatWindow(tk.Toplevel):
-    """Modern bubble-based Ollama Chat — Arabic/English, SQL execution, streaming."""
+    """Modern bubble-based Ollama Chat - Arabic/English, SQL execution, streaming."""
 
     def __init__(self,
                  master:   tk.Widget,
@@ -238,11 +253,16 @@ class OllamaChatWindow(tk.Toplevel):
         self._url_var         = tk.StringVar(value=OLLAMA_BASE_DEFAULT)
         self._dsn: str        = context.get("dsn", "")
         self._rel_context:    dict       = {}   # FK discovery results
+        self._workspace_snapshots: list[str] = []
+        self._undo_btn: tk.Widget | None     = None
 
         # Chat UI state
         self._stream_text_widget: tk.Text | None = None
         self._stream_bubble_frame: tk.Frame | None = None
         self._dynamic_labels: list[tk.Label] = []   # for wraplength resize
+        self._current_agent: str = 'general'
+        self._agent_btns:    dict = {}
+
 
         self._setup_window()
         self._data_ready = bool(context.get("columns"))
@@ -270,21 +290,59 @@ class OllamaChatWindow(tk.Toplevel):
         # ── Restore previous messages into UI ──────────────────────────
         if self._history and self._history.has_history:
             self.after(300, self._restore_history_ui)
+        else:
+            # First open: fetch live column samples & send initial analysis
+            self.after(1200, self._trigger_initial_analysis)
 
     # ── Window ────────────────────────────────────────────────
 
     def _setup_window(self) -> None:
         ctx = self.context
-        self.title(f"💬 Ollama Chat — {ctx.get('src_schema')}.{ctx.get('table_name')}")
+        self.title(f"💬 Ollama Chat - {ctx.get('src_schema')}.{ctx.get('table_name')}")
         self.geometry("1220x780")
         self.minsize(840, 540)
         self.configure(bg=BG)
         self.resizable(True, True)
+        self.bind_all("<MouseWheel>", self._global_mouse_wheel, add="+")
+
+    def _global_mouse_wheel(self, event) -> None:
+        """Global mouse wheel handler to fix Tkinter scrolling on Windows."""
+        widget = self.winfo_containing(event.x_root, event.y_root)
+        if not widget or widget.winfo_toplevel() != self:
+            return
+        
+        # Try direct scroll if it's already a scrollable widget
+        if hasattr(widget, "yview_scroll") and widget != getattr(self, "_chat_canvas", None):
+            try:
+                widget.yview_scroll(-1 * (event.delta // 120), "units")
+                return
+            except Exception:
+                pass
+                
+        # Fallback: route to the main chat canvas
+        if getattr(self, "_chat_canvas", None):
+            self._chat_canvas.yview_scroll(-1 * (event.delta // 120), "units")
 
     # ── System Prompt ─────────────────────────────────────────
 
     def _build_system_prompt(self) -> None:
-        ctx   = self.context
+        """Build the system prompt using the active agent's prompt function."""
+        from src.ai.agents import AGENTS
+        agent = AGENTS.get(self._current_agent, AGENTS["general"])
+        self._system_prompt = agent.prompt_fn(self.context, self._rel_context)
+        # Also tack on RESPONSE FORMAT for all agents except general
+        if self._current_agent != "general":
+            ctx = self.context
+            extra = (
+                "\n\n=== RESPONSE FORMAT ===\n"
+                "Always respond with an ```actions block containing 1-5 concrete SQL actions.\n"
+                f"Use full qualified table name: {ctx.get('src_schema','public')}.{ctx.get('table_name','table')}\n"
+                "risk must be exactly: READ / WRITE / DANGER"
+            )
+            self._system_prompt += extra
+        return
+
+        ctx   = self.context  # dead code kept for reference below - overridden above
         stats = ctx.get("stats", {})
         cols  = ctx.get("columns", [])
         pks   = ctx.get("primary_keys", set())
@@ -316,7 +374,7 @@ class OllamaChatWindow(tk.Toplevel):
         lines += [
             f"=== TABLE: {ctx.get('src_schema')}.{ctx.get('table_name')} ===",
             f"Target : {ctx.get('tgt_schema')}.{ctx.get('target_name')}",
-            f"Rows   : ~{stats.get('rows', 0):,}   Size: {stats.get('size_pretty', '—')}",
+            f"Rows   : ~{stats.get('rows', 0):,}   Size: {stats.get('size_pretty', '-')}",
             f"Columns: {len(cols)} total, {len(sel)} selected",
             "",
             "COLUMNS (name | type | NULL% | distinct | flags | target):",
@@ -328,7 +386,7 @@ class OllamaChatWindow(tk.Toplevel):
             tgt   = ctx.get("column_renames", {}).get(name, name)
             flags = []
             if name in pks:  flags.append("PK")
-            if name in fks:  flags.append(f"FK→{fks[name]['ref_table']}.{fks[name]['ref_column']}")
+            if name in fks:  flags.append(f"FK->{fks[name]['ref_table']}.{fks[name]['ref_column']}")
             if name in uqs:  flags.append("UNIQUE")
             if name in idxs: flags.append("IDX")
             f_str = f" [{', '.join(flags)}]" if flags else ""
@@ -341,13 +399,13 @@ class OllamaChatWindow(tk.Toplevel):
             # ── Privacy: only send sample values for non-cloud models ──
             is_cloud = "cloud" in self._model_var.get().lower()
             if is_cloud:
-                samp_str = "(hidden — cloud model active, samples not sent)"
+                samp_str = "(hidden - cloud model active, samples not sent)"
             else:
                 samp_str = " | ".join(f"'{s['value']}'({s['pct']}%)" for s in samples[:3])
                 if not samp_str:
                     samp_str = "(run ANALYZE for samples)"
             lines.append(
-                f"  {is_sel} {name:<26} {ctype:<18} {null_s:<14} {dlabel:<18} → {tgt}{f_str}"
+                f"  {is_sel} {name:<26} {ctype:<18} {null_s:<14} {dlabel:<18} -> {tgt}{f_str}"
             )
             lines.append(f"        Samples: {samp_str}")
 
@@ -425,7 +483,7 @@ class OllamaChatWindow(tk.Toplevel):
             lines.append("Existing Foreign Keys:")
             for fk in existing:
                 lines.append(
-                    f"  FK {fk['constraint_name']}: {fk['fk_column']} → "
+                    f"  FK {fk['constraint_name']}: {fk['fk_column']} -> "
                     f"{fk['ref_schema']}.{fk['ref_table']}.{fk['ref_column']}"
                 )
         else:
@@ -436,13 +494,201 @@ class OllamaChatWindow(tk.Toplevel):
             lines.append("Candidate FK columns (no FK yet, matched by name):")
             for c in candidates:
                 lines.append(
-                    f"  {c['column_name']} ({c['data_type']}) → "
+                    f"  {c['column_name']} ({c['data_type']}) -> "
                     f"possible ref: {c['potential_ref_table']}.{c['potential_ref_column']}"
                 )
         else:
             lines.append("Candidate FK columns: (no automatic matches found)")
 
+    # ── Initial Analysis (first open) ─────────────────────────
+
+    def _trigger_initial_analysis(self) -> None:
+        """Called once on first open (no history). Fetches live column samples
+        in a background thread then sends the result to the AI for analysis."""
+        if not _PSYCOPG2_AVAILABLE or not self._dsn:
+            return
+        ctx = self.context
+        if not ctx.get("columns"):
+            return   # no schema loaded yet - skip
+
+        self._sys("[wait] جاري جلب عينات البيانات لأول تحليل...")
+        threading.Thread(target=self._fetch_and_send_initial_analysis,
+                         daemon=True).start()
+
+    def _fetch_and_send_initial_analysis(self) -> None:
+        """
+        Background thread:
+        1. Queries the DB for per-column samples, NULL%, distinct count,
+           min/max (for numeric / date cols).
+        2. Builds a rich markdown prompt.
+        3. Injects it as the first user→AI exchange so the AI starts
+           with full data awareness.
+        """
+        ctx    = self.context
+        schema = ctx.get("src_schema", "public")
+        table  = ctx.get("table_name", "")
+        cols   = ctx.get("columns", [])
+        stats  = ctx.get("stats", {})
+        pks    = ctx.get("primary_keys", set())
+        fks    = ctx.get("foreign_keys", {})
+        qs     = ctx.get("quick_stats", {})
+
+        if not table or not cols:
+            return
+
+        # Resolve actual workspace table
+        schema_n, orig_n, copy_n = self._get_safe_copy_name()
+        try:
+            conn = psycopg2.connect(self._dsn, connect_timeout=10,
+                                    cursor_factory=pg_extras.RealDictCursor)
+            conn.autocommit = False
+            col_data: list[dict] = []
+
+            with conn.cursor() as cur:
+                # Check if workspace exists
+                cur.execute(
+                    "SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema=%s AND table_name=%s",
+                    (schema_n, copy_n)
+                )
+                active = copy_n if cur.fetchone() else orig_n
+
+                for col in cols[:40]:   # cap at 40 cols for performance
+                    cname = col.get("column_name", "")
+                    ctype = col.get("data_type", "text")
+                    if not cname:
+                        continue
+
+                    entry = {
+                        "name":  cname,
+                        "type":  ctype,
+                        "flags": [],
+                    }
+
+                    # Flags
+                    if cname in pks:   entry["flags"].append("PK")
+                    if cname in fks:   entry["flags"].append(f"FK")
+                    cq = qs.get(cname, {})
+                    n_pct = cq.get("null_pct")
+                    entry["null_pct"]     = n_pct
+                    entry["distinct_lbl"] = cq.get("distinct_label", "?")
+
+                    # Live samples (3 distinct non-null values)
+                    try:
+                        quoted_col    = f'"{cname}"'
+                        quoted_schema = f'"{schema_n}"'
+                        quoted_table  = f'"{active}"'
+                        cur.execute(
+                            f"SELECT DISTINCT {quoted_col}::text AS v "
+                            f"FROM {quoted_schema}.{quoted_table} "
+                            f"WHERE {quoted_col} IS NOT NULL "
+                            f"LIMIT 5"
+                        )
+                        entry["samples"] = [r["v"] for r in cur.fetchall()]
+                    except Exception:
+                        entry["samples"] = cq.get("sample_values", [])
+                        if isinstance(entry["samples"], list) and entry["samples"]:
+                            entry["samples"] = [
+                                s["value"] if isinstance(s, dict) else str(s)
+                                for s in entry["samples"][:5]
+                            ]
+
+                    # Min/max for numeric and date columns
+                    is_numeric = any(t in ctype.lower() for t in
+                                     ("int", "float", "numeric", "double", "real", "serial"))
+                    is_date    = any(t in ctype.lower() for t in
+                                     ("date", "time", "timestamp", "interval"))
+                    if is_numeric or is_date:
+                        try:
+                            cur.execute(
+                                f"SELECT MIN({quoted_col}::text) AS mn, "
+                                f"MAX({quoted_col}::text) AS mx "
+                                f"FROM {quoted_schema}.{quoted_table} "
+                                f"WHERE {quoted_col} IS NOT NULL"
+                            )
+                            row = cur.fetchone()
+                            if row:
+                                entry["min"] = row["mn"]
+                                entry["max"] = row["mx"]
+                        except Exception:
+                            pass
+
+                    col_data.append(entry)
+
+            conn.rollback()
+            conn.close()
+
+        except Exception as e:
+            self.after(0, lambda err=str(e):
+                       self._sys(f"[x] فشل جلب العينات: {err}"))
+            return
+
+        # ── Build the analysis prompt ────────────────────────────────────
+        lines = [
+            f"## تحليل أولي لجدول: `{schema}.{table}`",
+            f"**الصفوف:** ~{stats.get('rows', 0):,}  |  **الحجم:** {stats.get('size_pretty', '-')}  |  "
+            f"**الأعمدة:** {len(cols)}",
+            "",
+            "### عينات بيانات حقيقية من كل عمود:",
+            "```",
+        ]
+
+        # Table header
+        lines.append(f"{'العمود':<28} {'النوع':<18} {'NULL%':<8} {'Distinct':<12} {'عينات'}")
+        lines.append("-" * 100)
+
+        high_null   = []
+        no_samples  = []
+
+        for c in col_data:
+            null_str  = f"{c['null_pct']:.1f}%" if c.get("null_pct") is not None else "?"
+            flags_str = f"[{','.join(c['flags'])}]" if c["flags"] else ""
+            samps     = c.get("samples", [])
+            samp_str  = " | ".join(f"'{str(s)[:25]}'" for s in samps[:3]) if samps else "(no data)"
+            mn = c.get("min"); mx = c.get("max")
+            if mn is not None:
+                samp_str += f"  [min:{mn} max:{mx}]"
+            lines.append(
+                f"{(c['name']+' '+flags_str):<28} {c['type']:<18} {null_str:<8} "
+                f"{c['distinct_lbl']:<12} {samp_str}"
+            )
+            if c.get("null_pct") and c["null_pct"] >= 20:
+                high_null.append((c["name"], c["null_pct"]))
+            if not samps:
+                no_samples.append(c["name"])
+
+        lines.append("```")
+        lines.append("")
+
+        if high_null:
+            lines.append("### [!] أعمدة بنسب NULL عالية:")
+            for cn, pct in sorted(high_null, key=lambda x: -x[1]):
+                lines.append(f"- `{cn}`: **{pct:.1f}%** NULL")
+            lines.append("")
+
+        if no_samples:
+            lines.append(f"### [!] أعمدة بدون بيانات ({len(no_samples)}):")
+            lines.append(", ".join(f"`{c}`" for c in no_samples[:10]))
+            lines.append("")
+
+        lines += [
+            "---",
+            "بناءً على هذه البيانات الحقيقية من الجدول:",
+            "1. حدد أبرز مشاكل جودة البيانات",
+            "2. اقترح أهم 3-5 إجراءات هجرة مرتّبة حسب الأولوية",
+            "3. استخدم عينات البيانات الفعلية لتبرير كل اقتراح",
+        ]
+
+        prompt = "\n".join(lines)
+
+        # Inject as a system message then trigger AI response
+        self.after(0, lambda p=prompt: (
+            self._sys(f"[ok] تم جلب عينات {len(col_data)} عمود. جاري التحليل..."),
+            self._inject_and_send(p)
+        ))
+
     def _fetch_relationship_context(self) -> None:
+
         """Query information_schema for existing and candidate FK relationships.
         Runs in a background thread; updates _rel_context and refreshes the system prompt.
         """
@@ -453,6 +699,8 @@ class OllamaChatWindow(tk.Toplevel):
         table  = ctx.get("table_name", "")
         if not table:
             return
+
+        active_table = resolve_active_table(self._dsn, table, schema)
 
         try:
             conn = psycopg2.connect(self._dsn, connect_timeout=8,
@@ -478,7 +726,7 @@ class OllamaChatWindow(tk.Toplevel):
                       AND tc.table_schema    = %s
                       AND tc.table_name      = %s
                     ORDER BY kcu.column_name;
-                """, (schema, table))
+                """, (schema, active_table))
                 existing_fks = [dict(r) for r in cur.fetchall()]
 
                 # ── 2. Candidate FK columns (name-pattern matching) ─
@@ -538,6 +786,8 @@ class OllamaChatWindow(tk.Toplevel):
     def _build_ui(self) -> None:
         self._build_title_bar()
         ttk.Separator(self, orient="horizontal").pack(fill="x")
+        self._build_agents_bar()
+        ttk.Separator(self, orient="horizontal").pack(fill="x")
         self._build_settings_bar()
         ttk.Separator(self, orient="horizontal").pack(fill="x")
 
@@ -559,6 +809,106 @@ class OllamaChatWindow(tk.Toplevel):
         ttk.Separator(self, orient="horizontal").pack(fill="x")
         self._build_input_bar()
 
+    # ── Agents Bar ───────────────────────────────
+
+    def _build_agents_bar(self) -> None:
+        """Horizontal agent-selector bar just below the title."""
+        from src.ai.agents import AGENTS, AGENT_ORDER
+
+        bar = tk.Frame(self, bg="#0d1117", height=50)
+        bar.pack(fill="x")
+        bar.pack_propagate(False)
+
+        tk.Label(bar, text="Agent:",
+                 bg="#0d1117", fg="#8b949e",
+                 font=("Segoe UI", 9)).pack(side="left", padx=(12, 6), pady=0)
+
+        self._agent_btns = {}
+        for agent_id in AGENT_ORDER:
+            agent = AGENTS[agent_id]
+            btn_frame = tk.Frame(bar, bg="#21262d", cursor="hand2")
+            btn_frame.pack(side="left", padx=3, pady=8)
+
+            lbl = tk.Label(
+                btn_frame,
+                text=f"{agent.icon}  {agent.name_ar}",
+                bg="#21262d", fg="#8b949e",
+                font=("Segoe UI", 9),
+                padx=10, pady=4,
+            )
+            lbl.pack()
+
+            def _on_enter(e, f=btn_frame, c=agent.color):
+                f.config(bg=c)
+                for w in f.winfo_children():
+                    w.config(bg=c, fg="#0d1117")
+
+            def _on_leave(e, f=btn_frame, aid=agent_id):
+                is_active = (aid == self._current_agent)
+                bg = AGENTS[aid].color if is_active else "#21262d"
+                fg = "#0d1117" if is_active else "#8b949e"
+                f.config(bg=bg)
+                for w in f.winfo_children():
+                    w.config(bg=bg, fg=fg)
+
+            def _on_click(e, aid=agent_id):
+                self._switch_agent(aid)
+
+            lbl.bind("<Enter>",    _on_enter)
+            lbl.bind("<Leave>",    _on_leave)
+            lbl.bind("<Button-1>", _on_click)
+            btn_frame.bind("<Enter>",    _on_enter)
+            btn_frame.bind("<Leave>",    _on_leave)
+            btn_frame.bind("<Button-1>", _on_click)
+
+            self._agent_btns[agent_id] = btn_frame
+
+        self._refresh_agent_buttons()
+
+    def _refresh_agent_buttons(self) -> None:
+        """Update all agent buttons to reflect the active state."""
+        from src.ai.agents import AGENTS
+        for aid, frame in self._agent_btns.items():
+            is_active = (aid == self._current_agent)
+            bg = AGENTS[aid].color if is_active else "#21262d"
+            fg = "#0d1117" if is_active else "#8b949e"
+            frame.config(bg=bg)
+            for w in frame.winfo_children():
+                w.config(bg=bg, fg=fg)
+
+    def _switch_agent(self, agent_id: str) -> None:
+        """Switch to a new agent: rebuild system prompt and show greeting."""
+        from src.ai.agents import AGENTS
+        if agent_id == self._current_agent:
+            return
+
+        agent = AGENTS.get(agent_id)
+        if not agent:
+            return
+
+        self._current_agent = agent_id
+        self._build_system_prompt()
+        self._refresh_agent_buttons()
+
+        # Visual separator
+        sep_row = tk.Frame(self._msg_container, bg="#0d1117", height=28)
+        sep_row.pack(fill="x", padx=0, pady=(8, 2))
+        tk.Label(
+            sep_row,
+            text=f"────  {agent.icon} {agent.name_ar}  ────",
+            bg="#0d1117", fg=agent.color,
+            font=("Segoe UI", 9, "bold"),
+        ).pack(side="top", pady=4)
+
+        # Greeting after short delay
+        self.after(120, lambda a=agent: self._agent_greet(a))
+
+    def _agent_greet(self, agent) -> None:
+        """Insert the agent greeting into the chat as an AI bubble."""
+        greeting = agent.greeting_fn(self.context)
+        self._begin_ai_bubble()
+        self._finalize_ai_bubble(greeting)
+
     # ── Title Bar ─────────────────────────────────────────────
 
     def _build_title_bar(self) -> None:
@@ -570,14 +920,14 @@ class OllamaChatWindow(tk.Toplevel):
         lf = tk.Frame(bar, bg=HEADER_BG, padx=12)
         lf.pack(side="left", fill="y", pady=6)
         ctx = self.context
-        tk.Label(lf, text="💬  Ollama Chat — Schema Advisor",
+        tk.Label(lf, text="💬  Ollama Chat - Schema Advisor",
                  bg=HEADER_BG, fg=TEXT, font=FONT_TITLE).pack(anchor="w")
         tk.Label(lf,
-                 text=f"{ctx.get('src_schema')}.{ctx.get('table_name')}  →  "
+                 text=f"{ctx.get('src_schema')}.{ctx.get('table_name')}  ->  "
                       f"{ctx.get('tgt_schema')}.{ctx.get('target_name')}",
                  bg=HEADER_BG, fg=TEXT_DIM, font=FONT_MONO).pack(anchor="w")
 
-        self._conn_lbl = tk.Label(bar, text="⏳ Connecting...",
+        self._conn_lbl = tk.Label(bar, text="[wait] Connecting...",
                                    bg=HEADER_BG, fg=WARNING, font=FONT_MONO, padx=14)
         self._conn_lbl.pack(side="right", fill="y")
 
@@ -603,7 +953,7 @@ class OllamaChatWindow(tk.Toplevel):
                                lambda _: self._auto_check_model())
 
         self._check_btn = _Btn(
-            left, "🔍 Check", cmd=self._check_model,
+            left, "[search] Check", cmd=self._check_model,
             bg=ENTRY_BG, hov=BTN_HOVER, fg=TEXT_DIM,
             padx=8, pady=3, font=FONT_SMALL,
         )
@@ -624,7 +974,7 @@ class OllamaChatWindow(tk.Toplevel):
         self._url_var.trace_add("write",
             lambda *_: setattr(self, "_base_url", self._url_var.get().strip()))
 
-        _Btn(bar, "🔄 Refresh", cmd=self._refresh_models,
+        _Btn(bar, "[reload] Refresh", cmd=self._refresh_models,
              bg=HEADER_BG, hov=BTN_HOVER, fg=TEXT_DIM,
              padx=8, pady=3, font=FONT_SMALL).pack(side="left")
 
@@ -632,9 +982,19 @@ class OllamaChatWindow(tk.Toplevel):
              bg=HEADER_BG, hov=BTN_HOVER, fg=DANGER,
              padx=8, pady=3, font=FONT_SMALL).pack(side="right", padx=8)
 
-        _Btn(bar, "✨ New Chat", cmd=self._new_chat,
+        self._undo_btn = _Btn(bar, "[back] تراجع (Undo)", cmd=self._undo_last_workspace_action,
+             bg=HEADER_BG, hov="#1f6feb", fg="#58a6ff",
+             padx=4, pady=3, font=FONT_SMALL)
+        self._undo_btn.pack(side="right", padx=4)
+        self._undo_btn.set_disabled()
+
+        _Btn(bar, "[*] New Chat", cmd=self._new_chat,
              bg=HEADER_BG, hov=BTN_HOVER, fg=ACCENT2,
              padx=8, pady=3, font=FONT_SMALL).pack(side="right", padx=(0, 4))
+             
+        _Btn(bar, "🚀 تطبيق على الأصلي", cmd=self._commit_workspace_dialog,
+             bg="#238636", hov="#2ea043", fg="#ffffff",
+             padx=12, pady=3, font=("Segoe UI", 9, "bold")).pack(side="right", padx=(0, 16))
 
     # ── Chat Area (bubble-based, scrollable canvas) ───────────
 
@@ -689,7 +1049,36 @@ class OllamaChatWindow(tk.Toplevel):
                 pass
 
     def _scroll_bottom(self) -> None:
-        self._chat_canvas.after(30, lambda: self._chat_canvas.yview_moveto(1.0))
+        """Scroll the chat canvas to the very bottom.
+        Uses two-stage delay: first update layout, then scroll.
+        """
+        def _do_scroll():
+            try:
+                self._chat_canvas.update_idletasks()
+                self._chat_canvas.configure(
+                    scrollregion=self._chat_canvas.bbox("all"))
+                self._chat_canvas.yview_moveto(1.0)
+            except tk.TclError:
+                pass
+        # First pass: quickly after widget creation
+        self._chat_canvas.after(50,  _do_scroll)
+        # Second pass: after Tkinter finishes redrawing (belt-and-suspenders)
+        self._chat_canvas.after(250, _do_scroll)
+
+    def _prune_old_bubbles(self, keep: int = 60) -> None:
+        """Remove oldest message rows when the chat grows too large.
+        Keeps the most recent `keep` rows to prevent canvas widget overload
+        which causes the scroll region to freeze.
+        """
+        children = list(self._msg_container.pack_slaves())
+        excess   = len(children) - keep
+        if excess <= 0:
+            return
+        for widget in children[:excess]:
+            try:
+                widget.destroy()
+            except tk.TclError:
+                pass
 
     # ── Context Panel ─────────────────────────────────────────
 
@@ -720,7 +1109,7 @@ class OllamaChatWindow(tk.Toplevel):
         _row("Source:", f"{ctx.get('src_schema')}.{ctx.get('table_name')}")
         _row("Target:", f"{ctx.get('tgt_schema')}.{ctx.get('target_name')}", ACCENT2)
         _row("Rows:",   f"{stats.get('rows', 0):,}")
-        _row("Size:",   stats.get("size_pretty", "—"))
+        _row("Size:",   stats.get("size_pretty", "-"))
         col_count = len(cols); sel_count = len(sel)
         _row("Columns:", f"{col_count} total",
              ACCENT2 if col_count else WARNING)
@@ -729,7 +1118,7 @@ class OllamaChatWindow(tk.Toplevel):
 
         if col_count == 0:
             tk.Label(body,
-                     text="⚠️ Schema data not loaded yet.",
+                     text="[!] Schema data not loaded yet.",
                      bg=PANEL_BG, fg=WARNING, font=FONT_SMALL,
                      justify="left", wraplength=220).pack(anchor="w", pady=(6, 0))
 
@@ -741,7 +1130,7 @@ class OllamaChatWindow(tk.Toplevel):
         ]
         if high_null:
             tk.Frame(body, bg=BORDER, height=1).pack(fill="x", pady=6)
-            tk.Label(body, text="⚠️ High-Null Cols:",
+            tk.Label(body, text="[!] High-Null Cols:",
                      bg=PANEL_BG, fg=WARNING, font=FONT_BOLD).pack(anchor="w")
             for cn, pct in sorted(high_null, key=lambda x: -x[1])[:7]:
                 fr = tk.Frame(body, bg=PANEL_BG); fr.pack(fill="x", pady=1)
@@ -752,7 +1141,7 @@ class OllamaChatWindow(tk.Toplevel):
 
         tk.Frame(body, bg=BORDER, height=1).pack(fill="x", pady=8)
 
-        _Btn(body, "✅ Apply Last Response", cmd=self._apply_last_response,
+        _Btn(body, "[ok] Apply Last Response", cmd=self._apply_last_response,
              bg="#0f2d1a", hov="#1a4a2e", fg=ACCENT2,
              font=FONT_BOLD, padx=8, pady=8).pack(fill="x", pady=(0, 4))
 
@@ -763,11 +1152,11 @@ class OllamaChatWindow(tk.Toplevel):
         self._sql_btn.pack(fill="x", pady=(0, 4))
         self._sql_btn._lbl.config(state="disabled", cursor="arrow", fg=TEXT_DIM)
 
-        _Btn(body, "📋 Copy Last Message", cmd=self._copy_last,
+        _Btn(body, "[clipboard] Copy Last Message", cmd=self._copy_last,
              bg=ENTRY_BG, hov=BTN_HOVER, fg=TEXT_DIM,
              padx=8, pady=6, font=FONT_SMALL).pack(fill="x", pady=(0, 4))
 
-        _Btn(body, "📤 Export Chat", cmd=self._export_chat,
+        _Btn(body, "[send] Export Chat", cmd=self._export_chat,
              bg=ENTRY_BG, hov=BTN_HOVER, fg=TEXT_DIM,
              padx=8, pady=6, font=FONT_SMALL).pack(fill="x", pady=(0, 4))
 
@@ -780,7 +1169,7 @@ class OllamaChatWindow(tk.Toplevel):
         tk.Label(body, text="  🔗 RELATIONSHIPS",
                  bg=PANEL_BG, fg=ACCENT, font=FONT_BOLD).pack(anchor="w")
 
-        _Btn(body, "🔍 تحليل العلاقات / Analyze", cmd=self._analyze_relationships,
+        _Btn(body, "[search] تحليل العلاقات / Analyze", cmd=self._analyze_relationships,
              bg="#0d1f2d", hov="#1a2e40", fg=ACCENT,
              font=FONT_BOLD, padx=8, pady=8).pack(fill="x", pady=(4, 2))
 
@@ -801,7 +1190,7 @@ class OllamaChatWindow(tk.Toplevel):
         outer.pack_propagate(False)
 
         tk.Label(outer,
-                 text="Enter ← إرسال  |  Shift+Enter ← سطر جديد / new line",
+                 text="Enter <- إرسال  |  Shift+Enter <- سطر جديد / new line",
                  bg=HEADER_BG, fg=TEXT_DIM, font=("Segoe UI", 8), padx=14,
                  ).pack(anchor="w")
 
@@ -831,7 +1220,7 @@ class OllamaChatWindow(tk.Toplevel):
         bc = tk.Frame(inner, bg=HEADER_BG)
         bc.pack(side="right", fill="y")
 
-        self._send_btn = _Btn(bc, "📤  إرسال / Send",
+        self._send_btn = _Btn(bc, "[send]  إرسال / Send",
                                cmd=self._send,
                                bg="#0f2d1a", hov="#1a4a2e", fg=ACCENT2,
                                font=FONT_BOLD, padx=12, pady=10)
@@ -890,7 +1279,7 @@ class OllamaChatWindow(tk.Toplevel):
     def _on_connected(self, fetched: list[str]) -> None:
         n = len(fetched)
         self._conn_lbl.config(
-            text=f"🟢 Ollama  ({n} local + {len(PREDEFINED_MODELS)} catalogue)",
+            text=f"[green] Ollama  ({n} local + {len(PREDEFINED_MODELS)} catalogue)",
             fg=ACCENT2)
         merged = list(dict.fromkeys(fetched + PREDEFINED_MODELS))
         self._model_combo["values"] = merged
@@ -900,36 +1289,36 @@ class OllamaChatWindow(tk.Toplevel):
         model = self._model_var.get()
         if "cloud" in model.lower():
             self._sys(
-                "⚠️  Privacy Warning: Cloud model active\n"
+                "[!]  Privacy Warning: Cloud model active\n"
                 f"  Model: {model}\n"
-                "  ☁️  Schema info & query results will be sent to external servers.\n"
+                "  ☁  Schema info & query results will be sent to external servers.\n"
                 "  Do NOT use with sensitive data (PII/passwords/customer data).\n"
                 "  معلومات قاعدة البيانات ستُرسل لخوادم خارجية. لا تستخدم مع بيانات حساسة."
             )
         self._start_conversation()
 
     def _on_connect_failed(self, err: str) -> None:
-        self._conn_lbl.config(text="🔴 Ollama not reachable", fg=DANGER)
+        self._conn_lbl.config(text="[red] Ollama not reachable", fg=DANGER)
         self._model_combo["values"] = PREDEFINED_MODELS
-        self._sys(f"⚠️ Cannot reach Ollama:\n  {err}\n\nRun: ollama serve  →  then click 🔄 Refresh")
+        self._sys(f"[!] Cannot reach Ollama:\n  {err}\n\nRun: ollama serve  ->  then click [reload] Refresh")
 
     def _refresh_models(self) -> None:
-        self._conn_lbl.config(text="⏳ Refreshing...", fg=WARNING)
+        self._conn_lbl.config(text="[wait] Refreshing...", fg=WARNING)
         self._model_status.config(text="")
         threading.Thread(target=self._bg_connect, daemon=True).start()
 
     def _auto_check_model(self) -> None:
         model = self._model_var.get().strip()
-        self._model_status.config(text="⏳", fg=WARNING)
+        self._model_status.config(text="[wait]", fg=WARNING)
         threading.Thread(target=self._bg_check_model, args=(model,), daemon=True).start()
 
     def _check_model(self) -> None:
         model = self._model_var.get().strip()
         if not model:
-            self._model_status.config(text="⚠️ empty", fg=WARNING)
+            self._model_status.config(text="[!] empty", fg=WARNING)
             return
-        self._model_status.config(text="⏳ checking...", fg=WARNING)
-        self._check_btn._lbl.config(text="⏳")
+        self._model_status.config(text="[wait] checking...", fg=WARNING)
+        self._check_btn._lbl.config(text="[wait]")
         threading.Thread(target=self._bg_check_model, args=(model,), daemon=True).start()
 
     def _bg_check_model(self, model: str) -> None:
@@ -949,25 +1338,25 @@ class OllamaChatWindow(tk.Toplevel):
             with request.urlopen(req, timeout=30) as resp:
                 data  = json.loads(resp.read())
                 reply = data.get("message", {}).get("content", "").strip()[:20]
-            icon = "☁️" if "cloud" in model else "✅"
+            icon = "☁" if "cloud" in model else "[ok]"
             self.after(0, lambda: self._on_model_ok(model, icon, reply))
         except Exception as e:
             self.after(0, lambda: self._on_model_fail(model, str(e)[:50]))
 
     def _on_model_ok(self, model: str, icon: str, reply: str) -> None:
         self._model_status.config(text=f"{icon} ready", fg=ACCENT2)
-        self._check_btn._lbl.config(text="🔍 Check")
-        tag = "☁️ cloud" if "cloud" in model else "✅ local"
+        self._check_btn._lbl.config(text="[search] Check")
+        tag = "☁ cloud" if "cloud" in model else "[ok] local"
         self._sys(f"Model '{model}' is ready [{tag}]. Reply: {reply}")
 
     def _on_model_fail(self, model: str, err: str) -> None:
-        self._model_status.config(text=f"❌ {err[:30]}", fg=DANGER)
-        self._check_btn._lbl.config(text="🔍 Check")
-        self._sys(f"❌ Model '{model}' failed: {err}\nRun: ollama pull {model}")
+        self._model_status.config(text=f"[x] {err[:30]}", fg=DANGER)
+        self._check_btn._lbl.config(text="[search] Check")
+        self._sys(f"[x] Model '{model}' failed: {err}\nRun: ollama pull {model}")
 
     def _warn_no_data(self) -> None:
         self._sys(
-            "⚠️ بيانات الجدول لا تزال تُحمَّل / Table data is still loading.\n"
+            "[!] بيانات الجدول لا تزال تُحمَّل / Table data is still loading.\n"
             "ستبدأ المحادثة تلقائياً بعد الاكتمال. / Conversation starts automatically after load."
         )
         self._animate_loading(0)
@@ -987,7 +1376,7 @@ class OllamaChatWindow(tk.Toplevel):
 
     def _start_conversation(self) -> None:
         if not self._data_ready:
-            self._sys("⏳ انتظار بيانات الجدول... / Waiting for table data...")
+            self._sys("[wait] انتظار بيانات الجدول... / Waiting for table data...")
             return
         self._messages = [{"role": "system", "content": self._system_prompt}]
         # Seed with a structured-analysis request so model follows the action format
@@ -998,7 +1387,7 @@ class OllamaChatWindow(tk.Toplevel):
                 "(ترحيب + ملخص + ```actions块 مع الإجراءات المقترحة)."
             ),
         })
-        self._sys("✓ متصل / Connected — جاري تحليل الجدول...")
+        self._sys("✓ متصل / Connected - جاري تحليل الجدول...")
         threading.Thread(target=self._stream, daemon=True).start()
 
     def _inject_and_send(self, prompt: str) -> None:
@@ -1038,7 +1427,7 @@ class OllamaChatWindow(tk.Toplevel):
 
     def _stream(self) -> None:
         self._streaming = True
-        self.after(0, lambda: self._send_btn.set_text("⏳ يفكر..."))
+        self.after(0, lambda: self._send_btn.set_text("[wait] يفكر..."))
         self.after(0, lambda: self._send_btn.set_fg(WARNING))
         full = ""
 
@@ -1072,9 +1461,9 @@ class OllamaChatWindow(tk.Toplevel):
 
         except URLError as e:
             reason = getattr(e, "reason", None) or str(e)
-            self.after(0, lambda r=reason: self._sys(f"❌ Ollama error: {r}"))
+            self.after(0, lambda r=reason: self._sys(f"[x] Ollama error: {r}"))
         except Exception as e:
-            self.after(0, lambda: self._sys(f"❌ Error: {e}"))
+            self.after(0, lambda: self._sys(f"[x] Error: {e}"))
         finally:
             if full:
                 self._messages.append({"role": "assistant", "content": full})
@@ -1082,14 +1471,14 @@ class OllamaChatWindow(tk.Toplevel):
                 self.after(0, lambda: self._finalize_ai_bubble(full))
                 self.after(0, lambda: self._post_process_ai_message(full))
             self._streaming = False
-            self.after(0, lambda: self._send_btn.set_text("📤  إرسال / Send"))
+            self.after(0, lambda: self._send_btn.set_text("[send]  إرسال / Send"))
             self.after(0, lambda: self._send_btn.set_fg(ACCENT2))
 
     def _post_process_ai_message(self, text: str) -> None:
         sql_blocks = re.findall(r"```sql\s*(.*?)```", text, re.DOTALL | re.IGNORECASE)
         if sql_blocks:
             raw_sql = sql_blocks[-1].strip()
-            sql     = _clean_sql(raw_sql)          # ← strip comments / placeholders
+            sql     = _clean_sql(raw_sql)          # <- strip comments / placeholders
             risk    = _classify_sql(sql)
             self._pending_sql  = sql
             self._pending_risk = risk
@@ -1105,7 +1494,7 @@ class OllamaChatWindow(tk.Toplevel):
             cleaned = sql != raw_sql
             note = " (تم تنظيفه / cleaned)" if cleaned else ""
             self._sys(
-                f"SQL detected{note}  →  Risk: {RISK_LABEL[risk]}\n"
+                f"SQL detected{note}  ->  Risk: {RISK_LABEL[risk]}\n"
                 "Click '⚡ Execute SQL' in the side panel to review."
             )
         else:
@@ -1114,10 +1503,10 @@ class OllamaChatWindow(tk.Toplevel):
                 text="⚡ Execute Pending SQL", fg=TEXT_DIM)
             self._pending_sql = ""
 
-    # ── Chat Display — Bubble System ──────────────────────────
+    # ── Chat Display - Bubble System ──────────────────────────
 
     def _sys(self, msg: str) -> None:
-        """Small centered system / info message — not a bubble."""
+        """Small centered system / info message - not a bubble."""
         row = tk.Frame(self._msg_container, bg=PANEL_BG)
         row.pack(fill="x", padx=20, pady=3)
         lbl = tk.Label(row, text=msg, bg=PANEL_BG, fg=SYS_TEXT,
@@ -1131,6 +1520,7 @@ class OllamaChatWindow(tk.Toplevel):
         is_rtl = _is_rtl(text)
         ts     = _now_str()
 
+        self._prune_old_bubbles()
         row = tk.Frame(self._msg_container, bg=PANEL_BG)
         row.pack(fill="x", padx=12, pady=6)
 
@@ -1168,14 +1558,15 @@ class OllamaChatWindow(tk.Toplevel):
 
     def _begin_ai_bubble(self) -> None:
         """Create an AI bubble with a live-updating Text widget for streaming."""
+        self._prune_old_bubbles()
         ts  = _now_str()
         row = tk.Frame(self._msg_container, bg=PANEL_BG)
         row.pack(fill="x", padx=12, pady=6)
-        # NOTE: do NOT call row.pack_propagate(False) — it prevents
+        # NOTE: do NOT call row.pack_propagate(False) - it prevents
         # the row from growing after the streaming Text is replaced by Labels.
 
         # Avatar
-        tk.Label(row, text="🤖", bg=PANEL_BG,
+        tk.Label(row, text="[AI]", bg=PANEL_BG,
                  font=("Segoe UI Emoji", 15), padx=6
                  ).pack(side="left", anchor="n", pady=6)
 
@@ -1195,7 +1586,7 @@ class OllamaChatWindow(tk.Toplevel):
         bubble = tk.Frame(col, bg=AI_BUBBLE, padx=14, pady=10)
         bubble.pack(fill="x", anchor="w")
 
-        # Streaming text widget — temporary until stream ends
+        # Streaming text widget - temporary until stream ends
         txt = tk.Text(
             bubble,
             bg=AI_BUBBLE, fg=TEXT,
@@ -1280,29 +1671,173 @@ class OllamaChatWindow(tk.Toplevel):
             if code_match:
                 lang = code_match.group(1).strip().lower() or "sql"
                 code = code_match.group(2).strip()
-                if lang == "choices":       # Section 14 — structured JSON choices
+                if lang == "choices":       # Section 14 - structured JSON choices
                     self._render_structured_choices(bubble, code)
-                elif lang == "suggestions": # Section 15 — skipped here, handled separately
+                elif lang == "suggestions": # Section 15 - skipped here, handled separately
                     pass
                 elif lang == "actions":     # Legacy action cards (backward compat)
                     self._render_action_cards(bubble, code)
                 else:
                     self._render_code_block(bubble, code, lang)
             else:
-                stripped = part.strip()
-                if not stripped:
+                self._render_markdown_text(bubble, part)
+
+    def _render_markdown_text(self, parent: tk.Frame, text: str) -> None:
+        """Parses simple markdown tables, lists, and stats into professional Tkinter widgets."""
+        lines = text.strip().split('\n')
+        
+        in_table = False
+        table_headers = []
+        table_rows = []
+        
+        def commit_table():
+            nonlocal in_table, table_headers, table_rows
+            if not in_table or not table_headers:
+                return
+            
+            # Container for the table with a clean border
+            tf = tk.Frame(parent, bg=BORDER, padx=1, pady=1)
+            tf.pack(fill="x", anchor="center", pady=(10, 16), padx=16)
+            
+            style = ttk.Style()
+            # Professional treeview styling
+            style.configure("Chat.Treeview", background="#0d1117", 
+                            foreground="#c9d1d9", fieldbackground="#0d1117", 
+                            rowheight=28, font=("Segoe UI", 10))
+            style.configure("Chat.Treeview.Heading", background="#161b22", 
+                            foreground="#58a6ff", font=("Segoe UI", 10, "bold"))
+            style.layout("Chat.Treeview", [('Chat.Treeview.treearea', {'sticky': 'nswe'})])
+            
+            tree = ttk.Treeview(tf, columns=table_headers, show="headings", 
+                                height=min(len(table_rows), 12), style="Chat.Treeview")
+            tree.pack(fill="x")
+            
+            tree.tag_configure('odd', background='#161b22')
+            tree.tag_configure('even', background='#0d1117')
+            
+            # Detect mostly Arabic headers to switch alignments
+            headers_rtl = any(_is_rtl(h) for h in table_headers)
+            anchor_col = "e" if headers_rtl else "w"
+            
+            for h in table_headers:
+                tree.heading(h, text=h.strip())
+                tree.column(h, width=150, anchor="center", stretch=True)
+                
+            for i, r in enumerate(table_rows):
+                padded = r + [""] * (len(table_headers) - len(r))
+                tag = 'odd' if i % 2 == 0 else 'even'
+                tree.insert("", "end", values=padded[:len(table_headers)], tags=(tag,))
+                
+            in_table = False
+            table_headers = []
+            table_rows = []
+
+        current_para = []
+        for line in lines:
+            stripped = line.strip()
+            
+            if not stripped:
+                if current_para:
+                    self._create_text_label(parent, "\n".join(current_para))
+                    current_para = []
+                commit_table()
+                continue
+                
+            # Table detection
+            if stripped.startswith('|') and stripped.endswith('|'):
+                if current_para:
+                    self._create_text_label(parent, "\n".join(current_para))
+                    current_para = []
+                
+                parts = [p.strip() for p in stripped.split('|')[1:-1]]
+                if all(all(c in '-:' for c in p) for p in parts if p):
                     continue
+                    
+                if not in_table:
+                    in_table = True
+                    table_headers = parts
+                else:
+                    table_rows.append(parts)
+                continue
+                
+            # Lists/Stats detection
+            if stripped.startswith('- ') or stripped.startswith('* ') or re.match(r'^\d+\.\s', stripped):
+                if current_para:
+                    self._create_text_label(parent, "\n".join(current_para))
+                    current_para = []
+                commit_table()
+                
+                raw_txt = re.sub(r'^(-\s|\*\s|\d+\.\s)', '', stripped)
                 is_rtl = _is_rtl(stripped)
-                lbl = tk.Label(
-                    bubble, text=stripped,
-                    bg=AI_BUBBLE, fg=TEXT,
-                    font=FONT_CHAT,
-                    justify="right" if is_rtl else "left",
-                    anchor="e" if is_rtl else "w",
-                    wraplength=580,
-                )
-                lbl.pack(fill="x", anchor="w", pady=(2, 0))
-                self._dynamic_labels.append((lbl, "ai"))
+                
+                stat_match = re.search(r'(\d+(?:\.\d+)?)\s*%', raw_txt)
+                if stat_match or ':' in raw_txt:
+                    # Render as a structured Stat item (Key-Value look)
+                    row = tk.Frame(parent, bg="#0d1117", highlightbackground=BORDER, highlightthickness=1)
+                    row.pack(fill="x", anchor="w", pady=(3, 3), padx=16)
+                    
+                    if ":" in raw_txt:
+                        parts = raw_txt.rsplit(':', 1)
+                        if is_rtl:
+                            # In RTL, right side is the key, left is the value
+                            tk.Label(row, text="  " + parts[0].strip() + "  ", bg="#0d1117", fg=TEXT, font=FONT_CHAT).pack(side="right", padx=8, pady=6)
+                            tk.Label(row, text=parts[1].strip(), bg="#0d1117", fg="#79c0ff", font=("Segoe UI", 10, "bold")).pack(side="left", padx=8, pady=6)
+                        else:
+                            tk.Label(row, text="  " + parts[0].strip() + "  ", bg="#0d1117", fg=TEXT, font=FONT_CHAT).pack(side="left", padx=8, pady=6)
+                            tk.Label(row, text=parts[1].strip(), bg="#0d1117", fg="#79c0ff", font=("Segoe UI", 10, "bold")).pack(side="right", padx=8, pady=6)
+                    else:
+                        tk.Label(row, text="  •  " + raw_txt, bg="#0d1117", fg="#79c0ff", font=("Segoe UI", 10, "bold"),
+                                 justify="right" if is_rtl else "left").pack(side="right" if is_rtl else "left", padx=8, pady=6)
+                else:
+                    self._create_text_label(parent, "  •  " + raw_txt, padx=16, fg="#d2a8ff")
+                continue
+                
+            # Headers
+            if stripped.startswith('#'):
+                if current_para:
+                    self._create_text_label(parent, "\n".join(current_para))
+                    current_para = []
+                commit_table()
+                
+                level = len(stripped) - len(stripped.lstrip('#'))
+                f_size = 14 if level == 1 else 12 if level == 2 else 11
+                txt = stripped.lstrip('#').strip()
+                is_hdr_rtl = _is_rtl(txt)
+                
+                hdr_container = tk.Frame(parent, bg=AI_BUBBLE)
+                hdr_container.pack(fill="x", pady=(18, 6), padx=4)
+                
+                lbl = tk.Label(hdr_container, text=txt, bg=AI_BUBBLE, fg="#58a6ff", 
+                               font=("Segoe UI", f_size, "bold"))
+                lbl.pack(anchor="e" if is_hdr_rtl else "w", padx=8)
+                
+                # Bottom border for headers
+                tk.Frame(hdr_container, bg=BORDER, height=1).pack(fill="x", padx=8, pady=(4, 0))
+                continue
+                
+            commit_table()
+            current_para.append(stripped)
+            
+        if current_para:
+            self._create_text_label(parent, "\n".join(current_para))
+        commit_table()
+
+    def _create_text_label(self, parent: tk.Frame, text: str, padx: int = 0, fg: str = TEXT) -> None:
+        if not text: return
+        is_rtl = _is_rtl(text)
+        
+        # Clean basic markdown tags
+        clean_text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
+        clean_text = re.sub(r'__(.*?)__', r'\1', clean_text)
+        clean_text = re.sub(r'`(.*?)`', r' \1 ', clean_text)
+        
+        lbl = tk.Label(parent, text=clean_text, 
+                       bg=AI_BUBBLE, fg=fg, font=FONT_CHAT,
+                       justify="right" if is_rtl else "left",
+                       anchor="e" if is_rtl else "w",
+                       wraplength=580)
+        lbl.pack(fill="x", anchor="w", pady=(2, 2), padx=(padx, padx))
+        self._dynamic_labels.append((lbl, "ai"))
 
     # ── Structured Choices (Section 14 of Constitution) ────────
 
@@ -1311,17 +1846,41 @@ class OllamaChatWindow(tk.Toplevel):
         Parse a ```choices JSON block and render each item as a clickable action button.
         Supports action types: SQL (show approval dialog) and SEND (send prompt to AI).
         """
+        # --- Robust JSON Cleanup (Auto-Healing) ---
+        clean_str = json_str.strip()
+        
+        # 1. Remove accidental markdown fences if any slipped through
+        if clean_str.startswith("```"):
+            clean_str = re.sub(r'^```(?:json|choices)?', '', clean_str, flags=re.IGNORECASE).strip()
+        if clean_str.endswith("```"):
+            clean_str = re.sub(r'```$', '', clean_str).strip()
+            
+        # 2. Fix trailing commas before closing brackets (common LLM hallucination)
+        clean_str = re.sub(r',\s*\}', '}', clean_str)
+        clean_str = re.sub(r',\s*\]', ']', clean_str)
+
         try:
-            choices = json.loads(json_str)
-            if not isinstance(choices, list) or not choices:
-                raise ValueError("Expected non-empty list")
-        except Exception as exc:
-            # Fallback: render as code block
+            choices = json.loads(clean_str)
+        except Exception:
+            # 3. Fallback: Aggressive extraction (find the first '[' and last ']')
+            m = re.search(r'\[[\s\S]*\]', clean_str)
+            if m:
+                extracted = m.group(0)
+                try:
+                    choices = json.loads(extracted)
+                except Exception:
+                    self._render_code_block(bubble, json_str, "json")
+                    return
+            else:
+                self._render_code_block(bubble, json_str, "json")
+                return
+
+        if not isinstance(choices, list) or not choices:
             self._render_code_block(bubble, json_str, "json")
             return
 
         RISK_COLORS = {"READ": ACCENT2, "WRITE": WARNING, "DANGER": DANGER}
-        ACTION_ICON = {"SQL": "▶", "SEND": "→"}
+        ACTION_ICON = {"SQL": ">", "SEND": "->"}
         CHIP_COLORS = [ACCENT, ACCENT2, WARNING, "#7c6af7", "#2ea043", "#e05c5c"]
 
         hdr = tk.Frame(bubble, bg=AI_BUBBLE)
@@ -1383,15 +1942,46 @@ class OllamaChatWindow(tk.Toplevel):
             pill_inner = tk.Frame(pill_f, bg=btn_color, padx=6, pady=3)
             pill_inner.pack(anchor="center", expand=True)
             tk.Label(pill_inner,
-                     text=f"{ACTION_ICON.get(action,'?')} {risk if action == 'SQL' else 'SEND'}",
+                     text=f"{ACTION_ICON.get(action,'?')} {risk if bool(sql) else 'SEND'}",
                      bg=btn_color, fg=BG,
                      font=("Segoe UI", 7, "bold")).pack()
+
+            # Stats (if any)
+            stats = choice.get("stats")
+            if stats and isinstance(stats, list):
+                stats_container = tk.Frame(card, bg="#161b22", padx=28, pady=4)
+                stats_container.pack(fill="x")
+                for st in stats:
+                    st_name = st.get("name", "")
+                    st_val = st.get("value", "")
+                    st_prog = st.get("progress")
+                    
+                    row = tk.Frame(stats_container, bg="#161b22")
+                    row.pack(fill="x", pady=1)
+                    
+                    val_lbl = tk.Label(row, text=str(st_val), bg="#161b22", fg="#79c0ff", font=("Consolas", 9, "bold"))
+                    val_lbl.pack(side="right")
+                    
+                    is_rtl_st = _is_rtl(str(st_name))
+                    tk.Label(row, text=str(st_name), bg="#161b22", fg="#8b949e", font=("Segoe UI", 9), anchor="e" if is_rtl_st else "w").pack(side="left")
+                    
+                    if isinstance(st_prog, (int, float)):
+                        prog_bg = tk.Frame(stats_container, bg="#2d333b", height=5)
+                        prog_bg.pack(fill="x", pady=(2, 6))
+                        prog_bg.pack_propagate(False)
+                        pct_width = max(0, min(1.0, float(st_prog) / 100.0))
+                        if pct_width > 0:
+                            # Use btn_color for normal action, or fallback
+                            prog_bar = tk.Frame(prog_bg, bg=btn_color)
+                            prog_bar.place(relx=0, rely=0, relwidth=pct_width, relheight=1.0)
+                        else:
+                            tk.Frame(prog_bg, bg="#161b22").pack()
 
             # Execute button
             btn_row = tk.Frame(card, bg="#161b22", padx=8, pady=6)
             btn_row.pack(fill="x")
 
-            if action == "SQL" and sql:
+            if (action == "SQL" or action in ["READ", "WRITE", "DANGER"]) and sql:
                 clean = _clean_sql(sql)
 
                 def _make_sql_cb(s=clean, r=risk):
@@ -1402,7 +1992,7 @@ class OllamaChatWindow(tk.Toplevel):
                         self._show_sql_approval()
                     return _cb
 
-                _Btn(btn_row, f"  ▶  نفّذ الآن / Execute Now  ",
+                _Btn(btn_row, f"  >  نفّذ الآن / Execute Now  ",
                      cmd=_make_sql_cb(),
                      bg=btn_color, hov=btn_color, fg=BG,
                      font=("Segoe UI", 9, "bold"), padx=8, pady=5
@@ -1420,7 +2010,7 @@ class OllamaChatWindow(tk.Toplevel):
                         self._send()
                     return _cmd
 
-                _Btn(btn_row, f"  →  اختيار / Select  ",
+                _Btn(btn_row, f"  ->  اختيار / Select  ",
                      cmd=_make_send_cb(),
                      bg=btn_color, hov=btn_color, fg=BG,
                      font=("Segoe UI", 9, "bold"), padx=8, pady=5
@@ -1614,7 +2204,7 @@ class OllamaChatWindow(tk.Toplevel):
         btn_row = tk.Frame(card, bg="#1a1f2e", padx=10, pady=7)
         btn_row.pack(fill="x")
 
-        _Btn(btn_row, "  ▶  نفّذ / Execute  ",
+        _Btn(btn_row, "  >  نفّذ / Execute  ",
              cmd=lambda s=sql, v=verify_sql, r=risk:
                  self._trigger_action_execute(s, v, r),
              bg=color, hov=color, fg=BG,
@@ -1679,7 +2269,7 @@ class OllamaChatWindow(tk.Toplevel):
                     target=self._run_inline_sql, args=(c,), daemon=True
                 ).start()
 
-            tk.Button(badge_row, text="📋",
+            tk.Button(badge_row, text="[clipboard]",
                       command=_copy_sql,
                       bg="#0d1117", fg=TEXT_DIM,
                       activebackground=BTN_HOVER, activeforeground=TEXT,
@@ -1688,7 +2278,7 @@ class OllamaChatWindow(tk.Toplevel):
                       ).pack(side="right", padx=2)
 
             tk.Button(badge_row,
-                      text="  ▶ Run & Feed AI  ",
+                      text="  > Run & Feed AI  ",
                       command=_run_cb,
                       bg=ACCENT, fg=BG,
                       activebackground=ACCENT2, activeforeground=BG,
@@ -1818,7 +2408,7 @@ class OllamaChatWindow(tk.Toplevel):
 
         exec_btn = tk.Button(
             btn_row,
-            text="  ▶  تنفيذ الكل / Run All Steps  ",
+            text="  >  تنفيذ الكل / Run All Steps  ",
             command=_execute_steps,
             bg=color, fg=BG,
             activebackground=color, activeforeground=BG,
@@ -1858,7 +2448,7 @@ class OllamaChatWindow(tk.Toplevel):
             sql         = _clean_sql(raw_sql)
 
             if not sql:
-                _set_status(snum, "⚠️", WARNING)
+                _set_status(snum, "[!]", WARNING)
                 continue
 
             # For DANGER steps: show approval dialog first
@@ -1868,14 +2458,14 @@ class OllamaChatWindow(tk.Toplevel):
 
                 def _ask_approve(s=sql, r=risk, ev=confirmed, ok=approved, d=sdesc):
                     dlg = tk.Toplevel(self)
-                    dlg.title(f"⚡ تأكيد الخطوة / Step Approval — {d}")
+                    dlg.title(f"⚡ تأكيد الخطوة / Step Approval - {d}")
                     dlg.geometry("680x300")
                     dlg.configure(bg=BG)
                     dlg.grab_set()
                     dlg.resizable(False, False)
                     color_d = RISK_COLOR[r]
                     tk.Frame(dlg, bg=color_d, height=4).pack(fill="x")
-                    tk.Label(dlg, text=f"🔴  {d}",
+                    tk.Label(dlg, text=f"[red]  {d}",
                              bg=BG, fg=color_d,
                              font=("Segoe UI", 12, "bold"),
                              padx=14, pady=8).pack(anchor="w")
@@ -1892,7 +2482,7 @@ class OllamaChatWindow(tk.Toplevel):
                     def _no():
                         dlg.destroy(); ev.set()
 
-                    tk.Button(br, text="▶  نفّذ / Execute",
+                    tk.Button(br, text=">  نفّذ / Execute",
                               command=_yes,
                               bg=color_d, fg=BG,
                               font=("Segoe UI", 10, "bold"),
@@ -1913,8 +2503,8 @@ class OllamaChatWindow(tk.Toplevel):
                     continue
 
             # Execute SQL
-            _set_status(snum, "⏳", WARNING)
-            _set_progress(f"⏳ Executing step {snum}/{total}: {sdesc[:30]}…", WARNING)
+            _set_status(snum, "[wait]", WARNING)
+            _set_progress(f"[wait] Executing step {snum}/{total}: {sdesc[:30]}…", WARNING)
 
             try:
                 conn = psycopg2.connect(self._dsn, connect_timeout=10,
@@ -1923,15 +2513,26 @@ class OllamaChatWindow(tk.Toplevel):
                 step_result: dict = {"step": snum, "status": "ok"}
 
                 with conn.cursor() as cur:
-                    cur.execute(sql)
                     if risk == RISK_READ:
-                        rows = cur.fetchmany(50)
+                        # ── Always run READ on Workspace if it exists ──
+                        _schema, _orig, _copy = self._get_safe_copy_name()
+                        cur.execute(
+                            "SELECT 1 FROM information_schema.tables "
+                            "WHERE table_schema=%s AND table_name=%s",
+                            (_schema, _copy)
+                        )
+                        _ws = cur.fetchone() is not None
+                        _target = _copy if _ws else _orig
+                        _read_sql = self._rewrite_sql_for_copy(sql, _schema, _orig, _target)
+                        cur.execute(_read_sql)
+                        rows = list(cur.fetchmany(1000))
                         cols = [d.name for d in cur.description] if cur.description else []
                         conn.rollback()
                         step_result["rows"] = rows
                         step_result["cols"] = cols
                         self.after(0, lambda r=rows, c=cols: self._show_results(r, c))
                     else:
+                        cur.execute(sql)
                         rowcount = cur.rowcount
                         conn.commit()
                         step_result["rowcount"] = rowcount
@@ -1949,14 +2550,14 @@ class OllamaChatWindow(tk.Toplevel):
 
                 conn.close()
                 if step_result["status"] == "verify_fail":
-                    _set_status(snum, "⚠️", WARNING)
-                    _set_progress(f"⚠️ Step {snum} verify returned 0", WARNING)
+                    _set_status(snum, "[!]", WARNING)
+                    _set_progress(f"[!] Step {snum} verify returned 0", WARNING)
                 else:
-                    _set_status(snum, "✅", ACCENT2)
+                    _set_status(snum, "[ok]", ACCENT2)
 
             except Exception as e:
-                _set_status(snum, "❌", DANGER)
-                _set_progress(f"❌ Step {snum} failed: {str(e)[:60]}", DANGER)
+                _set_status(snum, "[x]", DANGER)
+                _set_progress(f"[x] Step {snum} failed: {str(e)[:60]}", DANGER)
                 results.append({"step": snum, "status": "error", "error": str(e)})
                 # Send failure report to AI
                 err_report = (
@@ -1970,19 +2571,19 @@ class OllamaChatWindow(tk.Toplevel):
             else:
                 results.append(step_result)
 
-        # ── All steps done — generate AI summary ──
+        # ── All steps done - generate AI summary ──
         ok_steps    = [r for r in results if r["status"] == "ok"]
         fail_steps  = [r for r in results if r["status"] == "error"]
         skip_steps  = [r for r in results if r["status"] == "skipped"]
-        _set_progress(f"✅ Done: {len(ok_steps)}/{total} steps | "
+        _set_progress(f"[ok] Done: {len(ok_steps)}/{total} steps | "
                       f"⏭ {len(skip_steps)} skipped", ACCENT2)
 
         summary = (
             f"تم الانتهاء من تنفيذ {total} خطوة:\n"
-            f"✅ ناجح: {len(ok_steps)} | ❌ فشل: {len(fail_steps)} | ⏭ تخطّ: {len(skip_steps)}\n\n"
+            f"[ok] ناجح: {len(ok_steps)} | [x] فشل: {len(fail_steps)} | ⏭ تخطّ: {len(skip_steps)}\n\n"
             + "\n".join(
                 f"  خطوة {r['step']}: {r['status']}" +
-                (f" — {r.get('error', '')[:80]}" if r["status"] == "error" else "")
+                (f" - {r.get('error', '')[:80]}" if r["status"] == "error" else "")
                 for r in results
             )
             + "\n\nقدّم ملخصاً للنتيجة وأي تحقق إضافي مطلوب."
@@ -2003,7 +2604,7 @@ class OllamaChatWindow(tk.Toplevel):
         rel    = self._rel_context
 
         if not rel:
-            self._sys("⏳ جاري جلب بيانات العلاقات…  /  Fetching relationship data…")
+            self._sys("[wait] جاري جلب بيانات العلاقات…  /  Fetching relationship data…")
             threading.Thread(target=self._fetch_relationship_context, daemon=True).start()
             self.after(3000, self._analyze_relationships)
             return
@@ -2020,7 +2621,7 @@ class OllamaChatWindow(tk.Toplevel):
             for fk in existing:
                 lines.append(
                     f"- FK `{fk['constraint_name']}`: "
-                    f"`{fk['fk_column']}` → "
+                    f"`{fk['fk_column']}` -> "
                     f"`{fk['ref_schema']}.{fk['ref_table']}.{fk['ref_column']}`"
                 )
         else:
@@ -2033,7 +2634,7 @@ class OllamaChatWindow(tk.Toplevel):
         if candidates:
             for c in candidates:
                 lines.append(
-                    f"- `{c['column_name']}` ({c['data_type']}) → "
+                    f"- `{c['column_name']}` ({c['data_type']}) -> "
                     f"possible ref: `{c['potential_ref_table']}.{c['potential_ref_column']}`"
                 )
         else:
@@ -2062,7 +2663,7 @@ class OllamaChatWindow(tk.Toplevel):
         rel = self._rel_context
         err = rel.get("error")
         if err:
-            tk.Label(frame, text=f"⚠️ {err[:50]}",
+            tk.Label(frame, text=f"[!] {err[:50]}",
                      bg=PANEL_BG, fg=DANGER, font=FONT_SMALL,
                      wraplength=220).pack(anchor="w")
             return
@@ -2077,14 +2678,14 @@ class OllamaChatWindow(tk.Toplevel):
 
         _mini(f"FKs: {len(existing)} found", ACCENT2 if existing else TEXT_DIM)
         for fk in existing[:4]:
-            _mini(f"  ↳ {fk['fk_column']} → {fk['ref_table']}.{fk['ref_column']}", ACCENT2)
+            _mini(f"  ↳ {fk['fk_column']} -> {fk['ref_table']}.{fk['ref_column']}", ACCENT2)
         if len(existing) > 4:
             _mini(f"  … +{len(existing)-4} more")
 
         if candidates:
             _mini(f"Candidates: {len(candidates)}", WARNING)
             for c in candidates[:3]:
-                _mini(f"  ? {c['column_name']} → {c['potential_ref_table']}", WARNING)
+                _mini(f"  ? {c['column_name']} -> {c['potential_ref_table']}", WARNING)
             if len(candidates) > 3:
                 _mini(f"  … +{len(candidates)-3} more")
         else:
@@ -2100,7 +2701,7 @@ class OllamaChatWindow(tk.Toplevel):
 
         if risk == RISK_BLOCKED:
             messagebox.showerror(
-                "⛔ محظور / Blocked",
+                "[blocked] محظور / Blocked",
                 f"هذا الأمر محظور لأسباب أمنية.\n"
                 f"This SQL is blocked for security reasons:\n\n{sql[:200]}",
                 parent=self,
@@ -2124,7 +2725,7 @@ class OllamaChatWindow(tk.Toplevel):
 
         dlg = tk.Toplevel(self)
         dlg.title("⚡ SQL Approval / موافقة على التنفيذ")
-        dlg.geometry("720x580")
+        dlg.geometry("720x640")
         dlg.configure(bg=BG)
         dlg.grab_set()
         dlg.resizable(False, False)
@@ -2139,51 +2740,51 @@ class OllamaChatWindow(tk.Toplevel):
         hdr.pack(fill="x")
         hdr.pack_propagate(False)
         risk_icon = {
-            RISK_READ:   "✅", RISK_WRITE:  "🟡", RISK_DANGER: "🔴",
+            RISK_READ:   "[ok]", RISK_WRITE:  "[yellow]", RISK_DANGER: "[red]",
         }.get(risk, "⚡")
         tk.Label(hdr, text=f"  {risk_icon}  {RISK_LABEL[risk]}",
                  bg=HEADER_BG, fg=color, font=("Segoe UI", 13, "bold"),
                  padx=12).pack(side="left", fill="y")
         desc_map = {
-            RISK_READ:   "استعلام فقط — Read-only query, no changes",
-            RISK_WRITE:  "تعديل بيانات — This will modify existing data",
-            RISK_DANGER: "تعديل هيكل — This will alter the table structure (DDL)",
+            RISK_READ:   "استعلام فقط - Read-only query, no changes",
+            RISK_WRITE:  "تعديل بيانات - This will modify existing data",
+            RISK_DANGER: "تعديل هيكل - This will alter the table structure (DDL)",
         }
         tk.Label(hdr, text=desc_map.get(risk, ""),
                  bg=HEADER_BG, fg=TEXT_DIM, font=FONT_SMALL,
                  padx=20).pack(side="left", fill="y")
 
-        # ── Bottom action area — packed BEFORE expand=True widget ──────────────
+        # ── Bottom action area - packed BEFORE expand=True widget ──────────────
         bottom = tk.Frame(dlg, bg=BG, padx=16, pady=12)
         bottom.pack(fill="x", side="bottom")
 
-        # ── Safe Copy Banner (WRITE / DANGER only) ──────────────────────────────
+        # ── Safe Copy Banner (WRITE / DANGER only) - inside bottom ──────────────
         if risk in (RISK_WRITE, RISK_DANGER):
             schema, orig_table, copy_table = self._get_safe_copy_name()
             safe_bg = "#091420"
-            safe_frame = tk.Frame(dlg, bg=safe_bg,
+            safe_frame = tk.Frame(bottom, bg=safe_bg,
                                   highlightbackground="#1f6feb",
                                   highlightthickness=1)
-            safe_frame.pack(fill="x", padx=14, side="bottom", pady=(0, 6))
+            safe_frame.pack(fill="x", pady=(0, 6))
             tk.Label(safe_frame,
-                     text="🔵  Safe Copy Mode  —  النسخة الآمنة",
+                     text=f"🔵  Workspace Mode  -  جدول العمل الثابت  ({copy_table})",
                      bg=safe_bg, fg="#58a6ff",
                      font=("Segoe UI", 9, "bold"),
                      padx=14, pady=6).pack(anchor="w")
             tk.Label(safe_frame,
-                     text=f'   التنفيذ سيتم على نسخة جديدة، والجدول الأصلي لن يُمسّ:',
+                     text=f'   سيتم تطبيق الإجراء على Workspace ثابت - الجدول الأصلي لن يُمسّ:',
                      bg=safe_bg, fg=TEXT_DIM,
                      font=FONT_SMALL, padx=14).pack(anchor="w")
             tk.Label(safe_frame,
-                     text=f'   📋  "{schema}"."{copy_table}"',
+                     text=f'   [clipboard]  "{schema}"."{copy_table}"',
                      bg=safe_bg, fg="#79c0ff",
-                     font=FONT_MONO, padx=14, pady=(0, 6)).pack(anchor="w")
+                     font=FONT_MONO, padx=14).pack(anchor="w", pady=(0, 6))
             tk.Label(safe_frame,
-                     text="   بعد التنفيذ ستظهر أزرار للتحقق ثم تطبيق التغييرات على الجدول الأصلي.",
+                     text="   كل الشوت تتراكم على نفس الـ Workspace حتى تضغط 'تطبيق على الأصلي'.",
                      bg=safe_bg, fg=TEXT_DIM,
                      font=("Segoe UI", 8, "italic"),
-                     padx=14, pady=(0, 8),
-                     wraplength=680).pack(anchor="w")
+                     padx=14,
+                     wraplength=680).pack(anchor="w", pady=(0, 8))
         else:
             schema, orig_table, copy_table = (
                 self.context.get("src_schema", "public"),
@@ -2194,8 +2795,8 @@ class OllamaChatWindow(tk.Toplevel):
         if risk in (RISK_WRITE, RISK_DANGER):
             warn_bg = "#1a0a0a" if risk == RISK_DANGER else "#1a1400"
             notice  = {
-                RISK_WRITE:  "🟡  سيتم تعديل بيانات على النسخة الآمنة.",
-                RISK_DANGER: "🔴  سيتم تعديل هيكل النسخة الآمنة (DDL).",
+                RISK_WRITE:  "[yellow]  سيتم تعديل بيانات على النسخة الآمنة.",
+                RISK_DANGER: "[red]  سيتم تعديل هيكل النسخة الآمنة (DDL).",
             }[risk]
             warn_frame = tk.Frame(bottom, bg=warn_bg,
                                   highlightbackground=color, highlightthickness=1,
@@ -2215,7 +2816,7 @@ class OllamaChatWindow(tk.Toplevel):
 
         tk.Button(
             btn_row,
-            text="  ▶  نفّذ الآن / Execute Now  ",
+            text="  >  نفّذ الآن / Execute Now  ",
             command=_do_execute,
             bg=color, fg=BG,
             activebackground=color, activeforeground=BG,
@@ -2235,14 +2836,14 @@ class OllamaChatWindow(tk.Toplevel):
             padx=14, pady=10, bd=0,
         ).pack(side="left")
 
-        # ── SQL preview — packed LAST so it doesn't push buttons off screen ──────
+        # ── SQL preview - packed LAST so it doesn't push buttons off screen ──────
         prev = tk.Frame(dlg, bg="#0d1117",
                         highlightbackground=color, highlightthickness=2)
         prev.pack(fill="both", expand=True, padx=16, pady=(12, 6))
 
         badge = tk.Frame(prev, bg="#090e1a", padx=10, pady=4)
         badge.pack(fill="x")
-        tk.Label(badge, text="SQL (Original — will be rewritten to target the copy)",
+        tk.Label(badge, text="SQL (Original - will be rewritten to target the copy)",
                  bg="#090e1a", fg=color,
                  font=("Consolas", 9, "bold")).pack(side="left")
 
@@ -2261,32 +2862,134 @@ class OllamaChatWindow(tk.Toplevel):
     # ── Safe Copy Helpers ─────────────────────────────────────
 
     def _get_safe_copy_name(self) -> tuple[str, str, str]:
-        """Returns (schema, original_table, safe_copy_name)."""
+        """
+        Returns (schema, original_table, workspace_table).
+
+        Smart detection rules:
+        - If the table name already ends with '_tmp', it IS the workspace.
+          In that case: orig_table = table without suffix, copy = table as-is.
+        - Otherwise: orig_table = table, copy = {table}_tmp
+        This prevents ever creating a _tmp_tmp chain.
+        """
         schema = self.context.get("src_schema", "public")
         table  = self.context.get("table_name", "table")
-        ts     = datetime.datetime.now().strftime("%m%d_%H%M")
-        copy   = f"{table}_ai_mod_{ts}"
-        return schema, table, copy
+
+        if table.endswith("_tmp"):
+            # Already working on a workspace table - use as-is
+            orig   = table[:-4]   # strip "_tmp" suffix for display/commit
+            copy   = table        # workspace IS this table
+        else:
+            orig   = table
+            copy   = f"{table}_tmp"
+
+        return schema, orig, copy
+
+    def _commit_workspace_dialog(self) -> None:
+        """Prompt to commit the _tmp workspace to original."""
+        from tkinter import messagebox
+        schema, table, copy_table = self._get_safe_copy_name()
+        
+        # Check if tmp exists
+        try:
+            import psycopg2
+            from psycopg2 import sql
+            conn = psycopg2.connect(self._dsn, connect_timeout=5)
+            conn.autocommit = True
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_schema = %s AND table_name = %s
+                    )
+                """, (schema, copy_table))
+                exists = cur.fetchone()[0]
+            conn.close()
+        except:
+            exists = False
+
+        if not exists:
+            messagebox.showinfo("No Workspace", "لا توجد بيئة عمل (Workspace) نشطة أو لم تقم بأي تعديلات بعد.", parent=self)
+            return
+
+        msg = (
+            f"[!] هل أنت متأكد من تطبيق تعديلات بيئة العمل على الجدول الأصلي؟\n\n"
+            f"من: {schema}.{copy_table}\n"
+            f"إلى: {schema}.{table}\n\n"
+            f"هذا الإجراء سيقوم باستبدال الجدول الأصلي بكافة محتويات الـ Workspace."
+        )
+        if messagebox.askyesno("Commit Workspace", msg, parent=self):
+            threading.Thread(target=self._commit_workspace, daemon=True).start()
+
+    def _commit_workspace(self) -> None:
+        schema, orig_table, copy_table = self._get_safe_copy_name()
+        self.after(0, lambda: self._sys(f"🚀 بدء نقل بيانات `{copy_table}` إلى `{orig_table}`..."))
+        try:
+            import psycopg2
+            from psycopg2 import sql
+            conn = psycopg2.connect(self._dsn, connect_timeout=15)
+            conn.autocommit = True
+            with conn.cursor() as cur:
+                cur.execute(
+                    sql.SQL("DROP TABLE IF EXISTS {}.{} CASCADE").format(
+                        sql.Identifier(schema), sql.Identifier(orig_table)
+                    )
+                )
+                cur.execute(
+                    sql.SQL("ALTER TABLE {}.{} RENAME TO {}").format(
+                        sql.Identifier(schema), sql.Identifier(copy_table), sql.Identifier(orig_table)
+                    )
+                )
+            conn.close()
+            self._clear_workspace_snapshots()
+            self.after(0, lambda: self._sys(f"[ok] تم التطبيق بنجاح! تم حفظ كافة التعديلات في الأصل."))
+        except Exception as e:
+            self.after(0, lambda: self._sys(f"[x] خطأ أثناء التطبيق: {e}"))
 
     def _rewrite_sql_for_copy(self, sql: str,
                                schema: str, orig: str, copy: str) -> str:
-        """
-        Replace all occurrences of the original table reference in SQL
-        with the safe copy name. Handles quoted and unquoted forms.
-        """
-        # Match: "schema"."table" OR schema.table OR just "table"
-        patterns = [
-            rf'"({re.escape(schema)})"\s*\.\s*"({re.escape(orig)})"',
-            rf'({re.escape(schema)})\s*\.\s*({re.escape(orig)})(?=[\s,;(]|$)',
-            rf'"({re.escape(orig)})"',
-        ]
-        result = sql
-        for pat in patterns:
-            result = re.sub(pat,
-                            lambda m, s=schema, c=copy: f'"{s}"."{c}"',
-                            result)
-            if result != sql:
-                break   # first pattern matched — don't double-replace
+        """Replace all table references with the workspace copy name."""
+        if orig == copy:
+            return sql
+
+        result   = sql
+        esc_orig = re.escape(orig)
+        esc_sch  = re.escape(schema)
+        # suffix that distinguishes copy from orig (e.g. _tmp)
+        sfx = copy[len(orig):] if len(copy) > len(orig) else None
+
+        def _sub(pattern, repl):
+            nonlocal result
+            try:
+                result = re.sub(pattern, repl, result)
+            except re.error:
+                pass
+
+        neg = (r'(?!' + re.escape(sfx) + r')') if sfx else ''
+
+        # P1: "schema"."orig"  (double-quoted)
+        _sub(
+            '"' + esc_sch + '"' + r'[\s]*\.' + r'[\s]*' + '"' + esc_orig + '"' + neg,
+            '"' + schema + '"' + '.' + '"' + copy + '"'
+        )
+
+        # P2: schema.orig (unquoted)
+        _sub(
+            r'(?<![\w.])' + esc_sch + r'\.' + esc_orig + neg + r'(?=[\s,;()|]|$)',
+            schema + '.' + copy
+        )
+
+        # P3: "orig" (quoted, no schema)
+        _sub(
+            r'(?<!\.)' + '"' + esc_orig + '"' + neg,
+            '"' + copy + '"'
+        )
+
+        # P4: 'orig' string literal (e.g. table_name = 'orders')
+        _sub(
+            "'" + esc_orig + "'" + neg,
+            "'" + copy + "'"
+        )
+
         return result
 
     def _run_sql(self, sql: str, risk: str) -> None:
@@ -2296,12 +2999,12 @@ class OllamaChatWindow(tk.Toplevel):
         else:
             self._run_sql_direct(sql, risk)
 
-    # ── Inline SQL Execution (▶ Run & Feed AI) ────────────────────────────
+    # ── Inline SQL Execution (> Run & Feed AI) ────────────────────────────
 
     def _run_inline_sql(self, sql: str) -> None:
         """
         Run a standalone SQL block from the AI chat.
-        - READ queries: execute, show results, feed formatted table to AI.
+        - READ queries: rewrite table refs to workspace (_tmp) then execute.
         - WRITE/DANGER: route through approval dialog first.
         """
         sql_clean = sql.strip()
@@ -2316,32 +3019,56 @@ class OllamaChatWindow(tk.Toplevel):
             ))
             return
 
-        self.after(0, lambda: self._sys("⏳ Running inline SQL..."))
-        try:
-            conn = psycopg2.connect(self._dsn, connect_timeout=10,
-                                    cursor_factory=pg_extras.RealDictCursor)
-            conn.autocommit = False
+        # ── Redirect READ to workspace so analysis is always on latest data ─
+        schema, orig_table, copy_table = self._get_safe_copy_name()
+        
+        def execute_read():
             try:
-                with conn.cursor() as cur:
-                    cur.execute(sql_clean)
-                    rows = cur.fetchmany(50)
-                    cols = [d.name for d in cur.description] if cur.description else []
-                    conn.rollback()
-            finally:
-                conn.close()
+                conn = psycopg2.connect(self._dsn, connect_timeout=10,
+                                        cursor_factory=pg_extras.RealDictCursor)
+                conn.autocommit = False
+                try:
+                    with conn.cursor() as cur:
+                        # Check if workspace exists; if yes, rewrite SQL to target it
+                        cur.execute(
+                            "SELECT 1 FROM information_schema.tables "
+                            "WHERE table_schema=%s AND table_name=%s",
+                            (schema, copy_table)
+                        )
+                        ws_exists = cur.fetchone() is not None
 
-            result_text = self._format_results_for_ai(
-                rows, cols, label=sql_clean[:80])
-            feedback = (
-                f"نتائج الاستعلام:\n\n{result_text}\n\n"
-                f"بناءً على هذه النتائج، أكمل تحليلك."
-            )
-            self.after(0, lambda: self._inject_and_send(feedback))
+                        target    = copy_table if ws_exists else orig_table
+                        read_sql  = self._rewrite_sql_for_copy(
+                            sql_clean, schema, orig_table, target
+                        )
 
-        except Exception as e:
-            err = str(e)
-            self.after(0, lambda: self._sys(f"❌ Inline SQL Error: {err}"))
-            self._ask_ai_about_error(sql_clean, err)
+                        if ws_exists and target == copy_table:
+                            self.after(0, lambda: self._sys(
+                                f"🔵 الاستعلام يعمل على Workspace: {copy_table}"
+                            ))
+
+                        cur.execute(read_sql)
+                        rows = list(cur.fetchmany(1000))
+                        cols = [d.name for d in cur.description] if cur.description else []
+                        conn.rollback()
+                finally:
+                    conn.close()
+
+                result_text = self._format_results_for_ai(
+                    rows, cols, label=sql_clean[:80])
+                feedback = (
+                    f"نتائج الاستعلام:\n\n{result_text}\n\n"
+                    f"بناءً على هذه النتائج، أكمل تحليلك."
+                )
+                self.after(0, lambda f=feedback: self._inject_and_send(f))
+
+            except Exception as e:
+                err = str(e)
+                self.after(0, lambda: self._sys(f"[x] Inline SQL Error: {err}"))
+                self._ask_ai_about_error(sql_clean, err)
+
+        self.after(0, lambda: self._sys("[wait] Running inline SQL on Workspace..."))
+        threading.Thread(target=execute_read, daemon=True).start()
 
     # ── Multi-SQL Batch (Run All & Feed Results) ───────────────────────────
 
@@ -2376,11 +3103,11 @@ class OllamaChatWindow(tk.Toplevel):
         hdr = tk.Frame(card, bg="#091420", padx=14, pady=8)
         hdr.pack(fill="x")
         tk.Label(hdr,
-                 text=f"📊  الذكاء الاصطناعي ينتظر نتائج {n} استعلامات",
+                 text=f"[chart]  الذكاء الاصطناعي ينتظر نتائج {n} استعلامات",
                  bg="#091420", fg=ACCENT,
                  font=("Segoe UI", 9, "bold")).pack(anchor="w")
         tk.Label(hdr,
-                 text=f"   AI is waiting for results of {n} queries — run them and feed results back.",
+                 text=f"   AI is waiting for results of {n} queries - run them and feed results back.",
                  bg="#091420", fg=TEXT_DIM,
                  font=FONT_SMALL).pack(anchor="w")
 
@@ -2399,7 +3126,7 @@ class OllamaChatWindow(tk.Toplevel):
             self.after(0, self._run_next_in_sequential_batch)
 
         tk.Button(btn_f,
-                  text="  ▶ Run All & Feed Results  ",
+                  text="  > Run All & Feed Results  ",
                   command=_run_all,
                   bg=ACCENT, fg=BG,
                   activebackground=ACCENT2, activeforeground=BG,
@@ -2408,7 +3135,7 @@ class OllamaChatWindow(tk.Toplevel):
                   ).pack(side="left", padx=(0, 8))
 
         tk.Button(btn_f,
-                  text="  📋 Run One by One  ",
+                  text="  [clipboard] Run One by One  ",
                   command=_run_sequential,
                   bg=ENTRY_BG, fg=TEXT,
                   activebackground=BTN_HOVER, activeforeground=TEXT,
@@ -2419,7 +3146,7 @@ class OllamaChatWindow(tk.Toplevel):
     def _run_batch_sql(self, sql_list: list[str]) -> None:
         """Execute all SQL queries sequentially, compile results, feed to AI."""
         n = len(sql_list)
-        self.after(0, lambda: self._sys(f"⏳ Running {n} queries in batch..."))
+        self.after(0, lambda: self._sys(f"[wait] Running {n} queries in batch..."))
         all_results: list[str] = []
 
         try:
@@ -2431,16 +3158,16 @@ class OllamaChatWindow(tk.Toplevel):
                     for idx, sql in enumerate(sql_list, 1):
                         try:
                             cur.execute(sql)
-                            rows = cur.fetchmany(50)
+                            rows = cur.fetchmany(500)
                             cols = [d.name for d in cur.description] if cur.description else []
                             block = self._format_results_for_ai(
                                 rows, cols, label=f"Query {idx}/{n}")
                             all_results.append(block)
                             self.after(0, lambda i=idx, b=block: self._sys(
-                                f"✅ Query {i}/{n} done"))
+                                f"[ok] Query {i}/{n} done"))
                         except Exception as e:
                             all_results.append(
-                                f"**Query {idx}/{n}:** ERROR — {e}")
+                                f"**Query {idx}/{n}:** ERROR - {e}")
                 conn.rollback()
             finally:
                 conn.close()
@@ -2455,7 +3182,7 @@ class OllamaChatWindow(tk.Toplevel):
 
         except Exception as e:
             err = str(e)
-            self.after(0, lambda: self._sys(f"❌ Batch error: {err}"))
+            self.after(0, lambda: self._sys(f"[x] Batch error: {err}"))
 
     def _run_next_in_sequential_batch(self) -> None:
         """Step through SQL list one-by-one for sequential batch mode."""
@@ -2464,7 +3191,7 @@ class OllamaChatWindow(tk.Toplevel):
         res = getattr(self, "_batch_sequential_results", [])
 
         if idx >= len(lst):
-            # All done — feed combined to AI
+            # All done - feed combined to AI
             combined = "\n\n".join(res)
             feedback = (
                 f"نتائج الاستعلامات ({len(lst)} استعلامات):\n\n"
@@ -2474,14 +3201,14 @@ class OllamaChatWindow(tk.Toplevel):
             return
 
         sql = lst[idx]
-        self._sys(f"⏳ Running query {idx+1}/{len(lst)}...")
+        self._sys(f"[wait] Running query {idx+1}/{len(lst)}...")
         try:
             conn = psycopg2.connect(self._dsn, connect_timeout=10,
                                     cursor_factory=pg_extras.RealDictCursor)
             conn.autocommit = False
             with conn.cursor() as cur:
                 cur.execute(sql)
-                rows = cur.fetchmany(50)
+                rows = cur.fetchmany(500)
                 cols = [d.name for d in cur.description] if cur.description else []
                 conn.rollback()
             conn.close()
@@ -2510,7 +3237,7 @@ class OllamaChatWindow(tk.Toplevel):
             for c in cols:
                 v = row.get(c)
                 s = str(v) if v is not None else "NULL"
-                vals.append(s[:30] + ("…" if len(s) > 30 else ""))
+                vals.append(s[:120] + ("..." if len(s) > 120 else ""))
             lines.append(" | ".join(vals))
 
         return "\n".join(lines)
@@ -2524,150 +3251,312 @@ class OllamaChatWindow(tk.Toplevel):
         editor.grab_set()
 
     def _run_sql_direct(self, sql: str, risk: str) -> None:
-        """Execute READ queries directly — no side effects."""
+        """Execute READ queries - always redirected to Workspace if it exists."""
         verify_sql = getattr(self, "_pending_verify", "")
-        self.after(0, lambda: self._sys(f"⏳ Executing [{RISK_LABEL[risk]}]..."))
-        try:
-            conn = psycopg2.connect(self._dsn, connect_timeout=10,
-                                    cursor_factory=pg_extras.RealDictCursor)
-            conn.autocommit = False
+        schema, orig_table, copy_table = self._get_safe_copy_name()
+
+        def _do_read():
             try:
-                with conn.cursor() as cur:
-                    cur.execute(sql)
-                    rows = cur.fetchmany(50)
-                    cols = [d.name for d in cur.description] if cur.description else []
+                conn = psycopg2.connect(self._dsn, connect_timeout=10,
+                                        cursor_factory=pg_extras.RealDictCursor)
+                conn.autocommit = False
+                try:
+                    with conn.cursor() as cur:
+                        # Prefer workspace for accuracy
+                        cur.execute(
+                            "SELECT 1 FROM information_schema.tables "
+                            "WHERE table_schema=%s AND table_name=%s",
+                            (schema, copy_table)
+                        )
+                        ws_exists = cur.fetchone() is not None
+                        target   = copy_table if ws_exists else orig_table
+                        rsql     = self._rewrite_sql_for_copy(sql, schema, orig_table, target)
+
+                        self.after(0, lambda t=target: self._sys(
+                            f"🔵 READ -> {t}"
+                        ))
+                        cur.execute(rsql)
+                        rows = list(cur.fetchmany(1000))
+                        cols = [d.name for d in cur.description] if cur.description else []
+                        conn.rollback()
+                        self.after(0, lambda r=rows, c=cols: self._show_results(r, c))
+                except Exception:
                     conn.rollback()
-                    self.after(0, lambda r=rows, c=cols: self._show_results(r, c))
-            except Exception:
-                conn.rollback()
-                raise
-            finally:
-                conn.close()
-        except Exception as e:
-            err = str(e)
-            self.after(0, lambda: self._sys(f"❌ SQL Error: {err}"))
-            self._ask_ai_about_error(sql, err)
+                    raise
+                finally:
+                    conn.close()
+            except Exception as e:
+                err = str(e)
+                self.after(0, lambda: self._sys(f"[x] SQL Error: {err}"))
+                self._ask_ai_about_error(sql, err)
+
+        self.after(0, lambda: self._sys(f"[wait] Executing [{RISK_LABEL[risk]}]..."))
+        threading.Thread(target=_do_read, daemon=True).start()
 
     def _run_sql_on_copy(self, sql: str, risk: str) -> None:
         """
-        Safe Copy execution flow:
-        1. Create a copy of the original table  (copy_name = table_ai_mod_MMDD_HHMM)
-        2. Rewrite SQL to target the copy
-        3. Execute on copy
-        4. Emit result + "Apply to Original" button in chat
+        Persistent Workspace (_tmp) execution flow — Savepoint edition:
+
+        ARCHITECTURE:
+        • Workspace (_tmp) = empty shell created at migration time (structure only).
+        • First WRITE → workspace gets populated lazily from original (if empty).
+        • Every subsequent WRITE → SAVEPOINT set before, execute, no extra tables.
+        • Undo → ROLLBACK TO SAVEPOINT (zero storage cost).
+
+        WHY SAVEPOINTS instead of _bak_ tables:
+        • Old approach: full table copy per action → 8 GB table = 8 GB extra per step.
+        • New approach: Savepoint inside the same transaction → 0 bytes extra storage.
         """
         verify_sql  = getattr(self, "_pending_verify", "")
         schema, orig_table, copy_table = self._get_safe_copy_name()
 
+        # If table_name itself ends with _tmp it IS the workspace - flag this
+        is_already_workspace = (orig_table + "_tmp" == copy_table) is False and \
+                               self.context.get("table_name", "").endswith("_tmp")
+
         self.after(0, lambda: self._sys(
-            f"🔵 Safe Copy Mode — creating copy:\n"
+            f"🔵 Workspace Mode — Savepoint Engine:\n"
             f'   "{schema}"."{copy_table}"'))
 
         try:
-            conn = psycopg2.connect(self._dsn, connect_timeout=15,
-                                    cursor_factory=pg_extras.RealDictCursor)
-            conn.autocommit = False
-            try:
-                with conn.cursor() as cur:
-                    # ── Step 1: Create safe copy ──────────────────────────────
-                    create_copy_sql = (
-                        f'CREATE TABLE "{schema}"."{copy_table}" '
-                        f'AS SELECT * FROM "{schema}"."{orig_table}";'
-                    )
-                    cur.execute(create_copy_sql)
+            # ── Re-use a persistent workspace connection (keeps savepoints alive) ──
+            ws_conn = getattr(self, "_ws_conn", None)
+            if ws_conn is None or ws_conn.closed:
+                ws_conn = psycopg2.connect(
+                    self._dsn, connect_timeout=15,
+                    cursor_factory=pg_extras.RealDictCursor,
+                )
+                ws_conn.autocommit = False
+                self._ws_conn = ws_conn
+
+            with ws_conn.cursor() as cur:
+
+                # ── Step 1: Ensure workspace table exists ────────────────────
+                cur.execute(
+                    "SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema = %s AND table_name = %s",
+                    (schema, copy_table)
+                )
+                workspace_exists = cur.fetchone() is not None
+
+                if is_already_workspace:
+                    workspace_exists = True
                     self.after(0, lambda: self._sys(
-                        f'✅ Copy created: "{schema}"."{copy_table}"'))
+                        f'[i] الجدول الحالي هو نفسه Workspace (ينتهي بـ _tmp).\n'
+                        f'   لن يتم إنشاء نسخة جديدة.'))
 
-                    # ── Step 2: Rewrite SQL for copy ──────────────────────────
-                    copy_sql = self._rewrite_sql_for_copy(
-                        sql, schema, orig_table, copy_table)
+                elif not workspace_exists:
+                    # Workspace was dropped or never created → rebuild structure
+                    cur.execute(
+                        f'CREATE TABLE "{schema}"."{copy_table}" '
+                        f'(LIKE "{schema}"."{orig_table}" INCLUDING ALL);'
+                    )
+                    ws_conn.commit()
+                    workspace_exists = False   # still empty — triggers lazy fill below
+                    self.after(0, lambda: self._sys(
+                        f'[+] Workspace shell recreated (empty):\n'
+                        f'   "{schema}"."{copy_table}"'))
 
-                    self.after(0, lambda s=copy_sql: self._sys(
-                        f"⚙️ Executing on copy:\n   {s[:120]}..."
-                        if len(s) > 120 else f"⚙️ Executing on copy:\n   {s}"))
+                # ── Step 2: Lazy-fill workspace if it is empty ───────────────
+                if not is_already_workspace:
+                    cur.execute(f'SELECT 1 FROM "{schema}"."{copy_table}" LIMIT 1;')
+                    is_empty = cur.fetchone() is None
+                    if is_empty:
+                        self.after(0, lambda: self._sys(
+                            f'[wait] Workspace is empty — loading data from original…'))
+                        cur.execute(
+                            f'INSERT INTO "{schema}"."{copy_table}" '
+                            f'SELECT * FROM "{schema}"."{orig_table}";'
+                        )
+                        ws_conn.commit()
+                        self.after(0, lambda: self._sys(
+                            f'[ok] Workspace populated from original.\n'
+                            f'   الجدول الأصلي لن يُعدَّل نهائياً.'))
+                    else:
+                        self.after(0, lambda: self._sys(
+                            f'[reload] Reusing existing workspace:\n'
+                            f'   "{schema}"."{copy_table}"'))
 
-                    # ── Step 3: Execute modified SQL ──────────────────────────
-                    cur.execute(copy_sql)
-                    count = cur.rowcount
-                    conn.commit()
+                # ── Step 3: SAVEPOINT before every WRITE (replaces _bak_ tables) ─
+                sp_name = f"sp_{int(time.time())}"
+                cur.execute(f"SAVEPOINT {sp_name};")
+                self._workspace_snapshots.append(sp_name)
+                self.after(0, lambda: self._undo_btn.set_enabled() if self._undo_btn else None)
 
-                    # ── Step 4: Notify success + show Apply button ────────────
-                    self.after(0, lambda n=count, ct=copy_table:
-                               self._on_copy_exec_success(
-                                   sql, copy_sql, schema, orig_table, ct, n))
+                # ── Step 4: Rewrite SQL to target workspace ──────────────────
+                copy_sql = self._rewrite_sql_for_copy(
+                    sql, schema, orig_table, copy_table)
 
-                    if verify_sql.strip():
-                        verify_on_copy = self._rewrite_sql_for_copy(
-                            verify_sql, schema, orig_table, copy_table)
-                        self.after(200, lambda v=verify_on_copy, n=count:
-                                   self._run_verify(v, n, sql))
+                self.after(0, lambda s=copy_sql: self._sys(
+                    f"[gear] Executing on workspace:\n   {s[:120]}..."
+                    if len(s) > 120 else f"[gear] Executing on workspace:\n   {s}"))
 
-            except Exception:
-                conn.rollback()
-                raise
-            finally:
-                conn.close()
+                # ── Step 5: Execute — original table untouched ───────────────
+                cur.execute(copy_sql)
+                count = cur.rowcount
+                ws_conn.commit()
+
+                # ── Step 6: Notify + show workspace card ─────────────────────
+                self.after(0, lambda n=count, ct=copy_table:
+                           self._on_copy_exec_success(
+                               sql, copy_sql, schema, orig_table, ct, n))
+
+                if verify_sql.strip():
+                    verify_on_copy = self._rewrite_sql_for_copy(
+                        verify_sql, schema, orig_table, copy_table)
+                    self.after(200, lambda v=verify_on_copy, n=count:
+                               self._run_verify(v, n, sql))
 
         except Exception as e:
+            # Roll back to last savepoint if possible, otherwise full rollback
+            try:
+                ws_conn = getattr(self, "_ws_conn", None)
+                if ws_conn and not ws_conn.closed:
+                    ws_conn.rollback()
+            except Exception:
+                pass
             err = str(e)
-            self.after(0, lambda: self._sys(f"❌ Safe Copy Error: {err}"))
+            self.after(0, lambda: self._sys(f"[x] Workspace Error: {err}"))
             self._ask_ai_about_error(sql, err)
 
     def _on_copy_exec_success(self, orig_sql: str, copy_sql: str,
                                schema: str, orig_table: str,
                                copy_table: str, affected: int) -> None:
-        """Show success message + Apply-to-Original button in the chat."""
+        """Show success message + workspace action card in the chat."""
         self._sys(
-            f"✅ Executed successfully on safe copy ({affected} row(s) affected).\n"
-            f'   Copy: "{schema}"."{copy_table}"\n'
-            f"   الجدول الأصلي لم يُعدَّل. راجع النتائج ثم طبّق إذا كنت راضياً."
+            f"[ok] Executed successfully on workspace ({affected} row(s) affected).\n"
+            f'   Workspace: "{schema}"."{copy_table}"\n'
+            f"   [ok] الجدول الأصلي \"{orig_table}\" لم يُلمَس نهائياً."
         )
 
-        # ── Build an "Apply to Original" card in the chat ──────────────
+        # ── Build a persistent workspace card in the chat ────────────────
         row = tk.Frame(self._msg_container, bg=PANEL_BG)
         row.pack(fill="x", padx=12, pady=4)
 
         card = tk.Frame(row, bg="#091420",
                         highlightbackground="#1f6feb", highlightthickness=2)
-        card.pack(fill="x", padx=48)  # indent past avatar
+        card.pack(fill="x", padx=48)
 
         # Header
         card_hdr = tk.Frame(card, bg="#0d1117", padx=14, pady=8)
         card_hdr.pack(fill="x")
         tk.Label(card_hdr,
-                 text="🔵  Safe Copy جاهزة — هل تريد تطبيق التغييرات على الجدول الأصلي؟",
+                 text="🔵  Workspace _tmp محدَّثة - التعديل طُبِّق على جدول العمل",
                  bg="#0d1117", fg="#58a6ff",
                  font=("Segoe UI", 10, "bold")).pack(anchor="w")
         tk.Label(card_hdr,
-                 text=f'   النسخة: "{schema}"."{copy_table}"\n'
-                      f'   الأصلي: "{schema}"."{orig_table}"',
+                 text=f'   Workspace : "{schema}"."{copy_table}"\n'
+                      f'   Original  : "{schema}"."{orig_table}"  <- لم يُعدَّل',
                  bg="#0d1117", fg=TEXT_DIM,
                  font=FONT_MONO).pack(anchor="w", pady=(4, 0))
+        tk.Label(card_hdr,
+                 text="   يمكنك الاستمرار في تطبيق المزيد من الإجراءات على نفس الـ Workspace.",
+                 bg="#0d1117", fg="#6e7681",
+                 font=("Segoe UI", 8, "italic")).pack(anchor="w", pady=(2, 0))
 
         # Buttons
         btn_f = tk.Frame(card, bg="#091420", padx=14, pady=10)
         btn_f.pack(fill="x")
 
-        _Btn(btn_f, "  ✅  تطبيق على الأصلي / Apply to Original  ",
+        _Btn(btn_f, "  [ok]  تطبيق على الأصلي / Apply to Original  ",
              cmd=lambda: self._apply_to_original(
                  orig_sql, schema, orig_table, copy_table),
              bg=ACCENT2, hov=ACCENT2, fg=BG,
              font=("Segoe UI", 10, "bold"), padx=12, pady=7
              ).pack(side="left", padx=(0, 8))
 
-        _Btn(btn_f, "  🗑  حذف النسخة / Drop Copy  ",
-             cmd=lambda: self._drop_copy_table(schema, copy_table),
-             bg="#3d1a1a", hov="#5a2020", fg=DANGER,
+        _Btn(btn_f, "  [reload]  إعادة تعيين Workspace  ",
+             cmd=lambda: self._reset_workspace(schema, orig_table, copy_table),
+             bg="#21262d", hov=BTN_HOVER, fg=TEXT_DIM,
              padx=10, pady=7, font=FONT_SMALL
              ).pack(side="left")
 
         self._scroll_bottom()
 
+        # ── Trigger Background Live Context Sync ──────────────────
+        threading.Thread(
+            target=self._sync_workspace_context, 
+            args=(schema, copy_table), 
+            daemon=True
+        ).start()
+
+    def _sync_workspace_context(self, schema: str, copy_table: str) -> None:
+        """Background thread to sync live workspace schema changes back to the AI context."""
+        try:
+            from src.database.inspector import get_full_table_info
+            # Fetch fresh columns and stats from the workspace
+            info = get_full_table_info(self._dsn, copy_table, schema)
+            
+            if "columns" in info:
+                # Update context with the live copy columns while keeping original table name
+                self.context["columns"] = info["columns"]
+                if "primary_keys" in info:
+                    self.context["primary_keys"] = info["primary_keys"]
+                
+                # Rebuild System Prompt with the updated context
+                self.after(0, self._build_system_prompt)
+                self.after(0, lambda: self._sys("♻ تم تحديث سياق الذكاء الاصطناعي بآخر تغييرات الـ Workspace أوتوماتيكياً."))
+        except Exception as e:
+            self.after(0, lambda: self._sys(f"[!] تحذير: فشل مزامنة السياق المباشر: {e}"))
+
+    def _undo_last_workspace_action(self) -> None:
+        """Roll back the workspace to the previous SAVEPOINT — zero storage cost."""
+        if not self._workspace_snapshots:
+            return
+
+        sp_name = self._workspace_snapshots.pop()
+
+        if not self._workspace_snapshots and self._undo_btn:
+            self._undo_btn.set_disabled()
+
+        ws_conn = getattr(self, "_ws_conn", None)
+        if ws_conn is None or ws_conn.closed:
+            self.after(0, lambda: self._sys(
+                "[x] لا يوجد اتصال Workspace نشط — لا يمكن التراجع."))
+            return
+
+        def execute_undo():
+            try:
+                with ws_conn.cursor() as cur:
+                    cur.execute(f"ROLLBACK TO SAVEPOINT {sp_name};")
+                    cur.execute(f"RELEASE SAVEPOINT {sp_name};")
+                ws_conn.commit()
+                self.after(0, lambda: self._sys(
+                    f"[back] تم التراجع بنجاح إلى نقطة الحفظ: {sp_name}"))
+                schema, _, copy_table = self._get_safe_copy_name()
+                self.after(0, lambda: self._sync_workspace_context(schema, copy_table))
+            except Exception as e:
+                self.after(0, lambda: self._sys(f"[x] فشل التراجع: {str(e)}"))
+
+        self._sys("[back] جاري التراجع عن آخر إجراء…")
+        threading.Thread(target=execute_undo, daemon=True).start()
+
+
+    def _clear_workspace_snapshots(self) -> None:
+        """Release all savepoints by closing the persistent workspace connection."""
+        self._workspace_snapshots.clear()
+
+        if self._undo_btn:
+            self._undo_btn.set_disabled()
+
+        ws_conn = getattr(self, "_ws_conn", None)
+        if ws_conn and not ws_conn.closed:
+            def _close():
+                try:
+                    ws_conn.rollback()   # cancel any uncommitted work
+                    ws_conn.close()
+                except Exception:
+                    pass
+            threading.Thread(target=_close, daemon=True).start()
+            self._ws_conn = None
+
+
+
     def _apply_to_original(self, orig_sql: str, schema: str,
                             orig_table: str, copy_table: str) -> None:
         """Show a final confirmation then run the original SQL on the original table."""
         confirmed = messagebox.askyesno(
-            "⚠️ تطبيق على الأصلي / Apply to Original",
+            "[!] تطبيق على الأصلي / Apply to Original",
             f"سيتم الآن تنفيذ التعديل على الجدول الأصلي:\n"
             f'  "{schema}"."{orig_table}"\n\n'
             f"هل أنت متأكد؟\n\n"
@@ -2677,7 +3566,7 @@ class OllamaChatWindow(tk.Toplevel):
         if not confirmed:
             return
 
-        self._sys(f'⏳ Applying to original: "{schema}"."{orig_table}"...')
+        self._sys(f'[wait] Applying to original: "{schema}"."{orig_table}"...')
         threading.Thread(
             target=self._run_sql_on_original,
             args=(orig_sql, schema, orig_table, copy_table),
@@ -2697,7 +3586,7 @@ class OllamaChatWindow(tk.Toplevel):
                     count = cur.rowcount
                     conn.commit()
                 self.after(0, lambda n=count, ot=orig_table: self._sys(
-                    f'✅ Applied to original "{ot}" — {n} row(s) affected.\n'
+                    f'[ok] Applied to original "{ot}" - {n} row(s) affected.\n'
                     f'   يمكنك حذف النسخة الآمنة إذا لم تعد تحتاجها.'))
 
                 # Trigger schema refresh
@@ -2716,32 +3605,44 @@ class OllamaChatWindow(tk.Toplevel):
         except Exception as e:
             err = str(e)
             self.after(0, lambda: self._sys(
-                f"❌ Apply to Original failed: {err}"))
+                f"[x] Apply to Original failed: {err}"))
 
-    def _drop_copy_table(self, schema: str, copy_table: str) -> None:
-        """Drop the safe copy table after user confirmation."""
+    def _reset_workspace(self, schema: str,
+                          orig_table: str, copy_table: str) -> None:
+        """
+        Drop and recreate the workspace table from original structure.
+        This gives the user a clean slate without touching the original.
+        """
         confirmed = messagebox.askyesno(
-            "🗑 حذف النسخة",
-            f'حذف النسخة الآمنة:\n  "{schema}"."{copy_table}"\n\nمتأكد؟',
+            "[reload] إعادة تعيين Workspace",
+            f'سيتم حذف وإعادة إنشاء جدول العمل:\n  "{schema}"."{copy_table}"\n\n'
+            f'الجدول الأصلي "{orig_table}" لن يتأثر.\nمتأكد؟',
             parent=self,
         )
         if not confirmed:
             return
 
-        def _do_drop():
+        def _do_reset():
             try:
                 conn = psycopg2.connect(self._dsn, connect_timeout=10,
                                         cursor_factory=pg_extras.RealDictCursor)
-                conn.autocommit = True
+                conn.autocommit = False
                 with conn.cursor() as cur:
-                    cur.execute(f'DROP TABLE IF EXISTS "{schema}"."{copy_table}";')
+                    cur.execute(
+                        f'DROP TABLE IF EXISTS "{schema}"."{copy_table}";')
+                    cur.execute(
+                        f'CREATE TABLE "{schema}"."{copy_table}" '
+                        f'(LIKE "{schema}"."{orig_table}" INCLUDING ALL);'
+                    )
+                    conn.commit()
                 conn.close()
                 self.after(0, lambda: self._sys(
-                    f'🗑 Copy dropped: "{schema}"."{copy_table}"'))
+                    f'[reload] Workspace reset (structure only):\n'
+                    f'   "{schema}"."{copy_table}" - fresh & clean.'))
             except Exception as e:
-                self.after(0, lambda: self._sys(f"❌ Drop failed: {e}"))
+                self.after(0, lambda: self._sys(f"[x] Reset failed: {e}"))
 
-        threading.Thread(target=_do_drop, daemon=True).start()
+        threading.Thread(target=_do_reset, daemon=True).start()
 
     def _run_verify(self, verify_sql: str, affected: int, orig_sql: str) -> None:
         """Run verification SELECT and feed result to AI for a report."""
@@ -2783,21 +3684,24 @@ class OllamaChatWindow(tk.Toplevel):
         threading.Thread(target=self._stream, daemon=True).start()
 
     def _ask_ai_about_error(self, sql: str, err: str) -> None:
-        """When SQL fails, ask AI to diagnose and suggest a fix."""
+        """When SQL fails, Auto-Healing kicks in: ask AI to diagnose and suggest a fix visually."""
         feed = (
-            f"[SQL EXECUTION FAILED]\n"
-            f"SQL: {sql[:200]}\n"
-            f"Error: {err}\n\n"
-            "Please:\n"
-            "1. Explain why this error occurred.\n"
-            "2. Provide a corrected SQL in a ```sql block that will work."
+            f"[x] فشل تنفيذ الاستعلام الخاص بك (SQL Execution Failed):\n\n"
+            f"```sql\n{sql[:500]}\n```\n\n"
+            f"**Error Details:**\n{err}\n\n"
+            "يرجى مراجعة الخطأ أعلاه بعناية وتقديم استعلام SQL مصحح داخل ` ```sql `، "
+            "مع توفير قائمة ` ```choices ` تحتوي على إجراء SQL لتمكيني من تنفيذ الكود المصحح مجدداً."
         )
         self._messages.append({"role": "user", "content": feed})
+        if self._history:
+            self._history.add_message("user", feed)
+            
+        self.after(0, lambda f=feed: self._add_user_bubble(f))
         threading.Thread(target=self._stream, daemon=True).start()
 
     def _show_results(self, rows: list, cols: list[str]) -> None:
         if not rows:
-            self._sys("ℹ️ Query returned no rows.")
+            self._sys("[i] Query returned no rows.")
             return
 
         # ── Privacy: limit rows sent to AI for cloud models ──
@@ -2815,14 +3719,14 @@ class OllamaChatWindow(tk.Toplevel):
             lines.append(" │ ".join(
                 str(row.get(c, "") or "").ljust(widths[c]) for c in cols))
 
-        result_text = (f"📊 Result: {len(rows)} row(s)"
+        result_text = (f"[chart] Result: {len(rows)} row(s)"
                        + (" (max 50)" if len(rows) == 50 else "")
                        + "\n" + "\n".join(lines))
 
         # Show as code block in a new bubble
         row_f = tk.Frame(self._msg_container, bg=PANEL_BG)
         row_f.pack(fill="x", padx=12, pady=4)
-        tk.Label(row_f, text="📊", bg=PANEL_BG,
+        tk.Label(row_f, text="[chart]", bg=PANEL_BG,
                  font=("Segoe UI Emoji", 15), padx=6
                  ).pack(side="left", anchor="n", pady=6)
         col_f = tk.Frame(row_f, bg=PANEL_BG)
@@ -2837,12 +3741,12 @@ class OllamaChatWindow(tk.Toplevel):
         ai_lines    = lines[:max_ai_rows + 2]   # header + separator + rows
         ai_text     = "\n".join(ai_lines)
         privacy_note = (
-            f"  [Only {max_ai_rows} of {len(rows)} rows shared — cloud privacy mode]"
+            f"  [Only {max_ai_rows} of {len(rows)} rows shared - cloud privacy mode]"
             if is_cloud and len(rows) > max_ai_rows else ""
         )
         self._messages.append({
             "role":    "user",
-            "content": f"[SQL Result — {len(rows)} row(s)]{privacy_note}\n{ai_text}\nBriefly interpret these results.",
+            "content": f"[SQL Result - {len(rows)} row(s)]{privacy_note}\n{ai_text}\nBriefly interpret these results.",
         })
         threading.Thread(target=self._stream, daemon=True).start()
 
@@ -2870,7 +3774,7 @@ class OllamaChatWindow(tk.Toplevel):
 
         if data is None:
             self._ctx_status.config(
-                text="⚠️ No JSON found.\nAsk AI to output final JSON block.",
+                text="[!] No JSON found.\nAsk AI to output final JSON block.",
                 fg=WARNING)
             return
 
@@ -2879,17 +3783,17 @@ class OllamaChatWindow(tk.Toplevel):
             n = (len(data.get("column_renames", {})) +
                  len(data.get("deselect_columns", [])) +
                  (1 if data.get("target_table_name") else 0))
-            self._ctx_status.config(text=f"✅ Applied {n} change(s).", fg=ACCENT2)
-            self._sys(f"✅ Changes applied to inspector ({n} updates).")
+            self._ctx_status.config(text=f"[ok] Applied {n} change(s).", fg=ACCENT2)
+            self._sys(f"[ok] Changes applied to inspector ({n} updates).")
         except Exception as e:
-            self._ctx_status.config(text=f"❌ {e}", fg=DANGER)
+            self._ctx_status.config(text=f"[x] {e}", fg=DANGER)
 
     def _copy_last(self) -> None:
         if not self._last_ai_msg:
             return
         self.clipboard_clear()
         self.clipboard_append(self._last_ai_msg)
-        self._ctx_status.config(text="📋 Copied.", fg=TEXT_DIM)
+        self._ctx_status.config(text="[clipboard] Copied.", fg=TEXT_DIM)
 
     def _export_chat(self) -> None:
         lines = []
@@ -2900,7 +3804,7 @@ class OllamaChatWindow(tk.Toplevel):
             lines.append(f"\n{prefix}\n{m['content']}\n{'─' * 60}")
         self.clipboard_clear()
         self.clipboard_append("\n".join(lines))
-        self._ctx_status.config(text="📤 Exported to clipboard.", fg=TEXT_DIM)
+        self._ctx_status.config(text="[send] Exported to clipboard.", fg=TEXT_DIM)
 
     def _clear_chat(self) -> None:
         if not messagebox.askyesno("Clear?", "Reset conversation?", parent=self):
@@ -2922,7 +3826,7 @@ class OllamaChatWindow(tk.Toplevel):
         The AI will still have access to previous sessions via the system prompt.
         """
         if not messagebox.askyesno(
-            "✨ New Chat",
+            "[*] New Chat",
             "سيتم بدء جلسة جديدة.\n"
             "المحادثات السابقة محفوظة وسيظل الذكاء الاصطناعي على دراية بها.\n\n"
             "A new session will start. Previous messages are saved and the AI will still \n"
@@ -2954,7 +3858,7 @@ class OllamaChatWindow(tk.Toplevel):
 
         # Show "new session" banner
         sess_label = self._history.session_label if self._history else "New Session"
-        self._sys(f"✨ {sess_label} started — جلسة جديدة (previous history loaded in context)")
+        self._sys(f"[*] {sess_label} started - جلسة جديدة (previous history loaded in context)")
         threading.Thread(target=self._stream, daemon=True).start()
 
     # ── Restore previous chat history in UI ───────────────────────
@@ -2978,7 +3882,7 @@ class OllamaChatWindow(tk.Toplevel):
         sess_txt = "  |  ".join(sessions[-3:])  # last 3 labels
 
         tk.Label(banner_f,
-                 text=f"📚  سجل المحادثات محمل  —  Chat History Loaded",
+                 text=f"📚  سجل المحادثات محمل  -  Chat History Loaded",
                  bg="#091420", fg="#58a6ff",
                  font=("Segoe UI", 9, "bold"),
                  padx=12, pady=6).pack(anchor="w")
@@ -2990,8 +3894,8 @@ class OllamaChatWindow(tk.Toplevel):
                  text="   الذكاء الاصطناعي يعرف بتاريخ عملك على هذا الجدول ويمكنه الإجابة بدقة أعلى.",
                  bg="#091420", fg=TEXT_DIM,
                  font=("Segoe UI", 8, "italic"),
-                 padx=12, pady=(0, 6),
-                 wraplength=700).pack(anchor="w")
+                 padx=12,
+                 wraplength=700).pack(anchor="w", pady=(0, 6))
 
         # ── Replay last N messages from all previous sessions ────
         all_sessions = self._history._data.get("sessions", [])
@@ -3009,7 +3913,7 @@ class OllamaChatWindow(tk.Toplevel):
             sep = tk.Frame(self._msg_container, bg="#1a1f2e", height=1)
             sep.pack(fill="x", padx=8, pady=4)
             tk.Label(self._msg_container,
-                     text=f"⏳ آخر {len(tail)} رسائل من الجلسات السابقة  /  Last {len(tail)} messages from history:",
+                     text=f"[wait] آخر {len(tail)} رسائل من الجلسات السابقة  /  Last {len(tail)} messages from history:",
                      bg=PANEL_BG, fg=TEXT_DIM,
                      font=("Segoe UI", 8, "italic"),
                      padx=52).pack(anchor="w")
@@ -3024,10 +3928,10 @@ class OllamaChatWindow(tk.Toplevel):
                 if role == "user":
                     self._add_user_bubble(f"📌 [prev] {content}")
                 else:
-                    # ghost AI bubble — non-interactive, dim
+                    # ghost AI bubble - non-interactive, dim
                     row = tk.Frame(self._msg_container, bg=PANEL_BG)
                     row.pack(fill="x", padx=12, pady=2)
-                    tk.Label(row, text="🤖",
+                    tk.Label(row, text="[AI]",
                              bg=PANEL_BG, fg=TEXT_DIM,
                              font=("Segoe UI", 14)).pack(side="left", anchor="n", padx=(0, 6))
                     col = tk.Frame(row, bg=PANEL_BG)
@@ -3060,8 +3964,8 @@ class _SqlEditorWindow(tk.Toplevel):
     - Syntax-highlighted editor (tk.Text)
     - Execute button (respects risk classification + safe-copy)
     - Results in ttk.Treeview
-    - 🤖 Ask AI — send SQL to the chat AI for review/improvement
-    - 📤 Feed to AI — inject results into the chat conversation
+    - [AI] Ask AI - send SQL to the chat AI for review/improvement
+    - [send] Feed to AI - inject results into the chat conversation
     """
 
     def __init__(self, chat_win: "OllamaChatWindow",
@@ -3077,7 +3981,7 @@ class _SqlEditorWindow(tk.Toplevel):
 
         schema = context.get("src_schema", "public")
         table  = context.get("table_name", "")
-        self.title(f"🛠 SQL Editor — {schema}.{table}")
+        self.title(f"🛠 SQL Editor - {schema}.{table}")
         self.geometry("1000x620")
         self.minsize(700, 440)
         self.configure(bg=BG)
@@ -3117,7 +4021,7 @@ class _SqlEditorWindow(tk.Toplevel):
 
         ed_hdr = tk.Frame(left, bg=HEADER_BG, padx=10, pady=6)
         ed_hdr.pack(fill="x")
-        tk.Label(ed_hdr, text="✏️  Editor",
+        tk.Label(ed_hdr, text="✏  Editor",
                  bg=HEADER_BG, fg=TEXT_DIM,
                  font=FONT_BOLD).pack(side="left")
 
@@ -3153,7 +4057,7 @@ class _SqlEditorWindow(tk.Toplevel):
         ed_bar.pack(fill="x")
 
         self._exec_btn = tk.Button(
-            ed_bar, text="  ▶  Execute  ",
+            ed_bar, text="  >  Execute  ",
             command=self._execute,
             bg=ACCENT2, fg=BG,
             activebackground=ACCENT, activeforeground=BG,
@@ -3162,7 +4066,7 @@ class _SqlEditorWindow(tk.Toplevel):
         )
         self._exec_btn.pack(side="left", padx=(0, 8))
 
-        tk.Button(ed_bar, text="🤖 Ask AI",
+        tk.Button(ed_bar, text="[AI] Ask AI",
                   command=self._ask_ai,
                   bg="#0d1f2d", fg=ACCENT,
                   activebackground="#1a2e40", activeforeground=ACCENT,
@@ -3191,7 +4095,7 @@ class _SqlEditorWindow(tk.Toplevel):
 
         res_hdr = tk.Frame(right, bg=HEADER_BG, padx=10, pady=6)
         res_hdr.pack(fill="x")
-        tk.Label(res_hdr, text="📊  Results",
+        tk.Label(res_hdr, text="[chart]  Results",
                  bg=HEADER_BG, fg=TEXT_DIM,
                  font=FONT_BOLD).pack(side="left")
         self._res_count = tk.Label(res_hdr, text="",
@@ -3230,7 +4134,7 @@ class _SqlEditorWindow(tk.Toplevel):
         res_bar = tk.Frame(right, bg=HEADER_BG, padx=8, pady=6)
         res_bar.pack(fill="x")
 
-        tk.Button(res_bar, text="📤 Feed to AI",
+        tk.Button(res_bar, text="[send] Feed to AI",
                   command=self._feed_results_to_ai,
                   bg="#0f2d1a", fg=ACCENT2,
                   activebackground="#1a4a2e", activeforeground=ACCENT2,
@@ -3238,7 +4142,7 @@ class _SqlEditorWindow(tk.Toplevel):
                   font=("Segoe UI", 9, "bold"), padx=10, pady=5,
                   ).pack(side="left", padx=(0, 8))
 
-        tk.Button(res_bar, text="📋 Copy CSV",
+        tk.Button(res_bar, text="[clipboard] Copy CSV",
                   command=self._copy_csv,
                   bg=ENTRY_BG, fg=TEXT_DIM,
                   activebackground=BTN_HOVER, activeforeground=TEXT,
@@ -3263,8 +4167,8 @@ class _SqlEditorWindow(tk.Toplevel):
         sql  = self._editor.get("1.0", "end-1c").strip()
         risk = _classify_sql(sql) if sql else RISK_READ
         color  = RISK_COLOR.get(risk, TEXT_DIM)
-        label  = {"READ": "🟢 READ", "WRITE": "🟡 WRITE",
-                  "DANGER": "🔴 DANGER", "BLOCKED": "⛔ BLOCKED"}.get(risk, risk)
+        label  = {"READ": "[green] READ", "WRITE": "[yellow] WRITE",
+                  "DANGER": "[red] DANGER", "BLOCKED": "[blocked] BLOCKED"}.get(risk, risk)
         self._risk_lbl.config(text=label, fg=color)
         exec_col = {"READ": ACCENT2, "WRITE": WARNING,
                     "DANGER": DANGER, "BLOCKED": TEXT_DIM}.get(risk, ACCENT2)
@@ -3277,7 +4181,7 @@ class _SqlEditorWindow(tk.Toplevel):
         risk  = _classify_sql(sql)
 
         if risk == RISK_BLOCKED:
-            self._set_status("⛔ Blocked — this operation is forbidden.", DANGER)
+            self._set_status("[blocked] Blocked - this operation is forbidden.", DANGER)
             return
 
         if risk in (RISK_WRITE, RISK_DANGER):
@@ -3289,8 +4193,8 @@ class _SqlEditorWindow(tk.Toplevel):
             ))
             return
 
-        # READ — run directly
-        self._set_status("⏳ Executing...", TEXT_DIM)
+        # READ - run directly
+        self._set_status("[wait] Executing...", TEXT_DIM)
         threading.Thread(target=self._run_read, args=(sql,), daemon=True).start()
 
     def _run_read(self, sql: str) -> None:
@@ -3311,7 +4215,7 @@ class _SqlEditorWindow(tk.Toplevel):
                        self._show_results(r, c, e))
         except Exception as e:
             err = str(e)
-            self.after(0, lambda: self._set_status(f"❌ {err}", DANGER))
+            self.after(0, lambda: self._set_status(f"[x] {err}", DANGER))
 
     def _show_results(self, rows: list, cols: list,
                       elapsed: float = 0.0) -> None:
@@ -3334,7 +4238,7 @@ class _SqlEditorWindow(tk.Toplevel):
         n = len(rows)
         self._res_count.config(
             text=f"{n} row{'s' if n != 1 else ''} | {elapsed:.2f}s")
-        self._set_status(f"✅ {n} rows returned in {elapsed:.2f}s", ACCENT2)
+        self._set_status(f"[ok] {n} rows returned in {elapsed:.2f}s", ACCENT2)
 
     def _set_status(self, msg: str, color: str = TEXT_DIM) -> None:
         self._status.config(text=msg, fg=color)
@@ -3349,12 +4253,12 @@ class _SqlEditorWindow(tk.Toplevel):
             f"```sql\n{sql}\n```"
         )
         self._feed(prompt)
-        self._set_status("🤖 SQL sent to AI for review.", ACCENT)
+        self._set_status("[AI] SQL sent to AI for review.", ACCENT)
 
     def _feed_results_to_ai(self) -> None:
         """Inject current query results into the chat conversation."""
         if not self._last_rows:
-            self._set_status("⚠️ No results to feed. Run a query first.", WARNING)
+            self._set_status("[!] No results to feed. Run a query first.", WARNING)
             return
         sql     = self._editor.get("1.0", "end-1c").strip()[:100]
         summary = OllamaChatWindow._format_results_for_ai(
@@ -3364,7 +4268,7 @@ class _SqlEditorWindow(tk.Toplevel):
             f"حلّل هذه النتائج وأعطِ توصياتك."
         )
         self._feed(prompt)
-        self._set_status("📤 Results fed to AI.", ACCENT2)
+        self._set_status("[send] Results fed to AI.", ACCENT2)
 
     def _copy_csv(self) -> None:
         if not self._last_rows or not self._last_cols:
@@ -3375,4 +4279,4 @@ class _SqlEditorWindow(tk.Toplevel):
                 f'"{str(row.get(c,""))}"' for c in self._last_cols))
         self.clipboard_clear()
         self.clipboard_append("\n".join(lines))
-        self._set_status("📋 Copied as CSV.", TEXT_DIM)
+        self._set_status("[clipboard] Copied as CSV.", TEXT_DIM)
